@@ -13,7 +13,7 @@ const INITIAL_DATA: AppData = {
   ],
   entities: [],
   visits: [],
-  settings: { managerName: "مدير النظام", reportEmail: "", reminderTime: "18:00", geofenceRadiusMeters: 200 },
+  settings: { managerName: "مدير النظام", reportEmail: "", reminderTime: "18:00", geofenceRadiusMeters: 200, managerPin: "" },
 };
 
 type VisitStoreValue = {
@@ -44,7 +44,7 @@ export function VisitProvider({ children }: PropsWithChildren) {
             representatives: parsed.representatives?.length ? parsed.representatives : INITIAL_DATA.representatives,
             entities: parsed.entities ?? [],
             visits: parsed.visits ?? [],
-            settings: { ...INITIAL_DATA.settings, ...(parsed.settings ?? {}), geofenceRadiusMeters: Number(parsed.settings?.geofenceRadiusMeters) || INITIAL_DATA.settings.geofenceRadiusMeters },
+            settings: { ...INITIAL_DATA.settings, ...(parsed.settings ?? {}), geofenceRadiusMeters: Number(parsed.settings?.geofenceRadiusMeters) || INITIAL_DATA.settings.geofenceRadiusMeters, managerPin: String(parsed.settings?.managerPin ?? INITIAL_DATA.settings.managerPin) },
           });
         }
       })

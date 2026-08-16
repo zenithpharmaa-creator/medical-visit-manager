@@ -16,13 +16,14 @@ export default function SettingsScreen() {
   const [reportEmail, setReportEmail] = useState(data.settings.reportEmail);
   const [reminderTime, setReminderTime] = useState(data.settings.reminderTime);
   const [geofenceRadiusMeters, setGeofenceRadiusMeters] = useState(String(data.settings.geofenceRadiusMeters));
+  const [managerPin, setManagerPin] = useState(data.settings.managerPin);
   const [representativeNames, setRepresentativeNames] = useState(data.representatives.map((item) => item.name));
   useEffect(() => { setRepresentativeNames(data.representatives.map((item) => item.name)); }, [data.representatives]);
 
   const save = async () => {
     const radius = Math.max(50, Math.min(2000, Number(geofenceRadiusMeters) || 200));
     setGeofenceRadiusMeters(String(radius));
-    updateSettings({ managerName: managerName.trim() || "مدير النظام", reportEmail: reportEmail.trim(), reminderTime: reminderTime.trim() || "18:00", geofenceRadiusMeters: radius });
+    updateSettings({ managerName: managerName.trim() || "مدير النظام", reportEmail: reportEmail.trim(), reminderTime: reminderTime.trim() || "18:00", geofenceRadiusMeters: radius, managerPin: managerPin.trim() });
     data.representatives.forEach((item, index) => updateRepresentative({ ...item, name: representativeNames[index]?.trim() || item.name }));
     try {
       await scheduleReportReminder(reminderTime.trim() || "18:00");
@@ -52,6 +53,7 @@ export default function SettingsScreen() {
         <FormField label="بريد استلام التقرير" icon="email" value={reportEmail} onChangeText={setReportEmail} placeholder="example@company.com" />
         <FormField label="وقت تذكير تجهيز التقرير اليومي" icon="schedule" value={reminderTime} onChangeText={setReminderTime} placeholder="18:00" />
         <FormField label="نطاق قبول الزيارة بالمتر" icon="radar" value={geofenceRadiusMeters} onChangeText={setGeofenceRadiusMeters} placeholder="200" />
+        <FormField label="PIN مدير النظام للتجاوز" icon="lock" value={managerPin} onChangeText={setManagerPin} placeholder="أنشئ PIN من 4 أرقام أو أكثر" />
         <Text className="font-bold text-foreground text-right mb-3 mt-1">المندوبون</Text>
         {data.representatives.map((representative, index) => <View key={representative.id} className="mb-4"><View className="flex-row-reverse items-center gap-2 mb-2"><View className="w-7 h-7 rounded-lg bg-primary items-center justify-center"><MaterialIcons name="person" size={15} color="#FFFFFF" /></View><Text className="font-bold text-foreground">مندوب {index + 1}</Text></View><TextInput value={representativeNames[index] ?? ""} onChangeText={(value) => setRepresentativeNames((current) => current.map((item, itemIndex) => itemIndex === index ? value : item))} placeholder={`اسم المندوب ${index + 1}`} placeholderTextColor="#7C8798" textAlign="right" className="h-14 rounded-2xl border border-border bg-surface px-4 text-foreground font-semibold" /></View>)}
         <Pressable onPress={save} className="h-14 rounded-2xl bg-success items-center justify-center flex-row-reverse gap-2" style={({ pressed }) => [{ opacity: pressed ? 0.8 : 1 }]}><MaterialIcons name="save" size={21} color="#FFFFFF" /><Text className="text-white font-bold">حفظ الإعدادات والتذكير</Text></Pressable>

@@ -42,6 +42,8 @@ export type Visit = {
   recordedAt: string;
   location: VisitLocation | null;
   notes: string;
+  managerOverride?: boolean;
+  overrideReason?: string;
 };
 
 export type AppSettings = {
@@ -49,6 +51,7 @@ export type AppSettings = {
   reportEmail: string;
   reminderTime: string;
   geofenceRadiusMeters: number;
+  managerPin: string;
 };
 
 export type AppData = {

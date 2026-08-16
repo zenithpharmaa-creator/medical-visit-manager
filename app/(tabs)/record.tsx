@@ -2,7 +2,7 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import * as Haptics from "expo-haptics";
 import * as Location from "expo-location";
 import { useMemo, useState } from "react";
-import { Alert, Pressable, ScrollView, Text, View } from "react-native";
+import { Alert, Modal, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 
 import { FormField } from "@/components/form-field";
 import { ScreenHeader } from "@/components/screen-header";
@@ -36,6 +36,9 @@ export default function RecordVisitScreen() {
   const [capturedAt, setCapturedAt] = useState<string | null>(null);
   const [location, setLocation] = useState<VisitLocation | null>(null);
   const [isLocating, setIsLocating] = useState(false);
+  const [overrideModalVisible, setOverrideModalVisible] = useState(false);
+  const [overridePin, setOverridePin] = useState("");
+  const [overrideReason, setOverrideReason] = useState("");
 
   const pickerOptions = useMemo(() => {
     if (picker === "representative") {
@@ -68,43 +71,36 @@ export default function RecordVisitScreen() {
     }
   };
 
+  const persistVisit = (managerOverride = false, reason = "") => {
+    if (!selectedEntity || !capturedAt || !location) return;
+    addVisit({
+      id: buildId("visit"), representativeId: selectedRepresentative.id, entityId: selectedEntity.id,
+      entityName: selectedEntity.name, entityKind: selectedEntity.kind, nearestPharmacy: selectedEntity.nearestPharmacy,
+      geographicCoordinates: selectedEntity.geographicCoordinates, specialty: selectedEntity.specialty, category: selectedEntity.category,
+      geographicLocation: selectedEntity.geographicLocation, recordedAt: capturedAt, location, notes: notes.trim(),
+      managerOverride: managerOverride || undefined, overrideReason: managerOverride ? reason : undefined,
+    });
+    setOverrideModalVisible(false); setOverridePin(""); setOverrideReason("");
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    Alert.alert("تم حفظ الزيارة", managerOverride ? "تم التسجيل بتجاوز المدير مع حفظ السبب." : "تم تسجيل وقت وموقع الزيارة بنجاح.", [{ text: "تسجيل زيارة أخرى", onPress: () => { setSelectedEntity(null); setNotes(""); setCapturedAt(null); setLocation(null); } }]);
+  };
+
   const saveVisit = () => {
-    if (!selectedEntity) {
-      Alert.alert("اختر جهة الزيارة", "أضف جهة يدوياً من شاشة الإدارة أو استوردها من ملف Excel أولاً.");
-      return;
-    }
-    if (!capturedAt || !location) {
-      Alert.alert("التقط الموقع والوقت", "اضغط زر التقاط الموقع والوقت قبل حفظ الزيارة.");
-      return;
-    }
-    if (!selectedEntity.geographicCoordinates) {
-      Alert.alert("موقع الجهة غير موثّق", "لا يمكن حفظ الزيارة قبل حفظ إحداثيات الجهة من GPS أو اختيارها من الخريطة.");
-      return;
-    }
+    if (!selectedEntity) { Alert.alert("اختر جهة الزيارة", "أضف جهة من شاشة الإدارة أو استوردها من Excel أولاً."); return; }
+    if (!capturedAt || !location) { Alert.alert("التقط الموقع والوقت", "اضغط زر التقاط الموقع والوقت قبل حفظ الزيارة."); return; }
+    if (!selectedEntity.geographicCoordinates) { Alert.alert("موقع الجهة غير موثّق", "لا يمكن حفظ الزيارة قبل حفظ إحداثيات الجهة من GPS أو الخريطة."); return; }
     const distanceMeters = distanceBetweenMeters(location, selectedEntity.geographicCoordinates);
     if (!isWithinGeofence(distanceMeters, data.settings.geofenceRadiusMeters)) {
-      Alert.alert("الزيارة خارج نطاق الجهة", `المسافة الحالية ${Math.round(distanceMeters)} متر، والحد المسموح ${data.settings.geofenceRadiusMeters} متر. اقترب من الجهة ثم أعد التقاط الموقع.`);
-      return;
+      if (!data.settings.managerPin) { Alert.alert("الزيارة خارج النطاق", `المسافة ${Math.round(distanceMeters)} متر. لا يوجد PIN مدير مضبوط لتجاوز الشرط.`); return; }
+      setOverrideModalVisible(true); return;
     }
-    addVisit({
-      id: buildId("visit"),
-      representativeId: selectedRepresentative.id,
-      entityId: selectedEntity.id,
-      entityName: selectedEntity.name,
-      entityKind: selectedEntity.kind,
-      nearestPharmacy: selectedEntity.nearestPharmacy,
-      geographicCoordinates: selectedEntity.geographicCoordinates,
-      specialty: selectedEntity.specialty,
-      category: selectedEntity.category,
-      geographicLocation: selectedEntity.geographicLocation,
-      recordedAt: capturedAt,
-      location,
-      notes: notes.trim(),
-    });
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    Alert.alert("تم حفظ الزيارة", "تم تسجيل وقت وموقع الزيارة بنجاح.", [
-      { text: "تسجيل زيارة أخرى", onPress: () => { setSelectedEntity(null); setNotes(""); setCapturedAt(null); setLocation(null); } },
-    ]);
+    persistVisit();
+  };
+
+  const confirmOverride = () => {
+    if (overridePin !== data.settings.managerPin) { Alert.alert("PIN غير صحيح", "لا يمكن تنفيذ تجاوز المدير دون PIN صحيح."); return; }
+    if (overrideReason.trim().length < 5) { Alert.alert("سبب التجاوز مطلوب", "اكتب سبباً واضحاً لا يقل عن خمسة أحرف."); return; }
+    persistVisit(true, overrideReason.trim());
   };
 
   const title = picker === "representative" ? "اختر المندوب" : "اختر جهة الزيارة";
@@ -153,6 +149,9 @@ export default function RecordVisitScreen() {
         </Pressable>
       </ScrollView>
 
+      <Modal visible={overrideModalVisible} transparent animationType="slide" onRequestClose={() => setOverrideModalVisible(false)}>
+        <View className="flex-1 justify-end bg-black/40"><View className="bg-background rounded-t-[28px] px-5 pt-5 pb-8"><View className="flex-row-reverse items-center justify-between mb-4"><Text className="text-lg font-bold text-foreground">تجاوز مدير النظام</Text><Pressable onPress={() => setOverrideModalVisible(false)}><MaterialIcons name="close" size={24} color="#102A43" /></Pressable></View><Text className="text-sm text-muted text-right leading-5 mb-4">الزيارة خارج نطاق الجهة. أدخل PIN المدير وسبباً واضحاً ليتم حفظ التجاوز مع سجل الزيارة.</Text><Text className="font-bold text-foreground text-right mb-2">PIN المدير</Text><TextInput value={overridePin} onChangeText={setOverridePin} secureTextEntry keyboardType="number-pad" placeholder="PIN" placeholderTextColor="#7C8798" textAlign="right" className="h-14 rounded-2xl border border-border bg-surface px-4 text-foreground mb-4" /><Text className="font-bold text-foreground text-right mb-2">سبب التجاوز *</Text><TextInput value={overrideReason} onChangeText={setOverrideReason} placeholder="مثال: GPS غير دقيق داخل المبنى" placeholderTextColor="#7C8798" textAlign="right" multiline className="min-h-24 rounded-2xl border border-border bg-surface px-4 py-3 text-foreground mb-4" /><Pressable onPress={confirmOverride} className="h-14 rounded-2xl bg-warning items-center justify-center flex-row-reverse gap-2"><MaterialIcons name="verified-user" size={21} color="#FFFFFF" /><Text className="text-white font-bold">تأكيد التجاوز والحفظ</Text></Pressable></View></View>
+      </Modal>
       <SelectionModal
         visible={picker !== null}
         title={title}
