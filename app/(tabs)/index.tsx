@@ -5,12 +5,14 @@ import { Pressable, ScrollView, Text, View } from "react-native";
 import { MetricCard } from "@/components/metric-card";
 import { ScreenHeader } from "@/components/screen-header";
 import { ScreenContainer } from "@/components/screen-container";
+import { useAccountSession } from "@/lib/account-session";
 import { useVisitStore } from "@/lib/visit-store";
 import { formatArabicDate, visitsForDate } from "@/lib/visit-utils";
 import { monthlyOverrideCounts } from "@/lib/override-report";
 
 export default function HomeScreen() {
   const { data, loading } = useVisitStore();
+  const { logout } = useAccountSession();
   const todayVisits = visitsForDate(data.visits, new Date());
   const activeReps = data.representatives.filter((rep) => rep.active);
   const monthlyOverrides = monthlyOverrideCounts(data.visits, data.representatives);
@@ -23,7 +25,7 @@ export default function HomeScreen() {
   return (
     <ScreenContainer className="px-5" containerClassName="bg-background">
       <ScrollView contentContainerStyle={{ paddingTop: 18, paddingBottom: 28 }} showsVerticalScrollIndicator={false}>
-        <ScreenHeader title="لوحة تحكم المدير" subtitle="متابعة يومية سريعة لحالة الزيارات ونشاط الفريق" icon="dashboard" showBack={false} />
+        <ScreenHeader title="لوحة التحكم" subtitle="متابعة يومية سريعة لحالة الزيارات ونشاط الفريق" icon="dashboard" showBack={false} actionLabel="دخول الحساب" actionIcon="login" onAction={() => { void logout(); }} />
 
         <View className="rounded-3xl bg-primary p-5 mb-5 overflow-hidden">
           <View className="flex-row-reverse items-start justify-between">
