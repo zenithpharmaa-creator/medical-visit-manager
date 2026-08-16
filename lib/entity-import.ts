@@ -11,6 +11,13 @@ function textValue(row: ExcelRow, aliases: string[]) {
   return "";
 }
 
+function resolveRegion(value: string): "north" | "south" | undefined {
+  const clean = value.trim().toLowerCase();
+  if (clean.includes("جنوب") || clean.includes("south")) return "south";
+  if (clean.includes("شمال") || clean.includes("north")) return "north";
+  return undefined;
+}
+
 function resolveKind(value: string): EntityKind {
   const clean = value.trim().toLowerCase();
   const match = ENTITY_KINDS.find((kind) => kind.toLowerCase() === clean);
@@ -30,6 +37,7 @@ export function parseEntitiesFromRows(rows: ExcelRow[]): MedicalEntity[] {
         id: buildId("entity"),
         name,
         kind: resolveKind(textValue(row, ["النوع", "نوع الجهة", "type", "entity type"])),
+        region: resolveRegion(textValue(row, ["منطقة الزيارة", "منطقة الطبيب", "region", "doctor region"])),
         contactName: textValue(row, ["المسؤول", "المسؤول الطبي", "contact", "contact name"]),
         phone: textValue(row, ["الهاتف", "رقم الهاتف", "phone", "mobile"]),
         address: textValue(row, ["العنوان", "address"]),
