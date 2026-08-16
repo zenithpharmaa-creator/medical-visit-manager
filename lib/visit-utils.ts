@@ -29,3 +29,19 @@ export function formatArabicDate(iso: string) {
 export function buildId(prefix: string) {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
+
+
+export function distanceBetweenMeters(first: { latitude: number; longitude: number }, second: { latitude: number; longitude: number }) {
+  const earthRadius = 6371000;
+  const toRadians = (value: number) => (value * Math.PI) / 180;
+  const dLatitude = toRadians(second.latitude - first.latitude);
+  const dLongitude = toRadians(second.longitude - first.longitude);
+  const latitudeA = toRadians(first.latitude);
+  const latitudeB = toRadians(second.latitude);
+  const a = Math.sin(dLatitude / 2) ** 2 + Math.cos(latitudeA) * Math.cos(latitudeB) * Math.sin(dLongitude / 2) ** 2;
+  return earthRadius * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+export function isWithinGeofence(distanceMeters: number, allowedRadiusMeters: number) {
+  return distanceMeters <= allowedRadiusMeters;
+}

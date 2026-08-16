@@ -9,7 +9,7 @@ import { ScreenHeader } from "@/components/screen-header";
 import { SelectionModal } from "@/components/selection-modal";
 import { ScreenContainer } from "@/components/screen-container";
 import { useVisitStore } from "@/lib/visit-store";
-import { buildId, formatArabicDate } from "@/lib/visit-utils";
+import { buildId, distanceBetweenMeters, formatArabicDate, isWithinGeofence } from "@/lib/visit-utils";
 import { MedicalEntity, Representative, VisitLocation } from "@/shared/visit-types";
 
 type PickerTarget = "representative" | "entity" | null;
@@ -73,8 +73,17 @@ export default function RecordVisitScreen() {
       Alert.alert("اختر جهة الزيارة", "أضف جهة يدوياً من شاشة الإدارة أو استوردها من ملف Excel أولاً.");
       return;
     }
-    if (!capturedAt) {
+    if (!capturedAt || !location) {
       Alert.alert("التقط الموقع والوقت", "اضغط زر التقاط الموقع والوقت قبل حفظ الزيارة.");
+      return;
+    }
+    if (!selectedEntity.geographicCoordinates) {
+      Alert.alert("موقع الجهة غير موثّق", "لا يمكن حفظ الزيارة قبل حفظ إحداثيات الجهة من GPS أو اختيارها من الخريطة.");
+      return;
+    }
+    const distanceMeters = distanceBetweenMeters(location, selectedEntity.geographicCoordinates);
+    if (!isWithinGeofence(distanceMeters, data.settings.geofenceRadiusMeters)) {
+      Alert.alert("الزيارة خارج نطاق الجهة", `المسافة الحالية ${Math.round(distanceMeters)} متر، والحد المسموح ${data.settings.geofenceRadiusMeters} متر. اقترب من الجهة ثم أعد التقاط الموقع.`);
       return;
     }
     addVisit({

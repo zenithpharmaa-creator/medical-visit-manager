@@ -48,6 +48,7 @@ export type AppSettings = {
   managerName: string;
   reportEmail: string;
   reminderTime: string;
+  geofenceRadiusMeters: number;
 };
 
 export type AppData = {

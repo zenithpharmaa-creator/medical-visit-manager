@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { parseEntitiesFromRows } from "../lib/entity-import";
 import { getPeriodVisits } from "../lib/reporting";
+import { distanceBetweenMeters, isWithinGeofence } from "../lib/visit-utils";
 import { ENTITY_CATEGORIES, SPECIALTIES } from "../lib/visit-utils";
 import type { Visit } from "../shared/visit-types";
 import { SANAA_OFFLINE_AREAS } from "../data/sanaa-offline";
@@ -15,6 +16,15 @@ const visit = (recordedAt: string): Visit => ({
   recordedAt,
   location: null,
   notes: "",
+});
+
+describe("geofence validation", () => {
+  it("يقبل الموقع القريب ويرفض الموقع البعيد", () => {
+    const distance = distanceBetweenMeters({ latitude: 15.3694, longitude: 44.191 }, { latitude: 15.3694, longitude: 44.192 });
+    expect(distance).toBeGreaterThan(50);
+    expect(isWithinGeofence(distance, 200)).toBe(true);
+    expect(isWithinGeofence(distance, 50)).toBe(false);
+  });
 });
 
 describe("Sana'a offline location catalog", () => {
