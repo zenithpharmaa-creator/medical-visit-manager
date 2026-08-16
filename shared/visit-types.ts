@@ -4,6 +4,9 @@ export type VisitShift = "morning" | "evening";
 export type Representative = {
   id: string;
   name: string;
+  phone?: string;
+  email?: string;
+  username?: string;
   active: boolean;
 };
 

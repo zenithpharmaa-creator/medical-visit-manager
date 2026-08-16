@@ -9,6 +9,7 @@ import { ScreenHeader } from "@/components/screen-header";
 import { ScreenContainer } from "@/components/screen-container";
 import { scheduleReportReminder } from "@/lib/report-reminder";
 import { useVisitStore } from "@/lib/visit-store";
+import { saveRepresentativePassword, validateRepresentativePassword } from "@/lib/representative-auth";
 
 export default function SettingsScreen() {
   const { data, updateRepresentative, updateSettings } = useVisitStore();
@@ -18,13 +19,25 @@ export default function SettingsScreen() {
   const [geofenceRadiusMeters, setGeofenceRadiusMeters] = useState(String(data.settings.geofenceRadiusMeters));
   const [managerPin, setManagerPin] = useState(data.settings.managerPin);
   const [representativeNames, setRepresentativeNames] = useState(data.representatives.map((item) => item.name));
-  useEffect(() => { setRepresentativeNames(data.representatives.map((item) => item.name)); }, [data.representatives]);
+  const [representativePhones, setRepresentativePhones] = useState(data.representatives.map((item) => item.phone ?? ""));
+  const [representativeEmails, setRepresentativeEmails] = useState(data.representatives.map((item) => item.email ?? ""));
+  const [representativeUsernames, setRepresentativeUsernames] = useState(data.representatives.map((item) => item.username ?? ""));
+  const [representativePasswords, setRepresentativePasswords] = useState(data.representatives.map(() => ""));
+  const [visiblePasswords, setVisiblePasswords] = useState<Record<string, boolean>>({});
+  useEffect(() => { setRepresentativeNames(data.representatives.map((item) => item.name)); setRepresentativePhones(data.representatives.map((item) => item.phone ?? "")); setRepresentativeEmails(data.representatives.map((item) => item.email ?? "")); setRepresentativeUsernames(data.representatives.map((item) => item.username ?? "")); }, [data.representatives]);
 
   const save = async () => {
     const radius = Math.max(50, Math.min(2000, Number(geofenceRadiusMeters) || 200));
     setGeofenceRadiusMeters(String(radius));
     updateSettings({ managerName: managerName.trim() || "مدير النظام", reportEmail: reportEmail.trim(), reminderTime: reminderTime.trim() || "18:00", geofenceRadiusMeters: radius, managerPin: managerPin.trim() });
-    data.representatives.forEach((item, index) => updateRepresentative({ ...item, name: representativeNames[index]?.trim() || item.name }));
+    for (let index = 0; index < data.representatives.length; index += 1) {
+      const item = data.representatives[index];
+      const password = representativePasswords[index] ?? "";
+      const validation = validateRepresentativePassword(password);
+      if (!validation.valid) { Alert.alert("كلمة مرور غير صالحة", `${item.name}: ${validation.message}`); return; }
+      updateRepresentative({ ...item, name: representativeNames[index]?.trim() || item.name, phone: representativePhones[index]?.trim(), email: representativeEmails[index]?.trim(), username: representativeUsernames[index]?.trim() });
+      if (password.trim()) await saveRepresentativePassword(item.id, password);
+    }
     try {
       await scheduleReportReminder(reminderTime.trim() || "18:00");
       Alert.alert("تم حفظ الإعدادات", "تم حفظ البيانات وضبط تذكير يومي لفتح التقرير وإرساله عبر البريد.");
@@ -55,7 +68,7 @@ export default function SettingsScreen() {
         <FormField label="نطاق قبول الزيارة بالمتر" icon="radar" value={geofenceRadiusMeters} onChangeText={setGeofenceRadiusMeters} placeholder="200" />
         <FormField label="PIN مدير النظام للتجاوز" icon="lock" value={managerPin} onChangeText={setManagerPin} placeholder="أنشئ PIN من 4 أرقام أو أكثر" />
         <Text className="font-bold text-foreground text-right mb-3 mt-1">المندوبون</Text>
-        {data.representatives.map((representative, index) => <View key={representative.id} className="mb-4"><View className="flex-row-reverse items-center gap-2 mb-2"><View className="w-7 h-7 rounded-lg bg-primary items-center justify-center"><MaterialIcons name="person" size={15} color="#FFFFFF" /></View><Text className="font-bold text-foreground">مندوب {index + 1}</Text></View><TextInput value={representativeNames[index] ?? ""} onChangeText={(value) => setRepresentativeNames((current) => current.map((item, itemIndex) => itemIndex === index ? value : item))} placeholder={`اسم المندوب ${index + 1}`} placeholderTextColor="#7C8798" textAlign="right" className="h-14 rounded-2xl border border-border bg-surface px-4 text-foreground font-semibold" /></View>)}
+        {data.representatives.map((representative, index) => <View key={representative.id} className="mb-4 rounded-2xl bg-surface border border-border p-3"><View className="flex-row-reverse items-center gap-2 mb-3"><View className="w-7 h-7 rounded-lg bg-primary items-center justify-center"><MaterialIcons name="person" size={15} color="#FFFFFF" /></View><Text className="font-bold text-foreground">مندوب {index + 1}</Text></View><TextInput value={representativeNames[index] ?? ""} onChangeText={(value) => setRepresentativeNames((current) => current.map((item, itemIndex) => itemIndex === index ? value : item))} placeholder="اسم المندوب" placeholderTextColor="#7C8798" textAlign="right" className="h-14 rounded-2xl border border-border bg-background px-4 text-foreground font-semibold mb-2" /><TextInput value={representativePhones[index] ?? ""} onChangeText={(value) => setRepresentativePhones((current) => current.map((item, itemIndex) => itemIndex === index ? value : item))} placeholder="رقم الهاتف" keyboardType="phone-pad" placeholderTextColor="#7C8798" textAlign="right" className="h-14 rounded-2xl border border-border bg-background px-4 text-foreground font-semibold mb-2" /><TextInput value={representativeEmails[index] ?? ""} onChangeText={(value) => setRepresentativeEmails((current) => current.map((item, itemIndex) => itemIndex === index ? value : item))} placeholder="البريد الإلكتروني" keyboardType="email-address" autoCapitalize="none" placeholderTextColor="#7C8798" textAlign="right" className="h-14 rounded-2xl border border-border bg-background px-4 text-foreground font-semibold mb-2" /><TextInput value={representativeUsernames[index] ?? ""} onChangeText={(value) => setRepresentativeUsernames((current) => current.map((item, itemIndex) => itemIndex === index ? value : item))} placeholder="اسم المستخدم" autoCapitalize="none" placeholderTextColor="#7C8798" textAlign="right" className="h-14 rounded-2xl border border-border bg-background px-4 text-foreground font-semibold mb-2" /><View className="flex-row-reverse items-center gap-2"><TextInput value={representativePasswords[index] ?? ""} onChangeText={(value) => setRepresentativePasswords((current) => current.map((item, itemIndex) => itemIndex === index ? value : item))} placeholder="كلمة مرور جديدة (اختياري)" secureTextEntry={!visiblePasswords[representative.id]} autoCapitalize="none" placeholderTextColor="#7C8798" textAlign="right" className="h-14 rounded-2xl border border-border bg-background px-4 text-foreground font-semibold flex-1" /><Pressable onPress={() => setVisiblePasswords((current) => ({ ...current, [representative.id]: !current[representative.id] }))} className="w-12 h-12 rounded-xl bg-foreground items-center justify-center"><MaterialIcons name={visiblePasswords[representative.id] ? "visibility-off" : "visibility"} size={20} color="#FFFFFF" /></Pressable></View><Text className="text-[11px] text-muted text-right mt-2">اتركها فارغة للإبقاء على كلمة المرور الحالية. الحد الأدنى 6 أحرف.</Text></View>)}
         <Pressable onPress={save} className="h-14 rounded-2xl bg-success items-center justify-center flex-row-reverse gap-2" style={({ pressed }) => [{ opacity: pressed ? 0.8 : 1 }]}><MaterialIcons name="save" size={21} color="#FFFFFF" /><Text className="text-white font-bold">حفظ الإعدادات والتذكير</Text></Pressable>
         <Text className="font-bold text-foreground text-right mb-3 mt-7">حفظ البيانات</Text>
         <Pressable onPress={backup} className="h-14 rounded-2xl bg-foreground items-center justify-center flex-row-reverse gap-2" style={({ pressed }) => [{ opacity: pressed ? 0.8 : 1 }]}><MaterialIcons name="backup" size={21} color="#FFFFFF" /><Text className="text-white font-bold">تصدير نسخة احتياطية</Text></Pressable>
