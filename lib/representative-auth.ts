@@ -1,4 +1,5 @@
 import * as SecureStore from "expo-secure-store";
+import { DEFAULT_ACCOUNT_PASSWORD } from "./manager-auth";
 import { validateRepresentativePassword } from "./representative-auth-validation";
 
 export { validateRepresentativePassword } from "./representative-auth-validation";
@@ -15,7 +16,7 @@ export async function saveRepresentativePassword(id: string, password: string) {
 }
 
 export async function getRepresentativePassword(id: string) {
-  return SecureStore.getItemAsync(keyForRepresentative(id));
+  return (await SecureStore.getItemAsync(keyForRepresentative(id))) ?? DEFAULT_ACCOUNT_PASSWORD;
 }
 
 export async function deleteRepresentativePassword(id: string) {

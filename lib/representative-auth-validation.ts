@@ -1,4 +1,4 @@
-export const MIN_REP_PASSWORD_LENGTH = 6;
+export const MIN_REP_PASSWORD_LENGTH = 3;
 
 export function validateRepresentativePassword(password: string) {
   const value = password.trim();

@@ -6,8 +6,8 @@ describe("representative account fields", () => {
     expect(validateRepresentativePassword("").valid).toBe(true);
   });
 
-  it("requires at least six characters for a new password", () => {
-    expect(validateRepresentativePassword("12345").valid).toBe(false);
-    expect(validateRepresentativePassword("123456").valid).toBe(true);
+  it("requires at least three characters for a new password", () => {
+    expect(validateRepresentativePassword("12").valid).toBe(false);
+    expect(validateRepresentativePassword("123").valid).toBe(true);
   });
 });
