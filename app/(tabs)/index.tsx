@@ -1,6 +1,7 @@
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { router } from "expo-router";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { Alert, Modal, Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { useState } from "react";
 
 import { MetricCard } from "@/components/metric-card";
 import { ScreenHeader } from "@/components/screen-header";
@@ -9,10 +10,27 @@ import { useAccountSession } from "@/lib/account-session";
 import { useVisitStore } from "@/lib/visit-store";
 import { formatArabicDate, visitsForDate } from "@/lib/visit-utils";
 import { monthlyOverrideCounts } from "@/lib/override-report";
+import { saveManagerPassword } from "@/lib/manager-auth";
+import { saveRepresentativePassword } from "@/lib/representative-auth";
+import { validateRepresentativePassword } from "@/lib/representative-auth-validation";
 
 export default function HomeScreen() {
   const { data, loading } = useVisitStore();
-  const { logout } = useAccountSession();
+  const { session, logout } = useAccountSession();
+  const [accountMenuVisible, setAccountMenuVisible] = useState(false);
+  const [passwordModalVisible, setPasswordModalVisible] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const activeRepresentative = session?.representativeId ? data.representatives.find((rep) => rep.id === session.representativeId) : undefined;
+  const activeAccountName = session?.role === "manager" ? "مدير النظام" : activeRepresentative?.name ?? "الحساب النشط";
+  const activeAccountRole = session?.role === "manager" ? "صلاحية مدير النظام" : session?.impersonatedByManager ? "مندوب — دخول المدير" : "صلاحية مندوب";
+  const changePassword = async () => {
+    const validation = validateRepresentativePassword(newPassword);
+    if (!validation.valid || !newPassword.trim()) { Alert.alert("رمز مرور غير صالح", "أدخل رمزاً من 3 أحرف أو أرقام على الأقل."); return; }
+    if (session?.role === "manager") await saveManagerPassword(newPassword.trim());
+    else if (session?.representativeId) await saveRepresentativePassword(session.representativeId, newPassword.trim());
+    setNewPassword(""); setPasswordModalVisible(false); setAccountMenuVisible(false);
+    Alert.alert("تم التحديث", "تم تغيير رمز مرور الحساب النشط بنجاح.");
+  };
   const todayVisits = visitsForDate(data.visits, new Date());
   const activeReps = data.representatives.filter((rep) => rep.active);
   const monthlyOverrides = monthlyOverrideCounts(data.visits, data.representatives);
@@ -25,7 +43,9 @@ export default function HomeScreen() {
   return (
     <ScreenContainer className="px-5" containerClassName="bg-background">
       <ScrollView contentContainerStyle={{ paddingTop: 18, paddingBottom: 28 }} showsVerticalScrollIndicator={false}>
-        <ScreenHeader title="لوحة التحكم" subtitle="متابعة يومية سريعة لحالة الزيارات ونشاط الفريق" icon="dashboard" showBack={false} actionLabel="دخول الحساب" actionIcon="login" onAction={() => { void logout(); }} />
+        <ScreenHeader title="لوحة التحكم" subtitle="متابعة يومية سريعة لحالة الزيارات ونشاط الفريق" icon="dashboard" showBack={false} actionLabel="الحساب" actionIcon="account-circle" onAction={() => setAccountMenuVisible(true)} />
+        <Pressable onPress={() => setAccountMenuVisible(true)} className="rounded-2xl bg-surface border border-border px-4 py-3 mb-5 flex-row-reverse items-center gap-3"><View className="w-10 h-10 rounded-full bg-primary/15 items-center justify-center"><MaterialIcons name="account-circle" size={25} color="#1565C0" /></View><View className="flex-1 items-end"><Text className="font-bold text-foreground">{activeAccountName}</Text><Text className="text-xs text-primary mt-1">{activeAccountRole}</Text></View><MaterialIcons name="keyboard-arrow-down" size={22} color="#64748B" /></Pressable>
+        <Modal visible={accountMenuVisible} transparent animationType="fade" onRequestClose={() => setAccountMenuVisible(false)}><Pressable onPress={() => setAccountMenuVisible(false)} className="flex-1 justify-end bg-black/35"><Pressable onPress={(event) => event.stopPropagation()} className="bg-background rounded-t-[28px] p-5"><Text className="text-lg font-bold text-foreground text-right">{activeAccountName}</Text><Text className="text-sm text-primary text-right mt-1 mb-4">{activeAccountRole}</Text><Pressable onPress={() => { setAccountMenuVisible(false); setPasswordModalVisible(true); }} className="h-13 rounded-xl bg-primary/10 items-center justify-center flex-row-reverse gap-2 mb-3"><MaterialIcons name="lock-reset" size={20} color="#1565C0" /><Text className="text-primary font-bold">تغيير كلمة المرور</Text></Pressable><Pressable onPress={() => { setAccountMenuVisible(false); void logout(); }} className="h-13 rounded-xl bg-error/10 items-center justify-center flex-row-reverse gap-2"><MaterialIcons name="logout" size={20} color="#C0392B" /><Text className="text-error font-bold">تسجيل الخروج</Text></Pressable></Pressable></Pressable></Modal><Modal visible={passwordModalVisible} transparent animationType="slide" onRequestClose={() => setPasswordModalVisible(false)}><View className="flex-1 justify-end bg-black/35"><View className="bg-background rounded-t-[28px] p-5"><Text className="text-lg font-bold text-foreground text-right mb-2">تغيير كلمة المرور</Text><Text className="text-sm text-muted text-right mb-4">الحساب: {activeAccountName}</Text><TextInput value={newPassword} onChangeText={setNewPassword} placeholder="رمز المرور الجديد" secureTextEntry autoCapitalize="none" placeholderTextColor="#7C8798" textAlign="right" className="h-14 rounded-2xl border border-border bg-surface px-4 text-foreground mb-3" /><View className="flex-row-reverse gap-3"><Pressable onPress={() => setPasswordModalVisible(false)} className="flex-1 h-13 rounded-xl bg-surface border border-border items-center justify-center"><Text className="font-bold text-foreground">إلغاء</Text></Pressable><Pressable onPress={() => void changePassword()} className="flex-1 h-13 rounded-xl bg-success items-center justify-center"><Text className="text-white font-bold">حفظ</Text></Pressable></View></View></View></Modal>
 
         <View className="rounded-3xl bg-primary p-5 mb-5 overflow-hidden">
           <View className="flex-row-reverse items-start justify-between">
