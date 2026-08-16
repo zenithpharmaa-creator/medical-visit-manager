@@ -28,6 +28,7 @@ type VisitStoreValue = {
   addPlannedVisit: (visit: AppData["plannedVisits"][number]) => void;
   updatePlannedVisit: (visit: AppData["plannedVisits"][number]) => void;
   addEntity: (entity: MedicalEntity) => void;
+  updateEntity: (entity: MedicalEntity) => void;
   deleteVisit: (id: string) => void;
   updateRepresentative: (representative: Representative) => void;
   addRepresentative: (representative: Representative) => void;
@@ -79,6 +80,7 @@ export function VisitProvider({ children }: PropsWithChildren) {
       addPlannedVisit: (visit) => save((current) => ({ ...current, plannedVisits: [visit, ...current.plannedVisits] })),
       updatePlannedVisit: (visit) => save((current) => ({ ...current, plannedVisits: current.plannedVisits.map((item) => item.id === visit.id ? visit : item) })),
       addEntity: (entity) => save((current) => ({ ...current, entities: [entity, ...current.entities] })),
+      updateEntity: (entity) => save((current) => ({ ...current, entities: current.entities.map((item) => item.id === entity.id ? entity : item) })),
       deleteVisit: (id) => save((current) => ({ ...current, visits: current.visits.filter((visit) => visit.id !== id) })),
       updateRepresentative: (representative) =>
         save((current) => ({
