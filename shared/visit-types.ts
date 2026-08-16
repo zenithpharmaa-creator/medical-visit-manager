@@ -1,6 +1,8 @@
 export type EntityKind = "عيادة" | "صيدلية" | "مستشفى" | "مركز طبي";
 export type VisitShift = "morning" | "evening";
 
+export type RepresentativeRegion = "north" | "south" | "sanaa";
+
 export type Representative = {
   id: string;
   name: string;
@@ -8,6 +10,7 @@ export type Representative = {
   email?: string;
   username?: string;
   photoUri?: string;
+  region?: RepresentativeRegion;
   active: boolean;
 };
 
