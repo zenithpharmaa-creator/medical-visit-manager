@@ -38,7 +38,7 @@ export function LocationPicker({ visible, value, onClose, onConfirm }: Props) {
       const servicesEnabled = await Location.hasServicesEnabledAsync();
       if (!servicesEnabled) { Alert.alert("الموقع غير مفعّل", "فعّل خدمة الموقع في إعدادات الهاتف ثم حاول مرة أخرى."); return; }
       const permission = await Location.requestForegroundPermissionsAsync();
-      if (permission.status !== "granted") { Alert.alert("إذن الموقع مطلوب", "اسمح للتطبيق بالوصول إلى الموقع حتى يتم تسجيل موقع الطبيب."); return; }
+      if (permission.status !== "granted") { Alert.alert("لا يمكن متابعة العمل دون الموقع", "رفض صلاحية الموقع يمنع تسجيل موقع الطبيب والتحقق من قرب المندوب من الجهة، وقد لا تعمل الزيارات والخريطة بشكل صحيح. افتح إعدادات Android واسمح للتطبيق باستخدام الموقع ثم حاول مرة أخرى."); return; }
       const current = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
       selectCoordinate(current.coords.latitude, current.coords.longitude, "الموقع الحالي", current.coords.accuracy ?? null);
     } catch { Alert.alert("تعذر تحديد الموقع", "تحقق من تشغيل GPS ثم أعد المحاولة."); } finally { setBusy(false); }

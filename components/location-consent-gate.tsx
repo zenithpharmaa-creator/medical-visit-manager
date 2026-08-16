@@ -1,25 +1,17 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { PropsWithChildren, useEffect, useState } from "react";
-import { ActivityIndicator, Pressable, Text, View } from "react-native";
+import { ActivityIndicator, Modal, Pressable, Text, View } from "react-native";
 
 const CONSENT_KEY = "medical-visit-manager-location-consent-v1";
 
 export function LocationConsentGate({ children }: PropsWithChildren) {
   const [checked, setChecked] = useState(false);
   const [consented, setConsented] = useState(false);
-
-  useEffect(() => {
-    AsyncStorage.getItem(CONSENT_KEY).then((value) => { setConsented(value === "accepted"); setChecked(true); }).catch(() => setChecked(true));
-  }, []);
-
-  const accept = async () => {
-    await AsyncStorage.setItem(CONSENT_KEY, "accepted");
-    setConsented(true);
-  };
-
+  const [privacyVisible, setPrivacyVisible] = useState(false);
+  useEffect(() => { AsyncStorage.getItem(CONSENT_KEY).then((value) => { setConsented(value === "accepted"); setChecked(true); }).catch(() => setChecked(true)); }, []);
+  const accept = async () => { await AsyncStorage.setItem(CONSENT_KEY, "accepted"); setConsented(true); };
   if (!checked) return <View className="flex-1 bg-background items-center justify-center"><ActivityIndicator color="#1565C0" /></View>;
   if (consented) return <>{children}</>;
-
-  return <View className="flex-1 bg-background px-6 justify-center"><View className="rounded-[28px] bg-surface border border-border p-6 items-end"><View className="w-16 h-16 rounded-2xl bg-primary items-center justify-center mb-5 self-center"><MaterialIcons name="location-on" size={32} color="#FFFFFF" /></View><Text className="text-2xl font-bold text-foreground text-right w-full">موافقة استخدام الموقع</Text><Text className="text-base text-muted leading-7 text-right mt-3">يستخدم التطبيق موقع المندوب عند تسجيل الزيارة أو تحديث موقعه، للتحقق من قربه من الجهة وعرضه على خريطة المدير. لا يعمل التتبع المستمر، ولا يُلتقط الموقع إلا عند طلب الإجراء.</Text><View className="rounded-2xl bg-primary/10 p-4 mt-5 flex-row-reverse items-start gap-3"><MaterialIcons name="privacy-tip" size={22} color="#1565C0" /><Text className="flex-1 text-primary text-sm leading-6 text-right">يمكن تغيير أذونات الموقع لاحقاً من إعدادات جهاز Android.</Text></View><Pressable onPress={accept} className="w-full h-14 rounded-2xl bg-primary items-center justify-center flex-row-reverse gap-2 mt-6" style={({ pressed }) => [{ opacity: pressed ? 0.8 : 1 }]}><MaterialIcons name="check-circle" size={21} color="#FFFFFF" /><Text className="text-white font-bold text-base">موافقة ومتابعة</Text></Pressable></View></View>;
+  return <View className="flex-1 bg-background px-6 justify-center"><View className="rounded-[28px] bg-surface border border-border p-6 items-end"><View className="w-16 h-16 rounded-2xl bg-primary items-center justify-center mb-5 self-center"><MaterialIcons name="location-on" size={32} color="#FFFFFF" /></View><Text className="text-2xl font-bold text-foreground text-right w-full">موافقة استخدام الموقع</Text><Text className="text-base text-muted leading-7 text-right mt-3">يستخدم التطبيق موقع المندوب عند تسجيل الزيارة أو تحديث موقعه، للتحقق من قربه من الجهة وعرضه على خريطة المدير. لا يعمل التتبع المستمر، ولا يُلتقط الموقع إلا عند طلب الإجراء.</Text><Pressable onPress={() => setPrivacyVisible(true)} className="mt-4 flex-row-reverse items-center gap-2" style={({ pressed }) => [{ opacity: pressed ? 0.65 : 1 }]}><MaterialIcons name="policy" size={18} color="#1565C0" /><Text className="text-primary font-bold underline">قراءة سياسة الخصوصية</Text></Pressable><View className="rounded-2xl bg-primary/10 p-4 mt-4 flex-row-reverse items-start gap-3"><MaterialIcons name="privacy-tip" size={22} color="#1565C0" /><Text className="flex-1 text-primary text-sm leading-6 text-right">يمكن تغيير أذونات الموقع لاحقاً من إعدادات جهاز Android.</Text></View><Pressable onPress={accept} className="w-full h-14 rounded-2xl bg-primary items-center justify-center flex-row-reverse gap-2 mt-6" style={({ pressed }) => [{ opacity: pressed ? 0.8 : 1 }]}><MaterialIcons name="check-circle" size={21} color="#FFFFFF" /><Text className="text-white font-bold text-base">موافقة ومتابعة</Text></Pressable></View><Modal visible={privacyVisible} transparent animationType="slide" onRequestClose={() => setPrivacyVisible(false)}><View className="flex-1 justify-end bg-black/35"><View className="bg-background rounded-t-[28px] p-6"><View className="flex-row-reverse items-center justify-between mb-4"><Text className="text-xl font-bold text-foreground">سياسة الخصوصية</Text><Pressable onPress={() => setPrivacyVisible(false)}><MaterialIcons name="close" size={24} color="#102A43" /></Pressable></View><Text className="text-base text-muted text-right leading-7">يستخدم التطبيق الموقع الجغرافي فقط عند تسجيل زيارة أو عند طلب تحديث موقع المندوب. يُحفظ الموقع مع بيانات الزيارة للتحقق من قرب المندوب من الجهة وعرض التقارير والخريطة للمدير. لا يتم تشغيل تتبع مستمر في الخلفية، ولا تُشارك البيانات خارج التطبيق إلا عند تصدير تقرير أو إرسال إشعار يطلبه المستخدم.</Text><Pressable onPress={() => setPrivacyVisible(false)} className="h-14 rounded-2xl bg-primary items-center justify-center mt-6"><Text className="text-white font-bold">إغلاق</Text></Pressable></View></View></Modal></View>;
 }
