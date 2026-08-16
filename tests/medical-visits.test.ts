@@ -49,17 +49,17 @@ describe("medical visit reports", () => {
 
 describe("entity dropdown options", () => {
   it("يوفر خيارات محددة للتخصص والفئة", () => {
-    expect(SPECIALTIES).toContain("قلب");
-    expect(SPECIALTIES).toContain("صيدلة");
-    expect(ENTITY_CATEGORIES).toEqual(expect.arrayContaining(["الفئة أ", "الفئة ب", "VIP"]));
+    expect(SPECIALTIES).toContain("I.M");
+    expect(SPECIALTIES).toContain("Gyno");
+    expect(ENTITY_CATEGORIES).toEqual(expect.arrayContaining(["A", "B", "C"]));
   });
 });
 
 describe("Excel entity import", () => {
   it("يقرأ الأعمدة العربية ويصنّف جهة الزيارة", () => {
-    const imported = parseEntitiesFromRows([{ "اسم الجهة": "صيدلية الشفاء", "نوع الجهة": "صيدلية", "اسم الطبيب": "د. خالد", "العنوان": "الرياض", "التخصص": "تغذية", "الفئة": "أ", "أقرب صيدلية": "صيدلية الشفاء", "الموقع الجغرافي": "الرياض - العليا" }]);
+    const imported = parseEntitiesFromRows([{ "اسم الجهة": "صيدلية الشفاء", "نوع الجهة": "صيدلية", "اسم الطبيب": "د. خالد", "العنوان": "الرياض", "التخصص": "I.M", "الفئة": "A", "أقرب صيدلية": "صيدلية الشفاء", "الموقع الجغرافي": "الرياض - العليا" }]);
     expect(imported).toHaveLength(1);
-    expect(imported[0]).toMatchObject({ name: "د. خالد", kind: "صيدلية", contactName: "", address: "الرياض", specialty: "تغذية", category: "أ", nearestPharmacy: "صيدلية الشفاء", geographicLocation: "الرياض - العليا" });
+    expect(imported[0]).toMatchObject({ name: "د. خالد", kind: "صيدلية", contactName: "", address: "الرياض", specialty: "I.M", category: "A", nearestPharmacy: "صيدلية الشفاء", geographicLocation: "الرياض - العليا" });
   });
 
   it("يتجاهل الصفوف الخالية من اسم الجهة", () => {

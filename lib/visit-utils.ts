@@ -3,13 +3,10 @@ import { EntityKind, Visit } from "../shared/visit-types";
 export const ENTITY_KINDS: EntityKind[] = ["عيادة", "صيدلية", "مستشفى", "مركز طبي"];
 
 export const SPECIALTIES = [
-  "طب عام", "باطنة", "قلب", "أطفال", "نساء وولادة", "جلدية", "أسنان",
-  "أنف وأذن وحنجرة", "عظام", "عيون", "جراحة", "تغذية", "صيدلة", "أخرى",
+  "I.M", "Endo", "Emer", "Gyno", "Psych", "Ped", "Cardi", "Derm", "ENT", "G.P", "Hema", "Hepa", "Immu", "Nephro", "Neur", "Onco", "Ortho", "Pulmo", "Rheum", "Surg", "Uro",
 ] as const;
 
-export const ENTITY_CATEGORIES = [
-  "الفئة أ", "الفئة ب", "الفئة ج", "VIP", "حكومي", "خاص", "غير مصنف",
-] as const;
+export const ENTITY_CATEGORIES = ["A", "B", "C"] as const;
 
 export function visitsForDate(visits: Visit[], date: Date) {
   const target = date.toISOString().slice(0, 10);
