@@ -167,6 +167,24 @@ export default function WeeklyPlanScreen() {
   };
   const openEditPlan = (plan: PlannedVisit) => { setEditingPlan(plan); setSelectedRep(plan.representativeId); setSelectedEntity(plan.entityId); setSelectedShift(plan.shift); setNotes(plan.notes ?? ""); setScheduledDateTime(new Date(plan.scheduledTime ?? `${plan.scheduledDate}T${plan.shift === "morning" ? "08:00" : "16:00"}:00`)); setModalVisible(true); };
   const printTable = async () => { const rows = visibleWeek.map((day) => `<tr><td>${day.key}</td><td>${day.name}${day.holiday ? " (إجازة)" : ""}</td><td>${day.planned.filter((item) => item.shift === "morning").map((item) => `${item.entityName} — ${repName(item.representativeId)}`).join("<br>") || "—"}</td><td>${day.planned.filter((item) => item.shift === "evening").map((item) => `${item.entityName} — ${repName(item.representativeId)}`).join("<br>") || "—"}</td></tr>`).join(""); try { await Print.printAsync({ html: `<html dir="rtl"><head><meta charset="utf-8"><style>body{font-family:Arial;color:#101820}h1,h2{text-align:center}table{width:100%;border-collapse:collapse}th,td{border:1px solid #3f4748;padding:10px;text-align:right}th{background:#d4d8d8}td{height:54px} .brand{color:#2f6b50;text-align:center;font-weight:bold}</style></head><body><div class="brand">مدير الزيارات الطبية</div><h1>الخطة الأسبوعية</h1><h2>اسم المندوب: ${selectedRepFilter === "all" ? "جميع المندوبين" : repName(selectedRepFilter)}</h2><table><thead><tr><th>التاريخ</th><th>اليوم</th><th>الفترة الصباحية<br>08:00 – 13:00</th><th>الفترة المسائية<br>16:00 – 20:00</th></tr></thead><tbody>${rows}</tbody></table></body></html>` }); } catch { Alert.alert("تعذر الطباعة", "حاول مرة أخرى بعد التأكد من اتصال الطابعة."); } };
+  const exportPlan = async (type: "pdf" | "excel") => {
+    const selectedName = selectedRepFilter === "all" ? "جميع المندوبين" : repName(selectedRepFilter);
+    try {
+      if (type === "pdf") {
+        const rows = plannedWeek.map((item) => `<tr><td>${item.scheduledDate}</td><td>${item.entityName}</td><td>${item.shift === "morning" ? "صباحية 08:00–13:00" : "مسائية 16:00–20:00"}</td><td>${repName(item.representativeId)}</td><td>${timeOf(item.scheduledTime ?? `${item.scheduledDate}T08:00:00`)}</td></tr>`).join("");
+        await Print.printAsync({ html: `<html dir="rtl"><head><meta charset="utf-8"><style>body{font-family:Arial;color:#101820}h1,h2{text-align:center}.brand{text-align:center;color:#2f6b50;font-weight:bold;margin-bottom:12px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #3f4748;padding:9px;text-align:right}th{background:#d4d8d8}</style></head><body><div class="brand">مدير الزيارات الطبية</div><h1>خطة الزيارات الأسبوعية</h1><h2>المندوب: ${selectedName}</h2><table><thead><tr><th>التاريخ</th><th>الطبيب</th><th>الفترة</th><th>المندوب</th><th>الوقت</th></tr></thead><tbody>${rows || `<tr><td colspan="5">لا توجد زيارات مخططة</td></tr>`}</tbody></table></body></html>` });
+        return;
+      }
+      const rows = plannedWeek.map((item) => ({ التاريخ: item.scheduledDate, اليوم: dayNames[new Date(`${item.scheduledDate}T12:00:00`).getDay() === 0 ? 6 : new Date(`${item.scheduledDate}T12:00:00`).getDay() - 1], الطبيب: item.entityName, الفترة: item.shift === "morning" ? "صباحية" : "مسائية", الوقت: timeOf(item.scheduledTime ?? `${item.scheduledDate}T08:00:00`), المندوب: repName(item.representativeId), ملاحظات: item.notes ?? "" }));
+      const workbook = XLSX.utils.book_new();
+      const sheet = XLSX.utils.json_to_sheet(rows.length ? rows : [{ ملاحظة: "لا توجد زيارات مخططة" }]);
+      XLSX.utils.book_append_sheet(workbook, sheet, "خطة المندوب");
+      const base64 = XLSX.write(workbook, { type: "base64", bookType: "xlsx" });
+      const file = new File(Paths.cache, `weekly-plan-${selectedRepFilter === "all" ? "all" : selectedRepFilter}-${Date.now()}.xlsx`);
+      file.create({ overwrite: true }); file.write(base64);
+      await Sharing.shareAsync(file.uri, { mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", dialogTitle: `مشاركة خطة ${selectedName}` });
+    } catch { Alert.alert("تعذر التصدير", "حاول مرة أخرى بعد التأكد من توفر تطبيق المشاركة أو الطباعة."); }
+  };
   const exportWeekly = async (type: "pdf" | "excel") => {
     try {
       if (type === "pdf") {
@@ -409,7 +427,7 @@ export default function WeeklyPlanScreen() {
           <Text className="font-bold text-foreground text-lg">
             تقرير المدير الأسبوعي
           </Text>
-          <View className="flex-row-reverse gap-2"><Pressable onPress={printTable} className="rounded-xl bg-primary px-3 py-2 flex-row-reverse items-center gap-1"><MaterialIcons name="print" size={16} color="#FFFFFF" /><Text className="text-white text-xs font-bold">طباعة الجدول</Text></Pressable>
+          <View className="flex-row-reverse gap-2 flex-wrap justify-end"><Pressable onPress={() => exportPlan("pdf")} className="rounded-xl bg-primary px-3 py-2 flex-row-reverse items-center gap-1"><MaterialIcons name="picture-as-pdf" size={16} color="#FFFFFF" /><Text className="text-white text-xs font-bold">PDF الخطة</Text></Pressable><Pressable onPress={() => exportPlan("excel")} className="rounded-xl bg-success px-3 py-2 flex-row-reverse items-center gap-1"><MaterialIcons name="table-view" size={16} color="#FFFFFF" /><Text className="text-white text-xs font-bold">Excel الخطة</Text></Pressable><Pressable onPress={printTable} className="rounded-xl bg-primary px-3 py-2 flex-row-reverse items-center gap-1"><MaterialIcons name="print" size={16} color="#FFFFFF" /><Text className="text-white text-xs font-bold">طباعة الجدول</Text></Pressable>
             <Pressable
               onPress={() => exportWeekly("pdf")}
               className="rounded-xl bg-foreground px-3 py-2 flex-row-reverse items-center gap-1"
