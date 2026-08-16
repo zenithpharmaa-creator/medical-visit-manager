@@ -16,6 +16,7 @@ import {
 
 import { ScreenContainer } from "@/components/screen-container";
 import { ScreenHeader } from "@/components/screen-header";
+import { NativeDateTimePicker } from "@/components/native-date-time-picker";
 import { SelectionModal } from "@/components/selection-modal";
 import { useVisitStore } from "@/lib/visit-store";
 import { buildId, visitsForDate } from "@/lib/visit-utils";
@@ -67,6 +68,9 @@ export default function WeeklyPlanScreen() {
   );
   const [selectedShift, setSelectedShift] = useState<VisitShift>("morning");
   const [notes, setNotes] = useState("");
+  const [scheduledDateTime, setScheduledDateTime] = useState(new Date());
+  const [datePickerVisible, setDatePickerVisible] = useState(false);
+  const [timePickerVisible, setTimePickerVisible] = useState(false);
   const week = useMemo(() => {
     const today = new Date();
     const offset = (today.getDay() + 1) % 7;
@@ -132,7 +136,8 @@ export default function WeeklyPlanScreen() {
       entityId: entity.id,
       entityName: entity.name,
       entityKind: entity.kind,
-      scheduledDate: week[selectedDayIndex].key,
+      scheduledDate: scheduledDateTime.toISOString().slice(0, 10),
+      scheduledTime: scheduledDateTime.toISOString(),
       shift: selectedShift,
       notes: notes.trim(),
     });
@@ -148,6 +153,9 @@ export default function WeeklyPlanScreen() {
       return;
     }
     setSelectedDayIndex(index);
+    const plannedDate = new Date(week[index].date);
+    plannedDate.setHours(selectedShift === "morning" ? 8 : 16, 0, 0, 0);
+    setScheduledDateTime(plannedDate);
     setModalVisible(true);
   };
   const exportWeekly = async (type: "pdf" | "excel") => {
@@ -441,6 +449,16 @@ export default function WeeklyPlanScreen() {
             <Text className="text-sm text-muted text-right mb-3">
               اليوم: {dayNames[selectedDayIndex]}
             </Text>
+            <Pressable onPress={() => setDatePickerVisible((value) => !value)} className="h-14 rounded-2xl border border-border bg-surface px-4 flex-row-reverse items-center justify-between mb-3">
+              <Text className="font-bold text-foreground">التاريخ: {formatDate(scheduledDateTime)}</Text>
+              <MaterialIcons name="calendar-today" size={22} color="#102A43" />
+            </Pressable>
+            {datePickerVisible ? <View className="rounded-2xl bg-surface border border-border p-2 mb-3"><NativeDateTimePicker value={scheduledDateTime} mode="date" onChange={(value: Date) => { setScheduledDateTime(value); setDatePickerVisible(false); }} /></View> : null}
+            <Pressable onPress={() => setTimePickerVisible((value) => !value)} className="h-14 rounded-2xl border border-border bg-surface px-4 flex-row-reverse items-center justify-between mb-3">
+              <Text className="font-bold text-foreground">وقت الزيارة: {new Intl.DateTimeFormat("ar-YE", { hour: "2-digit", minute: "2-digit" }).format(scheduledDateTime)}</Text>
+              <MaterialIcons name="schedule" size={22} color="#102A43" />
+            </Pressable>
+            {timePickerVisible ? <View className="rounded-2xl bg-surface border border-border p-2 mb-3"><NativeDateTimePicker value={scheduledDateTime} mode="time" onChange={(value: Date) => { setScheduledDateTime(value); setTimePickerVisible(false); }} /></View> : null}
             <Pressable
               onPress={() => setRepModal(true)}
               className="h-14 rounded-2xl border border-border bg-surface px-4 flex-row-reverse items-center justify-between mb-3"

@@ -36,6 +36,7 @@ export type PlannedVisit = {
   entityName: string;
   entityKind: EntityKind;
   scheduledDate: string;
+  scheduledTime?: string;
   shift: VisitShift;
   notes?: string;
 };
