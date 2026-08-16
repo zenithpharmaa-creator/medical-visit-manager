@@ -16,6 +16,8 @@ export type MedicalEntity = {
   specialty?: string;
   category?: string;
   geographicLocation?: string;
+  geographicCoordinates?: VisitLocation;
+  nearestPharmacy?: string;
   notes?: string;
   createdAt: string;
 };
@@ -35,6 +37,8 @@ export type Visit = {
   specialty?: string;
   category?: string;
   geographicLocation?: string;
+  geographicCoordinates?: VisitLocation;
+  nearestPharmacy?: string;
   recordedAt: string;
   location: VisitLocation | null;
   notes: string;

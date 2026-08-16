@@ -41,7 +41,7 @@ export default function RecordVisitScreen() {
     if (picker === "representative") {
       return data.representatives.filter((item) => item.active).map((item) => ({ label: item.name, value: item.id }));
     }
-    return data.entities.map((item) => ({ label: item.name, value: item.id, helper: [item.kind, item.specialty, item.category, item.geographicLocation].filter(Boolean).join(" · ") }));
+    return data.entities.map((item) => ({ label: item.name, value: item.id, helper: [item.kind, item.specialty, item.category, item.nearestPharmacy ? `أقرب صيدلية: ${item.nearestPharmacy}` : "", item.geographicLocation].filter(Boolean).join(" · ") }));
   }, [data.entities, data.representatives, picker]);
 
   const captureLocation = async () => {
@@ -83,6 +83,8 @@ export default function RecordVisitScreen() {
       entityId: selectedEntity.id,
       entityName: selectedEntity.name,
       entityKind: selectedEntity.kind,
+      nearestPharmacy: selectedEntity.nearestPharmacy,
+      geographicCoordinates: selectedEntity.geographicCoordinates,
       specialty: selectedEntity.specialty,
       category: selectedEntity.category,
       geographicLocation: selectedEntity.geographicLocation,
@@ -110,7 +112,7 @@ export default function RecordVisitScreen() {
         <FormField label="المندوب" icon="person">
           <SelectBox value={selectedRepresentative?.name} placeholder="اختر المندوب" onPress={() => setPicker("representative")} />
         </FormField>
-        <FormField label="جهة الزيارة" icon="local-hospital">
+        <FormField label="اسم الطبيب" icon="person">
           <SelectBox value={selectedEntity?.name} placeholder={data.entities.length ? "اختر جهة الزيارة" : "لا توجد جهات مسجلة"} onPress={() => data.entities.length ? setPicker("entity") : Alert.alert("لا توجد جهات", "انتقل إلى شاشة الإدارة لإضافة جهة يدوياً أو استيراد ملف Excel.")} />
         </FormField>
 

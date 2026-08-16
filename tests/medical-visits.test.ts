@@ -4,6 +4,7 @@ import { parseEntitiesFromRows } from "../lib/entity-import";
 import { getPeriodVisits } from "../lib/reporting";
 import { ENTITY_CATEGORIES, SPECIALTIES } from "../lib/visit-utils";
 import type { Visit } from "../shared/visit-types";
+import { SANAA_OFFLINE_AREAS } from "../data/sanaa-offline";
 
 const visit = (recordedAt: string): Visit => ({
   id: recordedAt,
@@ -14,6 +15,14 @@ const visit = (recordedAt: string): Visit => ({
   recordedAt,
   location: null,
   notes: "",
+});
+
+describe("Sana'a offline location catalog", () => {
+  it("يحتوي على مديريات ومناطق صنعاء محلياً", () => {
+    expect(SANAA_OFFLINE_AREAS.length).toBeGreaterThan(10);
+    expect(SANAA_OFFLINE_AREAS.map((area) => area.value)).toContain("صنعاء القديمة");
+    expect(SANAA_OFFLINE_AREAS.map((area) => area.value)).toContain("بني الحارث");
+  });
 });
 
 describe("medical visit reports", () => {
@@ -38,9 +47,9 @@ describe("entity dropdown options", () => {
 
 describe("Excel entity import", () => {
   it("يقرأ الأعمدة العربية ويصنّف جهة الزيارة", () => {
-    const imported = parseEntitiesFromRows([{ "اسم الجهة": "صيدلية الشفاء", "نوع الجهة": "صيدلية", "اسم الطبيب": "د. خالد", "العنوان": "الرياض", "التخصص": "تغذية", "الفئة": "أ", "الموقع الجغرافي": "الرياض - العليا" }]);
+    const imported = parseEntitiesFromRows([{ "اسم الجهة": "صيدلية الشفاء", "نوع الجهة": "صيدلية", "اسم الطبيب": "د. خالد", "العنوان": "الرياض", "التخصص": "تغذية", "الفئة": "أ", "أقرب صيدلية": "صيدلية الشفاء", "الموقع الجغرافي": "الرياض - العليا" }]);
     expect(imported).toHaveLength(1);
-    expect(imported[0]).toMatchObject({ name: "صيدلية الشفاء", kind: "صيدلية", contactName: "د. خالد", address: "الرياض", specialty: "تغذية", category: "أ", geographicLocation: "الرياض - العليا" });
+    expect(imported[0]).toMatchObject({ name: "د. خالد", kind: "صيدلية", contactName: "", address: "الرياض", specialty: "تغذية", category: "أ", nearestPharmacy: "صيدلية الشفاء", geographicLocation: "الرياض - العليا" });
   });
 
   it("يتجاهل الصفوف الخالية من اسم الجهة", () => {
