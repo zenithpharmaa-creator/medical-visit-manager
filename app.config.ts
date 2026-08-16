@@ -32,7 +32,7 @@ const env = {
   appSlug: "medical-visit-manager",
   // S3 URL of the app logo - set this to the URL returned by generate_image when creating custom logo
   // Leave empty to use the default icon from assets/images/icon.png
-  logoUrl: "",
+  logoUrl: "/manus-storage/medical-visit-manager-icon_f3ea1f78.png",
   scheme: schemeFromBundleId,
   iosBundleId: bundleId,
   androidPackage: bundleId,
@@ -86,6 +86,14 @@ const config: ExpoConfig = {
   },
   plugins: [
     "expo-router",
+    "expo-mail-composer",
+    [
+      "expo-notifications",
+      {
+        color: "#1565C0",
+        defaultChannel: "daily-report",
+      },
+    ],
     [
       "expo-audio",
       {
@@ -97,6 +105,12 @@ const config: ExpoConfig = {
       {
         supportsBackgroundPlayback: true,
         supportsPictureInPicture: true,
+      },
+    ],
+    [
+      "expo-location",
+      {
+        locationWhenInUsePermission: "السماح لتطبيق مدير الزيارات الطبية باستخدام موقعك لتوثيق الزيارة عند تسجيلها.",
       },
     ],
     [
