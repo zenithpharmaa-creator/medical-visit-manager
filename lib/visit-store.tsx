@@ -27,6 +27,7 @@ type VisitStoreValue = {
   addEntity: (entity: MedicalEntity) => void;
   deleteVisit: (id: string) => void;
   updateRepresentative: (representative: Representative) => void;
+  addRepresentative: (representative: Representative) => void;
   updateSettings: (settings: AppSettings) => void;
   replaceEntities: (entities: MedicalEntity[]) => void;
   updateRepresentativeLocation: (id: string, value: AppData["representativeLocations"][string]) => void;
@@ -80,6 +81,7 @@ export function VisitProvider({ children }: PropsWithChildren) {
           ...current,
           representatives: current.representatives.map((item) => (item.id === representative.id ? representative : item)),
         })),
+      addRepresentative: (representative) => save((current) => ({ ...current, representatives: [...current.representatives, representative] })),
       updateSettings: (settings) => save((current) => ({ ...current, settings })),
       replaceEntities: (entities) => save((current) => ({ ...current, entities })),
       updateRepresentativeLocation: (id, value) => save((current) => ({ ...current, representativeLocations: { ...current.representativeLocations, [id]: value } })),

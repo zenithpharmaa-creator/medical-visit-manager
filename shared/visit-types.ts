@@ -7,6 +7,7 @@ export type Representative = {
   phone?: string;
   email?: string;
   username?: string;
+  photoUri?: string;
   active: boolean;
 };
 
