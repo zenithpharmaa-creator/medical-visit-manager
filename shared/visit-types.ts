@@ -54,8 +54,11 @@ export type AppSettings = {
   managerPin: string;
 };
 
+export type RepresentativeLocation = { location: VisitLocation; updatedAt: string };
+
 export type AppData = {
   representatives: Representative[];
+  representativeLocations: Record<string, RepresentativeLocation>;
   entities: MedicalEntity[];
   visits: Visit[];
   settings: AppSettings;

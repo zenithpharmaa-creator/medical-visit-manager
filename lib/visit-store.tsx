@@ -11,6 +11,7 @@ const INITIAL_DATA: AppData = {
     { id: "rep-2", name: "المندوب الثاني", active: true },
     { id: "rep-3", name: "المندوب الثالث", active: true },
   ],
+  representativeLocations: {},
   entities: [],
   visits: [],
   settings: { managerName: "مدير النظام", reportEmail: "", reminderTime: "18:00", geofenceRadiusMeters: 200, managerPin: "" },
@@ -25,6 +26,7 @@ type VisitStoreValue = {
   updateRepresentative: (representative: Representative) => void;
   updateSettings: (settings: AppSettings) => void;
   replaceEntities: (entities: MedicalEntity[]) => void;
+  updateRepresentativeLocation: (id: string, value: AppData["representativeLocations"][string]) => void;
 };
 
 const VisitStore = createContext<VisitStoreValue | null>(null);
@@ -42,6 +44,7 @@ export function VisitProvider({ children }: PropsWithChildren) {
             ...INITIAL_DATA,
             ...parsed,
             representatives: parsed.representatives?.length ? parsed.representatives : INITIAL_DATA.representatives,
+            representativeLocations: parsed.representativeLocations ?? {},
             entities: parsed.entities ?? [],
             visits: parsed.visits ?? [],
             settings: { ...INITIAL_DATA.settings, ...(parsed.settings ?? {}), geofenceRadiusMeters: Number(parsed.settings?.geofenceRadiusMeters) || INITIAL_DATA.settings.geofenceRadiusMeters, managerPin: String(parsed.settings?.managerPin ?? INITIAL_DATA.settings.managerPin) },
@@ -73,6 +76,7 @@ export function VisitProvider({ children }: PropsWithChildren) {
         })),
       updateSettings: (settings) => save((current) => ({ ...current, settings })),
       replaceEntities: (entities) => save((current) => ({ ...current, entities })),
+      updateRepresentativeLocation: (id, value) => save((current) => ({ ...current, representativeLocations: { ...current.representativeLocations, [id]: value } })),
     }),
     [data, loading],
   );

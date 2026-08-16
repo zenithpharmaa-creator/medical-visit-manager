@@ -1,4 +1,4 @@
-import type { Representative, Visit, VisitLocation } from "./visit-types";
+import type { Representative, RepresentativeLocation, Visit, VisitLocation } from "./visit-types";
 
 export type MapRegion = {
   latitude: number;
@@ -15,4 +15,6 @@ export type InteractiveMapProps = {
   targetLocation?: VisitLocation | null;
   allowedRadiusMeters?: number;
   targetTitle?: string;
+  representativeLocations?: Record<string, RepresentativeLocation>;
+  representativeFilter?: string;
 };
