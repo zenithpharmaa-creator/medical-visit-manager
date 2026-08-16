@@ -13,6 +13,7 @@ const INITIAL_DATA: AppData = {
   ],
   representativeLocations: {},
   entities: [],
+  plannedVisits: [],
   visits: [],
   settings: { managerName: "مدير النظام", reportEmail: "", reminderTime: "18:00", geofenceRadiusMeters: 200, managerPin: "" },
 };
@@ -21,6 +22,7 @@ type VisitStoreValue = {
   data: AppData;
   loading: boolean;
   addVisit: (visit: Visit) => void;
+  addPlannedVisit: (visit: AppData["plannedVisits"][number]) => void;
   addEntity: (entity: MedicalEntity) => void;
   deleteVisit: (id: string) => void;
   updateRepresentative: (representative: Representative) => void;
@@ -46,6 +48,7 @@ export function VisitProvider({ children }: PropsWithChildren) {
             representatives: parsed.representatives?.length ? parsed.representatives : INITIAL_DATA.representatives,
             representativeLocations: parsed.representativeLocations ?? {},
             entities: parsed.entities ?? [],
+            plannedVisits: parsed.plannedVisits ?? [],
             visits: parsed.visits ?? [],
             settings: { ...INITIAL_DATA.settings, ...(parsed.settings ?? {}), geofenceRadiusMeters: Number(parsed.settings?.geofenceRadiusMeters) || INITIAL_DATA.settings.geofenceRadiusMeters, managerPin: String(parsed.settings?.managerPin ?? INITIAL_DATA.settings.managerPin) },
           });
@@ -67,6 +70,7 @@ export function VisitProvider({ children }: PropsWithChildren) {
       data,
       loading,
       addVisit: (visit) => save((current) => ({ ...current, visits: [visit, ...current.visits] })),
+      addPlannedVisit: (visit) => save((current) => ({ ...current, plannedVisits: [visit, ...current.plannedVisits] })),
       addEntity: (entity) => save((current) => ({ ...current, entities: [entity, ...current.entities] })),
       deleteVisit: (id) => save((current) => ({ ...current, visits: current.visits.filter((visit) => visit.id !== id) })),
       updateRepresentative: (representative) =>

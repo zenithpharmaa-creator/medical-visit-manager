@@ -1,4 +1,5 @@
 export type EntityKind = "عيادة" | "صيدلية" | "مستشفى" | "مركز طبي";
+export type VisitShift = "morning" | "evening";
 
 export type Representative = {
   id: string;
@@ -26,6 +27,17 @@ export type VisitLocation = {
   latitude: number;
   longitude: number;
   accuracy: number | null;
+};
+
+export type PlannedVisit = {
+  id: string;
+  representativeId: string;
+  entityId: string;
+  entityName: string;
+  entityKind: EntityKind;
+  scheduledDate: string;
+  shift: VisitShift;
+  notes?: string;
 };
 
 export type Visit = {
@@ -61,5 +73,6 @@ export type AppData = {
   representativeLocations: Record<string, RepresentativeLocation>;
   entities: MedicalEntity[];
   visits: Visit[];
+  plannedVisits: PlannedVisit[];
   settings: AppSettings;
 };
