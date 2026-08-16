@@ -1,7 +1,7 @@
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import * as Haptics from "expo-haptics";
 import * as Location from "expo-location";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Alert, Modal, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 
 import { FormField } from "@/components/form-field";
@@ -37,6 +37,7 @@ export default function RecordVisitScreen() {
   const [capturedAt, setCapturedAt] = useState<string | null>(null);
   const [location, setLocation] = useState<VisitLocation | null>(null);
   const [isLocating, setIsLocating] = useState(false);
+  const [locationStatus, setLocationStatus] = useState("سيتم التقاط الموقع تلقائياً عند فتح الشاشة.");
   const [overrideModalVisible, setOverrideModalVisible] = useState(false);
   const [overridePin, setOverridePin] = useState("");
   const [overrideReason, setOverrideReason] = useState("");
@@ -48,37 +49,32 @@ export default function RecordVisitScreen() {
     return data.entities.map((item) => ({ label: item.name, value: item.id, helper: [item.kind, item.specialty, item.category, item.nearestPharmacy ? `أقرب صيدلية: ${item.nearestPharmacy}` : "", item.geographicLocation].filter(Boolean).join(" · ") }));
   }, [data.entities, data.representatives, picker]);
 
-  const captureLocation = async () => {
+  const captureLocation = async (): Promise<VisitLocation | null> => {
     setIsLocating(true);
+    setLocationStatus("جاري التقاط موقعك الحالي تلقائياً...");
     try {
       const enabled = await Location.hasServicesEnabledAsync();
-      if (!enabled) {
-        Alert.alert("خدمة الموقع متوقفة", "يرجى تشغيل خدمة الموقع في الجهاز ثم المحاولة.");
-        return;
-      }
+      if (!enabled) { setLocationStatus("خدمة الموقع متوقفة. شغّل GPS ثم أعد المحاولة."); Alert.alert("خدمة الموقع متوقفة", "يرجى تشغيل خدمة الموقع في الجهاز ثم المحاولة."); return null; }
       const permission = await Location.requestForegroundPermissionsAsync();
-      if (permission.status !== "granted") {
-        Alert.alert("يلزم إذن الموقع", "يُستخدم الموقع فقط لتوثيق مكان الزيارة عند التسجيل.");
-        return;
-      }
+      if (permission.status !== "granted") { setLocationStatus("تم رفض إذن الموقع؛ لا يمكن تسجيل زيارة موثقة."); Alert.alert("يلزم إذن الموقع", "يُستخدم الموقع فقط لتوثيق مكان الزيارة عند التسجيل."); return null; }
       const result = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
-      setLocation({ latitude: result.coords.latitude, longitude: result.coords.longitude, accuracy: result.coords.accuracy });
-      setCapturedAt(new Date().toISOString());
+      const nextLocation = { latitude: result.coords.latitude, longitude: result.coords.longitude, accuracy: result.coords.accuracy };
+      setLocation(nextLocation); setCapturedAt(new Date().toISOString()); setLocationStatus("تم التقاط الموقع تلقائياً بنجاح.");
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    } catch {
-      Alert.alert("تعذر تحديد الموقع", "تأكد من وجود إشارة GPS جيدة ثم أعد المحاولة.");
-    } finally {
-      setIsLocating(false);
-    }
+      return nextLocation;
+    } catch { setLocationStatus("تعذر التقاط الموقع. تأكد من إشارة GPS ثم أعد المحاولة."); Alert.alert("تعذر تحديد الموقع", "تأكد من وجود إشارة GPS جيدة ثم أعد المحاولة."); return null; }
+    finally { setIsLocating(false); }
   };
 
-  const persistVisit = (managerOverride = false, reason = "") => {
-    if (!selectedEntity || !capturedAt || !location) return;
+  useEffect(() => { void captureLocation(); }, []);
+
+  const persistVisit = (managerOverride = false, reason = "", capturedLocation = location, capturedTimestamp = capturedAt) => {
+    if (!selectedEntity || !capturedTimestamp || !capturedLocation) return;
     const createdVisit = {
       id: buildId("visit"), representativeId: selectedRepresentative.id, entityId: selectedEntity.id,
       entityName: selectedEntity.name, entityKind: selectedEntity.kind, nearestPharmacy: selectedEntity.nearestPharmacy,
       geographicCoordinates: selectedEntity.geographicCoordinates, specialty: selectedEntity.specialty, category: selectedEntity.category,
-      geographicLocation: selectedEntity.geographicLocation, recordedAt: capturedAt, location, notes: notes.trim(),
+      geographicLocation: selectedEntity.geographicLocation, recordedAt: capturedTimestamp, location: capturedLocation, notes: notes.trim(),
       managerOverride: managerOverride || undefined, overrideReason: managerOverride ? reason : undefined,
     };
     addVisit(createdVisit);
@@ -88,16 +84,18 @@ export default function RecordVisitScreen() {
     Alert.alert("تم حفظ الزيارة", managerOverride ? "تم التسجيل بتجاوز المدير مع حفظ السبب." : "تم تسجيل وقت وموقع الزيارة بنجاح.", [{ text: "تسجيل زيارة أخرى", onPress: () => { setSelectedEntity(null); setNotes(""); setCapturedAt(null); setLocation(null); } }]);
   };
 
-  const saveVisit = () => {
+  const saveVisit = async () => {
     if (!selectedEntity) { Alert.alert("اختر جهة الزيارة", "أضف جهة من شاشة الإدارة أو استوردها من Excel أولاً."); return; }
-    if (!capturedAt || !location) { Alert.alert("التقط الموقع والوقت", "اضغط زر التقاط الموقع والوقت قبل حفظ الزيارة."); return; }
+    const freshLocation = await captureLocation();
+    if (!freshLocation) return;
+    const freshCapturedAt = new Date().toISOString();
     if (!selectedEntity.geographicCoordinates) { Alert.alert("موقع الجهة غير موثّق", "لا يمكن حفظ الزيارة قبل حفظ إحداثيات الجهة من GPS أو الخريطة."); return; }
-    const distanceMeters = distanceBetweenMeters(location, selectedEntity.geographicCoordinates);
+    const distanceMeters = distanceBetweenMeters(freshLocation, selectedEntity.geographicCoordinates);
     if (!isWithinGeofence(distanceMeters, data.settings.geofenceRadiusMeters)) {
       if (!data.settings.managerPin) { Alert.alert("الزيارة خارج النطاق", `المسافة ${Math.round(distanceMeters)} متر. لا يوجد PIN مدير مضبوط لتجاوز الشرط.`); return; }
       setOverrideModalVisible(true); return;
     }
-    persistVisit();
+    persistVisit(false, "", freshLocation, freshCapturedAt);
   };
 
   const confirmOverride = () => {
@@ -135,8 +133,9 @@ export default function RecordVisitScreen() {
                 <Text className="font-bold text-success">تم الالتقاط بنجاح</Text>
                 <Text className="text-sm text-muted mt-1">{formatArabicDate(capturedAt)}</Text>
                 {location ? <Text className="text-xs text-muted mt-1">دقة الموقع: {Math.round(location.accuracy ?? 0)} متر</Text> : null}
+                <Text className="text-xs text-primary mt-1 text-right">{locationStatus}</Text>
               </View>
-            ) : <Text className="text-muted text-right mb-3">لم يتم التقاط موقع الزيارة بعد.</Text>}
+            ) : <Text className="text-muted text-right mb-3">{locationStatus}</Text>}
             <Pressable onPress={captureLocation} disabled={isLocating} className="rounded-xl bg-primary h-12 items-center justify-center flex-row-reverse gap-2" style={({ pressed }) => [{ opacity: pressed || isLocating ? 0.72 : 1 }]}>
               <MaterialIcons name={isLocating ? "sync" : "gps-fixed"} size={19} color="#FFFFFF" />
               <Text className="text-white font-bold">{isLocating ? "جاري تحديد الموقع..." : "التقاط الموقع والوقت"}</Text>
