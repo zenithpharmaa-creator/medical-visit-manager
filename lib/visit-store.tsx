@@ -5,13 +5,14 @@ import { AppData, AppSettings, MedicalEntity, Representative, Visit } from "@/sh
 
 const STORAGE_KEY = "medical-visit-manager-data-v1";
 const REPRESENTATIVE_NAMES: Record<string, string> = { "rep-1": "علي الشعيبي", "rep-2": "محمد الحداد", "rep-3": "محمود الرميمة" };
+const REPRESENTATIVE_REGIONS: Record<string, "north" | "south" | "sanaa"> = { "rep-1": "south", "rep-2": "north", "rep-3": "sanaa" };
 const LEGACY_REPRESENTATIVE_NAMES = new Set(["المندوب الأول", "المندوب الثاني", "المندوب الثالث"]);
 
 const INITIAL_DATA: AppData = {
   representatives: [
-    { id: "rep-1", name: REPRESENTATIVE_NAMES["rep-1"], active: true },
-    { id: "rep-2", name: REPRESENTATIVE_NAMES["rep-2"], active: true },
-    { id: "rep-3", name: REPRESENTATIVE_NAMES["rep-3"], active: true },
+    { id: "rep-1", name: REPRESENTATIVE_NAMES["rep-1"], region: REPRESENTATIVE_REGIONS["rep-1"], active: true },
+    { id: "rep-2", name: REPRESENTATIVE_NAMES["rep-2"], region: REPRESENTATIVE_REGIONS["rep-2"], active: true },
+    { id: "rep-3", name: REPRESENTATIVE_NAMES["rep-3"], region: REPRESENTATIVE_REGIONS["rep-3"], active: true },
   ],
   representativeLocations: {},
   entities: [],
@@ -50,7 +51,7 @@ export function VisitProvider({ children }: PropsWithChildren) {
           setData({
             ...INITIAL_DATA,
             ...parsed,
-            representatives: parsed.representatives?.length ? parsed.representatives.map((item) => (REPRESENTATIVE_NAMES[item.id] && LEGACY_REPRESENTATIVE_NAMES.has(item.name) ? { ...item, name: REPRESENTATIVE_NAMES[item.id] } : item)) : INITIAL_DATA.representatives,
+            representatives: parsed.representatives?.length ? parsed.representatives.map((item) => ({ ...item, ...(REPRESENTATIVE_NAMES[item.id] && LEGACY_REPRESENTATIVE_NAMES.has(item.name) ? { name: REPRESENTATIVE_NAMES[item.id] } : {}), ...(REPRESENTATIVE_REGIONS[item.id] ? { region: REPRESENTATIVE_REGIONS[item.id] } : {}) })) : INITIAL_DATA.representatives,
             representativeLocations: parsed.representativeLocations ?? {},
             entities: parsed.entities ?? [],
             plannedVisits: parsed.plannedVisits ?? [],
