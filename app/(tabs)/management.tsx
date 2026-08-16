@@ -12,6 +12,7 @@ const options = [
   { label: "إعدادات التقارير", subtitle: "البريد والتذكير والنسخة الاحتياطية", icon: "settings" as const, route: "/settings" },
   { label: "خريطة الزيارات", subtitle: "عرض مواقع الزيارات الموثقة حسب المندوب والجهة", icon: "map" as const, route: "/map" },
   { label: "تقرير تجاوزات الموقع", subtitle: "مراجعة زيارات تجاوز النطاق وأسبابها", icon: "gpp-maybe" as const, route: "/override-reports" },
+  { label: "موقع المندوب الحالي", subtitle: "تحديد موقع المندوب على الخريطة وتحديثه", icon: "person-pin-circle" as const, route: "/rep-location" },
 ];
 
 export default function ManagementScreen() {

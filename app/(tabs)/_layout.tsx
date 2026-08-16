@@ -21,6 +21,7 @@ export default function TabLayout() {
       <Tabs.Screen name="settings" options={{ href: null }} />
       <Tabs.Screen name="map" options={{ href: null }} />
       <Tabs.Screen name="override-reports" options={{ href: null }} />
+      <Tabs.Screen name="rep-location" options={{ href: null }} />
     </Tabs>
   );
 }
