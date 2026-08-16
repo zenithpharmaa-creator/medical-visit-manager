@@ -9,6 +9,7 @@ import { ScreenContainer } from "@/components/screen-container";
 import { SelectionModal } from "@/components/selection-modal";
 import { useVisitStore } from "@/lib/visit-store";
 import { buildId } from "@/lib/visit-utils";
+import { notifyRepresentativeOfAssignment } from "@/lib/assigned-task-notification";
 import type { VisitShift } from "@/shared/visit-types";
 
 const options = [
@@ -39,8 +40,11 @@ export default function ManagementScreen() {
     const entity = data.entities.find((item) => item.id === selectedEntity);
     if (!entity || !selectedRep) { Alert.alert("بيانات ناقصة", "اختر المندوب والطبيب."); return; }
     if (scheduledDateTime.getDay() === 5) { Alert.alert("يوم إجازة", "لا يمكن إسناد زيارة يوم الجمعة."); return; }
-    addPlannedVisit({ id: buildId("assigned"), representativeId: selectedRep, entityId: entity.id, entityName: entity.name, entityKind: entity.kind, scheduledDate: scheduledDateTime.toISOString().slice(0, 10), scheduledTime: scheduledDateTime.toISOString(), shift: selectedShift, assignmentType: "assigned", taskStatus: "assigned", notes: notes.trim() });
-    setAssignModal(false); Alert.alert("تم إسناد الزيارة", "ستظهر المهمة في قائمة المهام المسندة للمندوب.");
+    const task = { id: buildId("assigned"), representativeId: selectedRep, entityId: entity.id, entityName: entity.name, entityKind: entity.kind, scheduledDate: scheduledDateTime.toISOString().slice(0, 10), scheduledTime: scheduledDateTime.toISOString(), shift: selectedShift, assignmentType: "assigned" as const, taskStatus: "assigned" as const, assignedAt: new Date().toISOString(), notes: notes.trim() };
+    addPlannedVisit(task);
+    const representative = data.representatives.find((item) => item.id === selectedRep);
+    if (representative) void notifyRepresentativeOfAssignment(task, representative);
+    setAssignModal(false); Alert.alert("تم إسناد الزيارة", "ستظهر المهمة في قائمة المهام المسندة للمندوب، وسيصل إشعار فوري عند تفعيل إذن التنبيهات.");
   };
   const formatDate = (date: Date) => new Intl.DateTimeFormat("ar-YE", { dateStyle: "medium" }).format(date);
   const formatTime = (date: Date) => new Intl.DateTimeFormat("ar-YE", { hour: "2-digit", minute: "2-digit" }).format(date);
