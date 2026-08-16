@@ -19,6 +19,7 @@ export default function TabLayout() {
       <Tabs.Screen name="management" options={{ title: "الإدارة", tabBarIcon: ({ color }) => <IconSymbol name="gearshape.fill" size={23} color={color} /> }} />
       <Tabs.Screen name="entities" options={{ href: null }} />
       <Tabs.Screen name="settings" options={{ href: null }} />
+      <Tabs.Screen name="map" options={{ href: null }} />
     </Tabs>
   );
 }

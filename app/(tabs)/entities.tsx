@@ -9,7 +9,7 @@ import { FormField } from "@/components/form-field";
 import { ScreenHeader } from "@/components/screen-header";
 import { SelectionModal } from "@/components/selection-modal";
 import { useVisitStore } from "@/lib/visit-store";
-import { buildId, ENTITY_KINDS } from "@/lib/visit-utils";
+import { buildId, ENTITY_CATEGORIES, ENTITY_KINDS, SPECIALTIES } from "@/lib/visit-utils";
 import { parseEntitiesFromRows } from "@/lib/entity-import";
 import { EntityKind } from "@/shared/visit-types";
 
@@ -17,12 +17,14 @@ export default function EntitiesScreen() {
   const { data, addEntity, replaceEntities } = useVisitStore();
   const [modalVisible, setModalVisible] = useState(false);
   const [kindModal, setKindModal] = useState(false);
+  const [specialtyModal, setSpecialtyModal] = useState(false);
+  const [categoryModal, setCategoryModal] = useState(false);
   const [name, setName] = useState("");
   const [kind, setKind] = useState<EntityKind>("عيادة");
   const [contactName, setContactName] = useState("");
   const [address, setAddress] = useState("");
-  const [specialty, setSpecialty] = useState("");
-  const [category, setCategory] = useState("");
+  const [specialty, setSpecialty] = useState<string>("");
+  const [category, setCategory] = useState<string>("");
   const [geographicLocation, setGeographicLocation] = useState("");
   const [isImporting, setIsImporting] = useState(false);
 
@@ -82,9 +84,9 @@ export default function EntitiesScreen() {
       />
 
       <Modal visible={modalVisible} transparent animationType="slide" onRequestClose={() => setModalVisible(false)}>
-        <View className="flex-1 justify-end bg-black/35"><View className="bg-background rounded-t-[28px] px-5 pt-5 pb-8"><View className="flex-row-reverse justify-between items-center mb-5"><Text className="text-lg font-bold text-foreground">إضافة جهة زيارة</Text><Pressable onPress={() => setModalVisible(false)}><MaterialIcons name="close" size={24} color="#102A43" /></Pressable></View><FormField label="اسم الجهة" icon="local-hospital" value={name} onChangeText={setName} placeholder="مثال: عيادة د. أحمد" /><FormField label="نوع الجهة" icon="category"><Pressable onPress={() => setKindModal(true)} className="h-14 rounded-2xl border border-border bg-surface px-4 flex-row-reverse items-center justify-between"><Text className="font-bold text-foreground">{kind}</Text><MaterialIcons name="keyboard-arrow-down" size={24} color="#102A43" /></Pressable></FormField><FormField label="الطبيب أو المسؤول (اختياري)" icon="person" value={contactName} onChangeText={setContactName} placeholder="الاسم" /><FormField label="العنوان (اختياري)" icon="place" value={address} onChangeText={setAddress} placeholder="المدينة أو العنوان" /><FormField label="التخصص (اختياري)" icon="medical-services" value={specialty} onChangeText={setSpecialty} placeholder="مثال: قلب، أطفال، جلدية" /><FormField label="الفئة (اختياري)" icon="label" value={category} onChangeText={setCategory} placeholder="مثال: أ، ب، أو خاص" /><FormField label="الموقع الجغرافي (اختياري)" icon="map" value={geographicLocation} onChangeText={setGeographicLocation} placeholder="مثال: الرياض - العليا" /><Pressable onPress={saveEntity} className="h-14 rounded-2xl bg-success items-center justify-center flex-row-reverse gap-2" style={({ pressed }) => [{ opacity: pressed ? 0.8 : 1 }]}><MaterialIcons name="save" size={20} color="#FFFFFF" /><Text className="text-white font-bold">حفظ الجهة</Text></Pressable></View></View>
+        <View className="flex-1 justify-end bg-black/35"><View className="bg-background rounded-t-[28px] px-5 pt-5 pb-8"><View className="flex-row-reverse justify-between items-center mb-5"><Text className="text-lg font-bold text-foreground">إضافة جهة زيارة</Text><Pressable onPress={() => setModalVisible(false)}><MaterialIcons name="close" size={24} color="#102A43" /></Pressable></View><FormField label="اسم الجهة" icon="local-hospital" value={name} onChangeText={setName} placeholder="مثال: عيادة د. أحمد" /><FormField label="نوع الجهة" icon="category"><Pressable onPress={() => setKindModal(true)} className="h-14 rounded-2xl border border-border bg-surface px-4 flex-row-reverse items-center justify-between"><Text className="font-bold text-foreground">{kind}</Text><MaterialIcons name="keyboard-arrow-down" size={24} color="#102A43" /></Pressable></FormField><FormField label="الطبيب أو المسؤول (اختياري)" icon="person" value={contactName} onChangeText={setContactName} placeholder="الاسم" /><FormField label="العنوان (اختياري)" icon="place" value={address} onChangeText={setAddress} placeholder="المدينة أو العنوان" /><FormField label="التخصص" icon="medical-services"><Pressable onPress={() => setSpecialtyModal(true)} className="h-14 rounded-2xl border border-border bg-surface px-4 flex-row-reverse items-center justify-between"><Text className={`font-bold ${specialty ? "text-foreground" : "text-muted"}`}>{specialty || "اختر التخصص"}</Text><MaterialIcons name="keyboard-arrow-down" size={24} color="#102A43" /></Pressable></FormField><FormField label="الفئة" icon="label"><Pressable onPress={() => setCategoryModal(true)} className="h-14 rounded-2xl border border-border bg-surface px-4 flex-row-reverse items-center justify-between"><Text className={`font-bold ${category ? "text-foreground" : "text-muted"}`}>{category || "اختر الفئة"}</Text><MaterialIcons name="keyboard-arrow-down" size={24} color="#102A43" /></Pressable></FormField><FormField label="الموقع الجغرافي (اختياري)" icon="map" value={geographicLocation} onChangeText={setGeographicLocation} placeholder="مثال: الرياض - العليا" /><Pressable onPress={saveEntity} className="h-14 rounded-2xl bg-success items-center justify-center flex-row-reverse gap-2" style={({ pressed }) => [{ opacity: pressed ? 0.8 : 1 }]}><MaterialIcons name="save" size={20} color="#FFFFFF" /><Text className="text-white font-bold">حفظ الجهة</Text></Pressable></View></View>
       </Modal>
-      <SelectionModal visible={kindModal} title="اختر نوع الجهة" options={ENTITY_KINDS.map((item) => ({ label: item, value: item }))} selected={kind} onClose={() => setKindModal(false)} onSelect={(option) => setKind(option.value as EntityKind)} />
+      <SelectionModal visible={kindModal} title="اختر نوع الجهة" options={ENTITY_KINDS.map((item) => ({ label: item, value: item }))} selected={kind} onClose={() => setKindModal(false)} onSelect={(option) => setKind(option.value as EntityKind)} /><SelectionModal visible={specialtyModal} title="اختر التخصص" options={SPECIALTIES.map((item) => ({ label: item, value: item }))} selected={specialty} onClose={() => setSpecialtyModal(false)} onSelect={(option) => setSpecialty(option.value)} /><SelectionModal visible={categoryModal} title="اختر الفئة" options={ENTITY_CATEGORIES.map((item) => ({ label: item, value: item }))} selected={category} onClose={() => setCategoryModal(false)} onSelect={(option) => setCategory(option.value)} />
     </View>
   );
 }

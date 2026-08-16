@@ -10,6 +10,7 @@ const options = [
   { label: "جهات الزيارة", subtitle: "العيادات والصيدليات والمستشفيات والمراكز", icon: "local-hospital" as const, route: "/entities" },
   { label: "المندوبون", subtitle: "تعديل أسماء المندوبين وحالتهم", icon: "groups" as const, route: "/settings" },
   { label: "إعدادات التقارير", subtitle: "البريد والتذكير والنسخة الاحتياطية", icon: "settings" as const, route: "/settings" },
+  { label: "خريطة الزيارات", subtitle: "عرض مواقع الزيارات الموثقة حسب المندوب والجهة", icon: "map" as const, route: "/map" },
 ];
 
 export default function ManagementScreen() {
