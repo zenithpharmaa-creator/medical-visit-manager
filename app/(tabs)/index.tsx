@@ -7,11 +7,13 @@ import { ScreenHeader } from "@/components/screen-header";
 import { ScreenContainer } from "@/components/screen-container";
 import { useVisitStore } from "@/lib/visit-store";
 import { formatArabicDate, visitsForDate } from "@/lib/visit-utils";
+import { monthlyOverrideCounts } from "@/lib/override-report";
 
 export default function HomeScreen() {
   const { data, loading } = useVisitStore();
   const todayVisits = visitsForDate(data.visits, new Date());
   const activeReps = data.representatives.filter((rep) => rep.active);
+  const monthlyOverrides = monthlyOverrideCounts(data.visits, data.representatives);
 
   return (
     <ScreenContainer className="px-5" containerClassName="bg-background">
@@ -36,6 +38,8 @@ export default function HomeScreen() {
           <MetricCard label="الجهات المسجلة" value={loading ? "—" : data.entities.length} icon="local-hospital" tone="success" />
           <MetricCard label="المندوبون" value={activeReps.length} icon="groups" tone="warning" />
         </View>
+
+        <View className="rounded-2xl bg-surface border border-border p-4 mb-6"><View className="flex-row-reverse items-center justify-between mb-3"><Text className="text-lg font-bold text-foreground">تجاوزات الموقع هذا الشهر</Text><MaterialIcons name="bar-chart" size={22} color="#D97706" /></View><Text className="text-xs text-muted text-right mb-4">نسبة تكرار التجاوزات بين المندوبين خلال الشهر الحالي</Text><View className="gap-3">{monthlyOverrides.map((item, index) => <View key={item.representative.id} className="flex-row-reverse items-center gap-2"><Text className="text-xs font-bold text-foreground w-20 text-right" numberOfLines={1}>{item.representative.name.replace("المندوب ", "مندوب ")}</Text><View className="flex-1 h-3 rounded-full bg-border overflow-hidden"><View className={`h-3 rounded-full ${index === 1 ? "bg-success" : index === 2 ? "bg-warning" : "bg-primary"}`} style={{ width: `${item.rate || (item.count ? 8 : 2)}%` }} /></View><Text className="text-xs font-bold text-muted w-12 text-left">{item.count} ({item.rate}%)</Text></View>)}</View></View>
 
         <Pressable
           onPress={() => router.push("/record")}
