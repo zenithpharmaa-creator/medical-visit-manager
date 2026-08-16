@@ -17,3 +17,7 @@ export async function saveRepresentativePassword(id: string, password: string) {
 export async function getRepresentativePassword(id: string) {
   return SecureStore.getItemAsync(keyForRepresentative(id));
 }
+
+export async function deleteRepresentativePassword(id: string) {
+  await SecureStore.deleteItemAsync(keyForRepresentative(id));
+}
