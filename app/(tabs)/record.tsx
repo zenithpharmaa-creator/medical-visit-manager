@@ -8,6 +8,7 @@ import { FormField } from "@/components/form-field";
 import { ScreenHeader } from "@/components/screen-header";
 import { SelectionModal } from "@/components/selection-modal";
 import { ScreenContainer } from "@/components/screen-container";
+import { notifyManagerOfOverride } from "@/lib/override-notification";
 import { useVisitStore } from "@/lib/visit-store";
 import { buildId, distanceBetweenMeters, formatArabicDate, isWithinGeofence } from "@/lib/visit-utils";
 import { MedicalEntity, Representative, VisitLocation } from "@/shared/visit-types";
@@ -73,13 +74,15 @@ export default function RecordVisitScreen() {
 
   const persistVisit = (managerOverride = false, reason = "") => {
     if (!selectedEntity || !capturedAt || !location) return;
-    addVisit({
+    const createdVisit = {
       id: buildId("visit"), representativeId: selectedRepresentative.id, entityId: selectedEntity.id,
       entityName: selectedEntity.name, entityKind: selectedEntity.kind, nearestPharmacy: selectedEntity.nearestPharmacy,
       geographicCoordinates: selectedEntity.geographicCoordinates, specialty: selectedEntity.specialty, category: selectedEntity.category,
       geographicLocation: selectedEntity.geographicLocation, recordedAt: capturedAt, location, notes: notes.trim(),
       managerOverride: managerOverride || undefined, overrideReason: managerOverride ? reason : undefined,
-    });
+    };
+    addVisit(createdVisit);
+    if (managerOverride) void notifyManagerOfOverride({ settings: data.settings, visit: createdVisit, representativeName: selectedRepresentative.name });
     setOverrideModalVisible(false); setOverridePin(""); setOverrideReason("");
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     Alert.alert("تم حفظ الزيارة", managerOverride ? "تم التسجيل بتجاوز المدير مع حفظ السبب." : "تم تسجيل وقت وموقع الزيارة بنجاح.", [{ text: "تسجيل زيارة أخرى", onPress: () => { setSelectedEntity(null); setNotes(""); setCapturedAt(null); setLocation(null); } }]);
