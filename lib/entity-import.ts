@@ -51,7 +51,7 @@ export function parseEntitiesFromRows(rows: ExcelRow[]): MedicalEntity[] {
         geographicLocation: textValue(row, ["الموقع الجغرافي", "الموقع", "المنطقة", "الحي", "geographic location", "location", "area"]),
         geographicCoordinates: (() => { const latitude = Number(textValue(row, ["خط العرض", "latitude", "lat"])); const longitude = Number(textValue(row, ["خط الطول", "longitude", "lng", "lon"])); return Number.isFinite(latitude) && Number.isFinite(longitude) ? { latitude, longitude, accuracy: null } : undefined; })(),
         nearestPharmacy: textValue(row, ["أقرب صيدلية", "اقرب صيدلية", "الصيدلية الأقرب", "nearest pharmacy", "pharmacy"]),
-        notes: textValue(row, ["ملاحظات", "notes"]),
+        notes: textValue(row, ["ملاحظات", "الملاحضات", "notes", "remarks"]),
         createdAt: new Date().toISOString(),
       };
     })
