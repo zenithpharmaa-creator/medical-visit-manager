@@ -14,11 +14,16 @@ export default function HomeScreen() {
   const todayVisits = visitsForDate(data.visits, new Date());
   const activeReps = data.representatives.filter((rep) => rep.active);
   const monthlyOverrides = monthlyOverrideCounts(data.visits, data.representatives);
+  const todayKey = new Date().toISOString().slice(0, 10);
+  const todayPlanned = data.plannedVisits.filter((item) => item.scheduledDate === todayKey);
+  const todayOverrides = todayVisits.filter((visit) => visit.managerOverride).length;
+  const plannedCompleted = todayPlanned.filter((plan) => todayVisits.some((visit) => visit.representativeId === plan.representativeId && visit.entityId === plan.entityId)).length;
+  const remainingVisits = Math.max(0, todayPlanned.length - plannedCompleted);
 
   return (
     <ScreenContainer className="px-5" containerClassName="bg-background">
       <ScrollView contentContainerStyle={{ paddingTop: 18, paddingBottom: 28 }} showsVerticalScrollIndicator={false}>
-        <ScreenHeader title="مدير الزيارات الطبية" subtitle="متابعة ميدانية منظمة وواضحة" icon="medical-services" />
+        <ScreenHeader title="لوحة تحكم المدير" subtitle="متابعة يومية سريعة لحالة الزيارات ونشاط الفريق" icon="dashboard" showBack={false} />
 
         <View className="rounded-3xl bg-primary p-5 mb-5 overflow-hidden">
           <View className="flex-row-reverse items-start justify-between">
@@ -33,11 +38,20 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        <View className="flex-row-reverse gap-3 mb-6">
-          <MetricCard label="زيارات اليوم" value={loading ? "—" : todayVisits.length} icon="event-available" />
-          <MetricCard label="الجهات المسجلة" value={loading ? "—" : data.entities.length} icon="local-hospital" tone="success" />
-          <MetricCard label="المندوبون" value={activeReps.length} icon="groups" tone="warning" />
+        <View className="flex-row-reverse gap-3 mb-3">
+          <MetricCard label="منفذة اليوم" value={loading ? "—" : todayVisits.length} icon="event-available" />
+          <MetricCard label="مخططة اليوم" value={loading ? "—" : todayPlanned.length} icon="event-note" tone="success" />
+          <MetricCard label="المتبقي" value={loading ? "—" : remainingVisits} icon="pending-actions" tone="warning" />
         </View>
+        <View className="flex-row-reverse gap-3 mb-6">
+          <MetricCard label="تجاوزات اليوم" value={loading ? "—" : todayOverrides} icon="gpp-maybe" tone="warning" />
+          <MetricCard label="الجهات المسجلة" value={loading ? "—" : data.entities.length} icon="local-hospital" tone="success" />
+          <MetricCard label="المندوبون النشطون" value={activeReps.length} icon="groups" tone="primary" />
+        </View>
+
+        <View className="rounded-2xl bg-primary/10 border border-primary/20 p-4 mb-6"><View className="flex-row-reverse items-center justify-between mb-3"><Text className="text-lg font-bold text-primary">تقدم خطة اليوم</Text><MaterialIcons name="trending-up" size={22} color="#1565C0" /></View><Text className="text-sm text-muted text-right mb-3">تم تنفيذ {plannedCompleted} من أصل {todayPlanned.length} زيارة مخططة لهذا اليوم.</Text><View className="h-3 rounded-full bg-white/70 overflow-hidden"><View className="h-3 rounded-full bg-primary" style={{ width: `${todayPlanned.length ? Math.min(100, (plannedCompleted / todayPlanned.length) * 100) : 0}%` }} /></View></View>
+
+        <View className="rounded-2xl bg-surface border border-border p-4 mb-6"><View className="flex-row-reverse items-center justify-between mb-3"><Text className="text-lg font-bold text-foreground">نشاط المندوبين اليوم</Text><MaterialIcons name="groups" size={22} color="#1565C0" /></View><Text className="text-xs text-muted text-right mb-4">الزيارات المنفذة والمهام المسندة لكل مندوب</Text><View className="gap-3">{activeReps.map((rep) => { const visits = todayVisits.filter((visit) => visit.representativeId === rep.id).length; const assigned = data.plannedVisits.filter((task) => task.scheduledDate === todayKey && task.representativeId === rep.id && task.assignmentType === "assigned").length; return <View key={rep.id} className="rounded-xl bg-background border border-border p-3"><View className="flex-row-reverse items-center justify-between"><Text className="font-bold text-foreground">{rep.name}</Text><View className="flex-row-reverse gap-2"><Text className="text-xs text-success font-bold">منفذة: {visits}</Text><Text className="text-xs text-primary font-bold">مسندة: {assigned}</Text></View></View><View className="h-2 rounded-full bg-border mt-2 overflow-hidden"><View className="h-2 rounded-full bg-success" style={{ width: `${todayPlanned.length ? Math.min(100, (visits / Math.max(1, todayPlanned.filter((item) => item.representativeId === rep.id).length)) * 100) : visits ? 100 : 0}%` }} /></View></View>; })}</View></View>
 
         <View className="rounded-2xl bg-surface border border-border p-4 mb-6"><View className="flex-row-reverse items-center justify-between mb-3"><Text className="text-lg font-bold text-foreground">تجاوزات الموقع هذا الشهر</Text><MaterialIcons name="bar-chart" size={22} color="#D97706" /></View><Text className="text-xs text-muted text-right mb-4">نسبة تكرار التجاوزات بين المندوبين خلال الشهر الحالي</Text><View className="gap-3">{monthlyOverrides.map((item, index) => <View key={item.representative.id} className="flex-row-reverse items-center gap-2"><Text className="text-xs font-bold text-foreground w-20 text-right" numberOfLines={1}>{item.representative.name.replace("المندوب ", "مندوب ")}</Text><View className="flex-1 h-3 rounded-full bg-border overflow-hidden"><View className={`h-3 rounded-full ${index === 1 ? "bg-success" : index === 2 ? "bg-warning" : "bg-primary"}`} style={{ width: `${item.rate || (item.count ? 8 : 2)}%` }} /></View><Text className="text-xs font-bold text-muted w-12 text-left">{item.count} ({item.rate}%)</Text></View>)}</View></View>
 
