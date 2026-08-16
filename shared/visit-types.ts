@@ -42,6 +42,8 @@ export type PlannedVisit = {
   scheduledDate: string;
   scheduledTime?: string;
   shift: VisitShift;
+  assignmentType?: "planned" | "assigned";
+  taskStatus?: "assigned" | "completed";
   notes?: string;
 };
 
