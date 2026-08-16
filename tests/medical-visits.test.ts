@@ -29,9 +29,9 @@ describe("medical visit reports", () => {
 
 describe("Excel entity import", () => {
   it("يقرأ الأعمدة العربية ويصنّف جهة الزيارة", () => {
-    const imported = parseEntitiesFromRows([{ "اسم الجهة": "صيدلية الشفاء", "نوع الجهة": "صيدلية", "اسم الطبيب": "د. خالد", "العنوان": "الرياض" }]);
+    const imported = parseEntitiesFromRows([{ "اسم الجهة": "صيدلية الشفاء", "نوع الجهة": "صيدلية", "اسم الطبيب": "د. خالد", "العنوان": "الرياض", "التخصص": "تغذية", "الفئة": "أ", "الموقع الجغرافي": "الرياض - العليا" }]);
     expect(imported).toHaveLength(1);
-    expect(imported[0]).toMatchObject({ name: "صيدلية الشفاء", kind: "صيدلية", contactName: "د. خالد", address: "الرياض" });
+    expect(imported[0]).toMatchObject({ name: "صيدلية الشفاء", kind: "صيدلية", contactName: "د. خالد", address: "الرياض", specialty: "تغذية", category: "أ", geographicLocation: "الرياض - العليا" });
   });
 
   it("يتجاهل الصفوف الخالية من اسم الجهة", () => {

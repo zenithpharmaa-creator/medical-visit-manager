@@ -13,6 +13,9 @@ export type MedicalEntity = {
   contactName?: string;
   phone?: string;
   address?: string;
+  specialty?: string;
+  category?: string;
+  geographicLocation?: string;
   notes?: string;
   createdAt: string;
 };
@@ -29,6 +32,9 @@ export type Visit = {
   entityId: string;
   entityName: string;
   entityKind: EntityKind;
+  specialty?: string;
+  category?: string;
+  geographicLocation?: string;
   recordedAt: string;
   location: VisitLocation | null;
   notes: string;

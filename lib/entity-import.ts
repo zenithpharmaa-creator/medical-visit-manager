@@ -30,6 +30,9 @@ export function parseEntitiesFromRows(rows: ExcelRow[]): MedicalEntity[] {
         contactName: textValue(row, ["الطبيب", "المسؤول", "اسم الطبيب", "contact", "doctor"]),
         phone: textValue(row, ["الهاتف", "رقم الهاتف", "phone", "mobile"]),
         address: textValue(row, ["العنوان", "address"]),
+        specialty: textValue(row, ["التخصص", "التخصص الطبي", "specialty", "medical specialty"]),
+        category: textValue(row, ["الفئة", "تصنيف الفئة", "category", "class"]),
+        geographicLocation: textValue(row, ["الموقع الجغرافي", "الموقع", "المنطقة", "الحي", "geographic location", "location", "area"]),
         notes: textValue(row, ["ملاحظات", "notes"]),
         createdAt: new Date().toISOString(),
       };

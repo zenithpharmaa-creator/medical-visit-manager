@@ -41,7 +41,7 @@ export default function RecordVisitScreen() {
     if (picker === "representative") {
       return data.representatives.filter((item) => item.active).map((item) => ({ label: item.name, value: item.id }));
     }
-    return data.entities.map((item) => ({ label: item.name, value: item.id, helper: item.kind }));
+    return data.entities.map((item) => ({ label: item.name, value: item.id, helper: [item.kind, item.specialty, item.category, item.geographicLocation].filter(Boolean).join(" · ") }));
   }, [data.entities, data.representatives, picker]);
 
   const captureLocation = async () => {
@@ -83,6 +83,9 @@ export default function RecordVisitScreen() {
       entityId: selectedEntity.id,
       entityName: selectedEntity.name,
       entityKind: selectedEntity.kind,
+      specialty: selectedEntity.specialty,
+      category: selectedEntity.category,
+      geographicLocation: selectedEntity.geographicLocation,
       recordedAt: capturedAt,
       location,
       notes: notes.trim(),
