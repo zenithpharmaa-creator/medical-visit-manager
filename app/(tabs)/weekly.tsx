@@ -12,6 +12,7 @@ import {
   Text,
   TextInput,
   View,
+  Image,
 } from "react-native";
 
 import { ScreenContainer } from "@/components/screen-container";
@@ -26,7 +27,7 @@ import {
   buildWeeklyReportRows,
   matchWeeklyVisits,
 } from "@/lib/weekly-report";
-import type { VisitShift } from "@/shared/visit-types";
+import type { PlannedVisit, VisitShift } from "@/shared/visit-types";
 
 const dayNames = [
   "السبت",
@@ -54,7 +55,7 @@ const shifts = [
 const column = { date: 112, day: 96, shift: 245 };
 
 export default function WeeklyPlanScreen() {
-  const { data, addPlannedVisit } = useVisitStore();
+  const { data, addPlannedVisit, updatePlannedVisit } = useVisitStore();
   const [modalVisible, setModalVisible] = useState(false);
   const [repModal, setRepModal] = useState(false);
   const [entityModal, setEntityModal] = useState(false);
@@ -71,6 +72,9 @@ export default function WeeklyPlanScreen() {
   const [scheduledDateTime, setScheduledDateTime] = useState(new Date());
   const [datePickerVisible, setDatePickerVisible] = useState(false);
   const [timePickerVisible, setTimePickerVisible] = useState(false);
+  const [editingPlan, setEditingPlan] = useState<PlannedVisit | null>(null);
+  const [selectedRepFilter, setSelectedRepFilter] = useState("all");
+  const [filterModal, setFilterModal] = useState(false);
   const week = useMemo(() => {
     const today = new Date();
     const offset = (today.getDay() + 1) % 7;
@@ -108,8 +112,9 @@ export default function WeeklyPlanScreen() {
     data.representatives.find((rep) => rep.id === id)?.name ?? "مندوب غير محدد";
   const entityName = (id: string) =>
     data.entities.find((entity) => entity.id === id)?.name ?? "طبيب غير محدد";
-  const plannedWeek = week.flatMap((day) => day.planned);
-  const executedWeek = week.flatMap((day) => day.visits);
+  const visibleWeek = week.map((day) => ({ ...day, planned: selectedRepFilter === "all" ? day.planned : day.planned.filter((item) => item.representativeId === selectedRepFilter), visits: selectedRepFilter === "all" ? day.visits : day.visits.filter((item) => item.representativeId === selectedRepFilter) }));
+  const plannedWeek = visibleWeek.flatMap((day) => day.planned);
+  const executedWeek = visibleWeek.flatMap((day) => day.visits);
   const report = buildWeeklyReportRows(
     plannedWeek,
     executedWeek,
@@ -126,12 +131,12 @@ export default function WeeklyPlanScreen() {
       Alert.alert("بيانات ناقصة", "اختر المندوب والطبيب والفترة.");
       return;
     }
-    if (dayNames[selectedDayIndex] === "الجمعة") {
+    if (new Date(scheduledDateTime).getDay() === 5) {
       Alert.alert("يوم إجازة", "لا يمكن جدولة زيارة يوم الجمعة.");
       return;
     }
-    addPlannedVisit({
-      id: buildId("planned"),
+    const plan = {
+      id: editingPlan?.id ?? buildId("planned"),
       representativeId: selectedRep,
       entityId: entity.id,
       entityName: entity.name,
@@ -140,9 +145,10 @@ export default function WeeklyPlanScreen() {
       scheduledTime: scheduledDateTime.toISOString(),
       shift: selectedShift,
       notes: notes.trim(),
-    });
-    setNotes("");
-    setModalVisible(false);
+    };
+    if (editingPlan) updatePlannedVisit(plan); else addPlannedVisit(plan);
+    setNotes(""); setEditingPlan(null);
+    setDatePickerVisible(false); setTimePickerVisible(false); setModalVisible(false);
   };
   const openPlan = (index: number) => {
     if (!data.entities.length) {
@@ -152,12 +158,15 @@ export default function WeeklyPlanScreen() {
       );
       return;
     }
+    setEditingPlan(null);
     setSelectedDayIndex(index);
     const plannedDate = new Date(week[index].date);
     plannedDate.setHours(selectedShift === "morning" ? 8 : 16, 0, 0, 0);
     setScheduledDateTime(plannedDate);
     setModalVisible(true);
   };
+  const openEditPlan = (plan: PlannedVisit) => { setEditingPlan(plan); setSelectedRep(plan.representativeId); setSelectedEntity(plan.entityId); setSelectedShift(plan.shift); setNotes(plan.notes ?? ""); setScheduledDateTime(new Date(plan.scheduledTime ?? `${plan.scheduledDate}T${plan.shift === "morning" ? "08:00" : "16:00"}:00`)); setModalVisible(true); };
+  const printTable = async () => { const rows = visibleWeek.map((day) => `<tr><td>${day.key}</td><td>${day.name}${day.holiday ? " (إجازة)" : ""}</td><td>${day.planned.filter((item) => item.shift === "morning").map((item) => `${item.entityName} — ${repName(item.representativeId)}`).join("<br>") || "—"}</td><td>${day.planned.filter((item) => item.shift === "evening").map((item) => `${item.entityName} — ${repName(item.representativeId)}`).join("<br>") || "—"}</td></tr>`).join(""); try { await Print.printAsync({ html: `<html dir="rtl"><head><meta charset="utf-8"><style>body{font-family:Arial;color:#101820}h1,h2{text-align:center}table{width:100%;border-collapse:collapse}th,td{border:1px solid #3f4748;padding:10px;text-align:right}th{background:#d4d8d8}td{height:54px} .brand{color:#2f6b50;text-align:center;font-weight:bold}</style></head><body><div class="brand">مدير الزيارات الطبية</div><h1>الخطة الأسبوعية</h1><h2>اسم المندوب: ${selectedRepFilter === "all" ? "جميع المندوبين" : repName(selectedRepFilter)}</h2><table><thead><tr><th>التاريخ</th><th>اليوم</th><th>الفترة الصباحية<br>08:00 – 13:00</th><th>الفترة المسائية<br>16:00 – 20:00</th></tr></thead><tbody>${rows}</tbody></table></body></html>` }); } catch { Alert.alert("تعذر الطباعة", "حاول مرة أخرى بعد التأكد من اتصال الطابعة."); } };
   const exportWeekly = async (type: "pdf" | "excel") => {
     try {
       if (type === "pdf") {
@@ -207,14 +216,14 @@ export default function WeeklyPlanScreen() {
     return (
       <View className="gap-1">
         {plans.map((plan) => (
-          <View key={plan.id} className="rounded-lg bg-primary/10 px-2 py-1">
+          <Pressable key={plan.id} onPress={() => openEditPlan(plan)} className="rounded-lg bg-primary/10 px-2 py-1">
             <Text className="text-primary font-bold text-xs text-right">
               {plan.entityName}
             </Text>
             <Text className="text-primary/80 text-[10px] text-right">
               مخطط · {repName(plan.representativeId)}
             </Text>
-          </View>
+          </Pressable>
         ))}
         {done.map((visit) => (
           <View key={visit.id} className="rounded-lg bg-success/10 px-2 py-1">
@@ -245,6 +254,7 @@ export default function WeeklyPlanScreen() {
           subtitle="جدول جميع المندوبين · السبت أول الأسبوع"
           icon="calendar-month"
         />
+        <View className="rounded-2xl bg-white border border-border p-3 mb-4 flex-row-reverse items-center justify-center gap-3"><Image source={require("../../assets/images/icon.png")} className="w-12 h-12 rounded-xl" /><View className="items-end"><Text className="font-bold text-foreground">مدير الزيارات الطبية</Text><Text className="text-xs text-muted mt-1">الخطة الأسبوعية</Text></View></View>
         <View className="rounded-2xl bg-primary p-4 mb-4 flex-row-reverse items-center gap-3">
           <View className="w-11 h-11 rounded-xl bg-white/15 items-center justify-center">
             <MaterialIcons name="calendar-month" size={23} color="#FFFFFF" />
@@ -273,6 +283,7 @@ export default function WeeklyPlanScreen() {
             <Text className="text-success text-xs mt-1">16:00 – 20:00</Text>
           </View>
         </View>
+        <Pressable onPress={() => setFilterModal(true)} className="h-12 rounded-2xl bg-surface border border-border px-4 flex-row-reverse items-center justify-between mb-4"><Text className="font-bold text-foreground">{selectedRepFilter === "all" ? "جميع المندوبين" : repName(selectedRepFilter)}</Text><View className="flex-row-reverse items-center gap-2"><Text className="text-xs text-muted">عرض جدول مستقل</Text><MaterialIcons name="filter-list" size={21} color="#102A43" /></View></Pressable>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator
@@ -334,7 +345,7 @@ export default function WeeklyPlanScreen() {
                 </Text>
               </View>
             </View>
-            {week.map((day, index) => (
+            {visibleWeek.map((day, index) => (
               <View
                 key={day.key}
                 className={`flex-row-reverse border-b border-[#6B7374] min-h-[92px] ${day.holiday ? "bg-[#E2E2E2]" : "bg-[#F7F8F8]"}`}
@@ -398,7 +409,7 @@ export default function WeeklyPlanScreen() {
           <Text className="font-bold text-foreground text-lg">
             تقرير المدير الأسبوعي
           </Text>
-          <View className="flex-row-reverse gap-2">
+          <View className="flex-row-reverse gap-2"><Pressable onPress={printTable} className="rounded-xl bg-primary px-3 py-2 flex-row-reverse items-center gap-1"><MaterialIcons name="print" size={16} color="#FFFFFF" /><Text className="text-white text-xs font-bold">طباعة الجدول</Text></Pressable>
             <Pressable
               onPress={() => exportWeekly("pdf")}
               className="rounded-xl bg-foreground px-3 py-2 flex-row-reverse items-center gap-1"
@@ -440,14 +451,14 @@ export default function WeeklyPlanScreen() {
           <View className="bg-background rounded-t-[28px] p-5">
             <View className="flex-row-reverse justify-between items-center mb-4">
               <Text className="text-xl font-bold text-foreground">
-                إضافة زيارة مخططة
+                {editingPlan ? "تعديل الزيارة المخططة" : "إضافة زيارة مخططة"}
               </Text>
               <Pressable onPress={() => setModalVisible(false)}>
                 <MaterialIcons name="close" size={24} color="#102A43" />
               </Pressable>
             </View>
             <Text className="text-sm text-muted text-right mb-3">
-              اليوم: {dayNames[selectedDayIndex]}
+              اليوم: {new Intl.DateTimeFormat("ar-YE", { weekday: "long" }).format(scheduledDateTime)}
             </Text>
             <Pressable onPress={() => setDatePickerVisible((value) => !value)} className="h-14 rounded-2xl border border-border bg-surface px-4 flex-row-reverse items-center justify-between mb-3">
               <Text className="font-bold text-foreground">التاريخ: {formatDate(scheduledDateTime)}</Text>
@@ -517,6 +528,7 @@ export default function WeeklyPlanScreen() {
           </View>
         </View>
       </Modal>
+      <SelectionModal visible={filterModal} title="اختر المندوب لعرض جدوله" options={[{ label: "جميع المندوبين", value: "all" }, ...data.representatives.map((rep) => ({ label: rep.name, value: rep.id }))]} selected={selectedRepFilter} onClose={() => setFilterModal(false)} onSelect={(option) => { setSelectedRepFilter(option.value); setFilterModal(false); }} />
       <SelectionModal
         visible={repModal}
         title="اختر المندوب"
