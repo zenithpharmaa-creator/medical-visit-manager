@@ -7,6 +7,7 @@ import { ENTITY_CATEGORIES, SPECIALTIES } from "../lib/visit-utils";
 import type { Visit } from "../shared/visit-types";
 import { SANAA_OFFLINE_AREAS } from "../data/sanaa-offline";
 import { buildVisitExportRows, buildVisitsCsv, buildVisitsExcelBase64 } from "../lib/visit-export";
+import { parseBackupJson } from "../lib/backup-validation";
 
 const visit = (recordedAt: string): Visit => ({
   id: recordedAt,
@@ -59,6 +60,16 @@ describe("visit export", () => {
     expect(buildVisitsCsv(rows)).toContain("اسم الطبيب");
     expect(buildVisitsCsv(rows).startsWith("\uFEFF")).toBe(true);
     expect(buildVisitsExcelBase64(rows).length).toBeGreaterThan(40);
+  });
+});
+
+describe("JSON backup restore validation", () => {
+  const backup = { data: { representatives: [{ id: "rep-1" }], representativeLocations: {}, entities: [{ id: "entity-1" }], visits: [{ id: "visit-1" }], plannedVisits: [{ id: "plan-1" }], settings: {} } };
+  it("يقرأ النسخة الصحيحة ويحسب ملخص السجلات", () => {
+    expect(parseBackupJson(JSON.stringify(backup)).summary).toEqual({ representatives: 1, entities: 1, visits: 1, plannedVisits: 1 });
+  });
+  it("يرفض ملفاً لا يحتوي على بيانات التطبيق", () => {
+    expect(() => parseBackupJson(JSON.stringify({ hello: "world" }))).toThrow();
   });
 });
 

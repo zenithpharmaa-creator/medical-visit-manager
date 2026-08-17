@@ -1,4 +1,6 @@
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import * as DocumentPicker from "expo-document-picker";
+import * as FileSystem from "expo-file-system/legacy";
 import { router } from "expo-router";
 import {
   Alert,
@@ -22,16 +24,17 @@ import { monthlyOverrideCounts } from "@/lib/override-report";
 import { saveManagerPassword } from "@/lib/manager-auth";
 import { saveRepresentativePassword } from "@/lib/representative-auth";
 import { validateRepresentativePassword } from "@/lib/representative-auth-validation";
-import { BACKUP_RECIPIENT, composeBackupEmail, createLocalBackup, ensureDailyLocalBackup, type BackupMeta } from "@/lib/local-backup";
+import { BACKUP_RECIPIENT, composeBackupEmail, createLocalBackup, ensureDailyLocalBackup, parseBackupJson, type BackupMeta } from "@/lib/local-backup";
 
 export default function HomeScreen() {
-  const { data, loading } = useVisitStore();
+  const { data, loading, restoreData } = useVisitStore();
   const { session, logout } = useAccountSession();
   const [accountMenuVisible, setAccountMenuVisible] = useState(false);
   const [passwordModalVisible, setPasswordModalVisible] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [backupMeta, setBackupMeta] = useState<BackupMeta | null>(null);
   const [backupBusy, setBackupBusy] = useState(false);
+  const [restoreBusy, setRestoreBusy] = useState(false);
   const createDailyBackup = async (force = false) => {
     if (session?.role !== "manager") return;
     setBackupBusy(true);
@@ -40,6 +43,18 @@ export default function HomeScreen() {
       setBackupMeta(next);
     } catch { Alert.alert("تعذر إنشاء النسخة", "تحقق من مساحة التخزين المتاحة على الهاتف ثم حاول مرة أخرى."); }
     finally { setBackupBusy(false); }
+  };
+  const importBackup = async () => {
+    setRestoreBusy(true);
+    try {
+      const result = await DocumentPicker.getDocumentAsync({ type: ["application/json", "text/json", "*/*"], copyToCacheDirectory: true });
+      if (result.canceled) return;
+      const asset = result.assets[0];
+      const text = await FileSystem.readAsStringAsync(asset.uri, { encoding: FileSystem.EncodingType.UTF8 });
+      const parsed = parseBackupJson(text);
+      Alert.alert("تأكيد استعادة البيانات", `سيتم استبدال البيانات الحالية بالنسخة المختارة:\n\nالمندوبون: ${parsed.summary.representatives}\nالجهات: ${parsed.summary.entities}\nالزيارات: ${parsed.summary.visits}\nالخطط: ${parsed.summary.plannedVisits}\n\nتأكد من أن الملف هو النسخة الصحيحة قبل المتابعة.`, [{ text: "إلغاء", style: "cancel" }, { text: "استعادة البيانات", style: "destructive", onPress: () => { restoreData(parsed.data); Alert.alert("تمت الاستعادة", "تم استرجاع البيانات المحلية بنجاح. أعد فتح التطبيق إذا لم تظهر بعض القوائم فوراً."); } }]);
+    } catch (error) { Alert.alert("تعذر استيراد النسخة", error instanceof Error ? error.message : "اختر ملف JSON صادر من التطبيق."); }
+    finally { setRestoreBusy(false); }
   };
   const shareBackupByEmail = async () => {
     if (session?.role !== "manager") return;
@@ -172,7 +187,7 @@ export default function HomeScreen() {
           </View>
           <MaterialIcons name="keyboard-arrow-down" size={22} color="#64748B" />
         </Pressable>
-        {session?.role === "manager" ? <View className="rounded-2xl bg-success/10 border border-success/25 p-4 mb-5"><View className="flex-row-reverse items-center gap-2"><MaterialIcons name="backup" size={22} color="#16835B" /><View className="flex-1 items-end"><Text className="font-bold text-foreground text-right">النسخة الاحتياطية اليومية</Text><Text className="text-xs text-muted text-right mt-1">تُحفظ محلياً عند فتح التطبيق، وتُجهّز عند منتصف الليل إذا كان التطبيق مفتوحاً.</Text></View></View><Text className="text-xs text-success font-semibold text-right mt-2">{backupMeta ? `آخر نسخة: ${formatArabicDate(backupMeta.createdAt)}` : backupBusy ? "جاري إنشاء النسخة..." : "لم تُنشأ نسخة اليوم بعد"}</Text><View className="flex-row-reverse gap-2 mt-3"><Pressable disabled={backupBusy} onPress={() => void createDailyBackup(true)} className="flex-1 h-11 rounded-xl bg-foreground items-center justify-center flex-row-reverse gap-1"><MaterialIcons name="save" size={17} color="#FFFFFF" /><Text className="text-white font-bold text-[11px]">إنشاء الآن</Text></Pressable><Pressable disabled={backupBusy} onPress={() => void shareBackupByEmail()} className="flex-1 h-11 rounded-xl bg-success items-center justify-center flex-row-reverse gap-1"><MaterialIcons name="email" size={17} color="#FFFFFF" /><Text className="text-white font-bold text-[11px]">فتح البريد</Text></Pressable></View></View> : null}
+        {session?.role === "manager" ? <View className="rounded-2xl bg-success/10 border border-success/25 p-4 mb-5"><View className="flex-row-reverse items-center gap-2"><MaterialIcons name="backup" size={22} color="#16835B" /><View className="flex-1 items-end"><Text className="font-bold text-foreground text-right">النسخة الاحتياطية اليومية</Text><Text className="text-xs text-muted text-right mt-1">تُحفظ محلياً عند فتح التطبيق، وتُجهّز عند منتصف الليل إذا كان التطبيق مفتوحاً.</Text></View></View><Text className="text-xs text-success font-semibold text-right mt-2">{backupMeta ? `آخر نسخة: ${formatArabicDate(backupMeta.createdAt)}` : backupBusy ? "جاري إنشاء النسخة..." : "لم تُنشأ نسخة اليوم بعد"}</Text><View className="flex-row-reverse gap-2 mt-3"><Pressable disabled={backupBusy || restoreBusy} onPress={() => void createDailyBackup(true)} className="flex-1 h-11 rounded-xl bg-foreground items-center justify-center flex-row-reverse gap-1"><MaterialIcons name="save" size={17} color="#FFFFFF" /><Text className="text-white font-bold text-[11px]">إنشاء الآن</Text></Pressable><Pressable disabled={backupBusy || restoreBusy} onPress={() => void shareBackupByEmail()} className="flex-1 h-11 rounded-xl bg-success items-center justify-center flex-row-reverse gap-1"><MaterialIcons name="email" size={17} color="#FFFFFF" /><Text className="text-white font-bold text-[11px]">فتح البريد</Text></Pressable></View><Pressable disabled={backupBusy || restoreBusy} onPress={() => void importBackup()} className="h-11 rounded-xl border border-primary bg-background items-center justify-center flex-row-reverse gap-2 mt-2"><MaterialIcons name="upload-file" size={18} color="#1565C0" /><Text className="text-primary font-bold text-xs">{restoreBusy ? "جاري قراءة النسخة..." : "استيراد نسخة JSON واستعادة البيانات"}</Text></Pressable></View> : null}
         <Modal
           visible={accountMenuVisible}
           transparent

@@ -42,6 +42,7 @@ type VisitStoreValue = {
   deleteRepresentative: (id: string) => void;
   updateSettings: (settings: AppSettings) => void;
   replaceEntities: (entities: MedicalEntity[]) => void;
+  restoreData: (data: AppData) => void;
   updateRepresentativeLocation: (id: string, value: AppData["representativeLocations"][string]) => void;
 };
 
@@ -128,6 +129,7 @@ export function VisitProvider({ children }: PropsWithChildren) {
       deleteRepresentative: (id) => save((current) => ({ ...current, representatives: current.representatives.filter((item) => item.id !== id), plannedVisits: current.plannedVisits.filter((item) => item.representativeId !== id), representativeLocations: Object.fromEntries(Object.entries(current.representativeLocations).filter(([key]) => key !== id)) })),
       updateSettings: (settings) => save((current) => ({ ...current, settings })),
       replaceEntities: (entities) => save((current) => ({ ...current, entities })),
+      restoreData: (restored) => save(() => restored),
       updateRepresentativeLocation: (id, value) => save((current) => ({ ...current, representativeLocations: { ...current.representativeLocations, [id]: value } })),
     }),
     [data, loading],

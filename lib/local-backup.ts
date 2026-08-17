@@ -3,11 +3,14 @@ import * as FileSystem from "expo-file-system/legacy";
 import * as MailComposer from "expo-mail-composer";
 
 import type { AppData } from "@/shared/visit-types";
+export { parseBackupJson } from "@/lib/backup-validation";
+export type { RestoreSummary } from "@/lib/backup-validation";
 
 export const LOCAL_BACKUP_META_KEY = "medical-visit-manager-local-backup-meta-v1";
 export const BACKUP_RECIPIENT = "nagibrasea@gmail.com";
 
 export type BackupMeta = { dateKey: string; createdAt: string; uri: string; size: number };
+
 
 function localDateKey(date = new Date()) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
