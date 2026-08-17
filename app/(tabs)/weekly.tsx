@@ -19,6 +19,7 @@ import { ScreenContainer } from "@/components/screen-container";
 import { ScreenHeader } from "@/components/screen-header";
 import { NativeDateTimePicker } from "@/components/native-date-time-picker";
 import { SelectionModal } from "@/components/selection-modal";
+import { useAccountSession } from "@/lib/account-session";
 import { useVisitStore } from "@/lib/visit-store";
 import { buildId, visitsForDate } from "@/lib/visit-utils";
 import {
@@ -56,13 +57,16 @@ const column = { date: 112, day: 96, shift: 245 };
 
 export default function WeeklyPlanScreen() {
   const { data, addPlannedVisit, updatePlannedVisit } = useVisitStore();
+  const { session } = useAccountSession();
+  const isManager = session?.role === "manager";
+  const currentRepId = session?.representativeId ?? "";
   const [modalVisible, setModalVisible] = useState(false);
   const [repModal, setRepModal] = useState(false);
   const [entityModal, setEntityModal] = useState(false);
   const [shiftModal, setShiftModal] = useState(false);
   const [selectedDayIndex, setSelectedDayIndex] = useState(0);
   const [selectedRep, setSelectedRep] = useState(
-    data.representatives[0]?.id ?? "",
+    session?.representativeId ?? data.representatives[0]?.id ?? "",
   );
   const [selectedEntity, setSelectedEntity] = useState(
     data.entities[0]?.id ?? "",
@@ -73,7 +77,7 @@ export default function WeeklyPlanScreen() {
   const [datePickerVisible, setDatePickerVisible] = useState(false);
   const [timePickerVisible, setTimePickerVisible] = useState(false);
   const [editingPlan, setEditingPlan] = useState<PlannedVisit | null>(null);
-  const [selectedRepFilter, setSelectedRepFilter] = useState("all");
+  const [selectedRepFilter, setSelectedRepFilter] = useState(session?.representativeId ?? "all");
   const [filterModal, setFilterModal] = useState(false);
   const week = useMemo(() => {
     const today = new Date();
@@ -112,7 +116,8 @@ export default function WeeklyPlanScreen() {
     data.representatives.find((rep) => rep.id === id)?.name ?? "مندوب غير محدد";
   const entityName = (id: string) =>
     data.entities.find((entity) => entity.id === id)?.name ?? "طبيب غير محدد";
-  const visibleWeek = week.map((day) => ({ ...day, planned: selectedRepFilter === "all" ? day.planned : day.planned.filter((item) => item.representativeId === selectedRepFilter), visits: selectedRepFilter === "all" ? day.visits : day.visits.filter((item) => item.representativeId === selectedRepFilter) }));
+  const activeRepFilter = isManager ? selectedRepFilter : currentRepId;
+  const visibleWeek = week.map((day) => ({ ...day, planned: activeRepFilter === "all" ? day.planned : day.planned.filter((item) => item.representativeId === activeRepFilter), visits: activeRepFilter === "all" ? day.visits : day.visits.filter((item) => item.representativeId === activeRepFilter) }));
   const plannedWeek = visibleWeek.flatMap((day) => day.planned);
   const executedWeek = visibleWeek.flatMap((day) => day.visits);
   const report = buildWeeklyReportRows(
@@ -234,7 +239,7 @@ export default function WeeklyPlanScreen() {
     return (
       <View className="gap-1">
         {plans.map((plan) => (
-          <Pressable key={plan.id} onPress={() => openEditPlan(plan)} className="rounded-lg bg-primary/10 px-2 py-1">
+          <Pressable key={plan.id} onPress={() => isManager && openEditPlan(plan)} className="rounded-lg bg-primary/10 px-2 py-1">
             <Text className="text-primary font-bold text-xs text-right">
               {plan.entityName}
             </Text>
@@ -267,9 +272,9 @@ export default function WeeklyPlanScreen() {
         contentContainerStyle={{ paddingTop: 18, paddingBottom: 32 }}
         showsVerticalScrollIndicator={false}
       >
-        <ScreenHeader
+          <ScreenHeader
           title="الخطة الأسبوعية"
-          subtitle="جدول جميع المندوبين · السبت أول الأسبوع"
+          subtitle={isManager ? "جدول جميع المندوبين · السبت أول الأسبوع" : "خطتك الأسبوعية · السبت أول الأسبوع"}
           icon="calendar-month"
         />
         <View className="rounded-2xl bg-white border border-border p-3 mb-4 flex-row-reverse items-center justify-center gap-3"><Image source={require("../../assets/images/icon.png")} className="w-12 h-12 rounded-xl" /><View className="items-end"><Text className="font-bold text-foreground">مدير الزيارات الطبية</Text><Text className="text-xs text-muted mt-1">الخطة الأسبوعية</Text></View></View>
@@ -282,7 +287,7 @@ export default function WeeklyPlanScreen() {
               الخطة الأسبوعية
             </Text>
             <Text className="text-white/80 text-xs mt-1">
-              اسم المندوب: جميع المندوبين · {totalPlanned} مخطط · {totalDone}{" "}
+              اسم المندوب: {isManager ? (activeRepFilter === "all" ? "جميع المندوبين" : repName(activeRepFilter)) : repName(currentRepId)} · {totalPlanned} مخطط · {totalDone}{" "}
               منفذ · {matchedCount} مطابق
             </Text>
           </View>
@@ -301,7 +306,7 @@ export default function WeeklyPlanScreen() {
             <Text className="text-success text-xs mt-1">16:00 – 20:00</Text>
           </View>
         </View>
-        <Pressable onPress={() => setFilterModal(true)} className="h-12 rounded-2xl bg-surface border border-border px-4 flex-row-reverse items-center justify-between mb-4"><Text className="font-bold text-foreground">{selectedRepFilter === "all" ? "جميع المندوبين" : repName(selectedRepFilter)}</Text><View className="flex-row-reverse items-center gap-2"><Text className="text-xs text-muted">عرض جدول مستقل</Text><MaterialIcons name="filter-list" size={21} color="#102A43" /></View></Pressable>
+        {isManager ? <Pressable onPress={() => setFilterModal(true)} className="h-12 rounded-2xl bg-surface border border-border px-4 flex-row-reverse items-center justify-between mb-4"><Text className="font-bold text-foreground">{activeRepFilter === "all" ? "جميع المندوبين" : repName(activeRepFilter)}</Text><View className="flex-row-reverse items-center gap-2"><Text className="text-xs text-muted">عرض جدول مستقل</Text><MaterialIcons name="filter-list" size={21} color="#102A43" /></View></Pressable> : <View className="h-12 rounded-2xl bg-surface border border-border px-4 flex-row-reverse items-center justify-between mb-4"><Text className="font-bold text-foreground">{repName(currentRepId)}</Text><Text className="text-xs text-muted">الخطة الخاصة بك</Text></View>}
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator
@@ -387,7 +392,7 @@ export default function WeeklyPlanScreen() {
                     <Text className="text-[10px] text-amber-700 mt-1">
                       إجازة
                     </Text>
-                  ) : (
+                  ) : isManager ? (
                     <Pressable
                       onPress={() => openPlan(index)}
                       className="mt-2 rounded-lg bg-primary px-2 py-1"
@@ -396,7 +401,7 @@ export default function WeeklyPlanScreen() {
                         + خطة
                       </Text>
                     </Pressable>
-                  )}
+                  ) : null}
                 </View>
                 <View
                   style={{ width: column.shift }}
@@ -423,7 +428,7 @@ export default function WeeklyPlanScreen() {
             ))}
           </View>
         </ScrollView>
-        <View className="flex-row-reverse items-center justify-between mt-5 mb-3">
+        {isManager ? (<><View className="flex-row-reverse items-center justify-between mt-5 mb-3">
           <Text className="font-bold text-foreground text-lg">
             تقرير المدير الأسبوعي
           </Text>
@@ -457,7 +462,7 @@ export default function WeeklyPlanScreen() {
               {item.eveningMatched}/{item.eveningPlanned}
             </Text>
           </View>
-        ))}{" "}
+        ))}{" "}</>) : null}
       </ScrollView>
       <Modal
         visible={modalVisible}
