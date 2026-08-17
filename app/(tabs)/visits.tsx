@@ -1,6 +1,10 @@
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import * as FileSystem from "expo-file-system/legacy";
+import * as Sharing from "expo-sharing";
 import { useState } from "react";
 import { Alert, FlatList, Image, Pressable, Text, TextInput, View } from "react-native";
+
+import { buildVisitExportRows, buildVisitsCsv, buildVisitsExcelBase64 } from "@/lib/visit-export";
 
 import { ScreenHeader } from "@/components/screen-header";
 import { ScreenContainer } from "@/components/screen-container";
@@ -22,6 +26,23 @@ export default function VisitsScreen() {
     return matchesQuery && matchesStatus;
   });
 
+  const [exportBusy, setExportBusy] = useState(false);
+  const exportVisits = async (kind: "excel" | "csv") => {
+    if (!isManager) { Alert.alert("غير متاح", "تصدير سجل الزيارات متاح لمدير النظام فقط."); return; }
+    if (!filtered.length) { Alert.alert("لا توجد بيانات", "لا توجد زيارات مطابقة للتصدير."); return; }
+    setExportBusy(true);
+    try {
+      if (!(await Sharing.isAvailableAsync())) { Alert.alert("المشاركة غير متاحة", "تعذر فتح نافذة مشاركة الملفات على هذا الجهاز."); return; }
+      const rows = buildVisitExportRows(filtered, data.representatives);
+      const extension = kind === "excel" ? "xlsx" : "csv";
+      const uri = `${FileSystem.cacheDirectory}visit-log-${Date.now()}.${extension}`;
+      if (kind === "excel") await FileSystem.writeAsStringAsync(uri, buildVisitsExcelBase64(rows), { encoding: FileSystem.EncodingType.Base64 });
+      else await FileSystem.writeAsStringAsync(uri, buildVisitsCsv(rows), { encoding: FileSystem.EncodingType.UTF8 });
+      await Sharing.shareAsync(uri, { mimeType: kind === "excel" ? "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" : "text/csv", dialogTitle: kind === "excel" ? "مشاركة سجل الزيارات Excel" : "مشاركة سجل الزيارات CSV" });
+    } catch { Alert.alert("تعذر إنشاء الملف", "حاول مرة أخرى بعد التأكد من وجود مساحة تخزين."); }
+    finally { setExportBusy(false); }
+  };
+
   return (
     <ScreenContainer className="px-5" containerClassName="bg-background">
       <View className="pt-[18px] flex-1">
@@ -33,6 +54,7 @@ export default function VisitsScreen() {
         <View className="flex-row-reverse gap-2 mb-4">
           {([{ value: "all", label: "الكل" }, { value: "verified", label: "مقبولة" }, { value: "rejected", label: "مرفوضة" }, { value: "pending", label: "بانتظار التحقق" }] as const).map((option) => <Pressable key={option.value} onPress={() => setStatusFilter(option.value)} className={`flex-1 min-h-10 rounded-xl items-center justify-center px-1 ${statusFilter === option.value ? option.value === "rejected" ? "bg-error" : option.value === "pending" ? "bg-warning" : "bg-primary" : "bg-surface border border-border"}`}><Text className={`text-[11px] font-bold text-center ${statusFilter === option.value ? "text-white" : "text-foreground"}`}>{option.label}</Text></Pressable>)}
         </View>
+        {isManager ? <View className="rounded-2xl bg-surface border border-border p-3 mb-4"><View className="flex-row-reverse items-center gap-2 mb-2"><MaterialIcons name="file-download" size={20} color="#1565C0" /><Text className="font-bold text-foreground flex-1 text-right">تصدير السجل الحالي ({filtered.length})</Text></View><View className="flex-row-reverse gap-2"><Pressable disabled={exportBusy} onPress={() => void exportVisits("excel")} className="flex-1 h-11 rounded-xl bg-success items-center justify-center flex-row-reverse gap-2"><MaterialIcons name="table-view" size={18} color="#FFFFFF" /><Text className="text-white font-bold text-xs">Excel</Text></Pressable><Pressable disabled={exportBusy} onPress={() => void exportVisits("csv")} className="flex-1 h-11 rounded-xl bg-primary items-center justify-center flex-row-reverse gap-2"><MaterialIcons name="description" size={18} color="#FFFFFF" /><Text className="text-white font-bold text-xs">CSV</Text></Pressable></View><Text className="text-xs text-muted text-right mt-2">يشمل التصدير نتائج البحث وفلتر الحالة الحاليين.</Text></View> : null}
         <FlatList
           data={filtered}
           keyExtractor={(item) => item.id}
