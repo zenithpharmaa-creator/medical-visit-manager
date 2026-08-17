@@ -3,14 +3,13 @@ import * as Haptics from "expo-haptics";
 import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
 import { useNetworkState } from "expo-network";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Alert, Image, Modal, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 
 import { FormField } from "@/components/form-field";
 import { ScreenHeader } from "@/components/screen-header";
 import { SelectionModal } from "@/components/selection-modal";
 import { ScreenContainer } from "@/components/screen-container";
-import { LocationPicker } from "@/components/location-picker";
 import { notifyManagerOfOverride } from "@/lib/override-notification";
 import { useAccountSession } from "@/lib/account-session";
 import { useVisitStore } from "@/lib/visit-store";
@@ -44,7 +43,7 @@ export default function RecordVisitScreen() {
   const [capturedAt, setCapturedAt] = useState<string | null>(null);
   const [location, setLocation] = useState<VisitLocation | null>(null);
   const [isLocating, setIsLocating] = useState(false);
-  const [locationStatus, setLocationStatus] = useState("سيتم التقاط الموقع تلقائياً عند فتح الشاشة.");
+  const [locationStatus, setLocationStatus] = useState("سيتم التقاط الموقع والوقت تلقائياً عند الضغط على حفظ الزيارة.");
   const [overrideModalVisible, setOverrideModalVisible] = useState(false);
   const [overridePin, setOverridePin] = useState("");
   const [overrideReason, setOverrideReason] = useState("");
@@ -52,7 +51,6 @@ export default function RecordVisitScreen() {
   const [selectedVisitedItems, setSelectedVisitedItems] = useState<string[]>([]);
   const [visitedItemsSearch, setVisitedItemsSearch] = useState("");
   const [entitySearch, setEntitySearch] = useState("");
-  const [locationPickerVisible, setLocationPickerVisible] = useState(false);
   const activeRepresentative = session?.representativeId ? data.representatives.find((item) => item.id === session.representativeId) : undefined;
   const representativeForVisit = isManager ? selectedRepresentative : activeRepresentative;
   const availableVisitedItems = isManager ? data.settings.visitedItems : (activeRepresentative?.assignedItems ?? []);
@@ -81,8 +79,6 @@ export default function RecordVisitScreen() {
     } catch { setLocationStatus("تعذر التقاط الموقع. تأكد من إشارة GPS ثم أعد المحاولة."); Alert.alert("تعذر تحديد الموقع", "تأكد من وجود إشارة GPS جيدة ثم أعد المحاولة."); return null; }
     finally { setIsLocating(false); }
   };
-
-  useEffect(() => { void captureLocation(); }, []);
 
 
   const persistVisit = (managerOverride = false, reason = "", capturedLocation = location, capturedTimestamp = capturedAt) => {
@@ -176,14 +172,7 @@ export default function RecordVisitScreen() {
               </View>
             ) : <Text className="text-muted text-right mb-3">{locationStatus}</Text>}
             <View className="gap-2">
-              <Pressable onPress={captureLocation} disabled={isLocating} className="rounded-xl bg-primary h-12 items-center justify-center flex-row-reverse gap-2" style={({ pressed }) => [{ opacity: pressed || isLocating ? 0.72 : 1 }]}>
-                <MaterialIcons name={isLocating ? "sync" : "gps-fixed"} size={19} color="#FFFFFF" />
-                <Text className="text-white font-bold">{isLocating ? "جاري تحديد الموقع..." : "التقاط الموقع والوقت"}</Text>
-              </Pressable>
-              <Pressable onPress={() => setLocationPickerVisible(true)} className="rounded-xl bg-foreground h-12 items-center justify-center flex-row-reverse gap-2">
-                <MaterialIcons name="map" size={19} color="#FFFFFF" />
-                <Text className="text-white font-bold">تحديد الموقع على الخريطة</Text>
-              </Pressable>
+              <View className="rounded-xl bg-primary/10 border border-primary/20 px-3 py-3 flex-row-reverse items-center gap-2"><MaterialIcons name="gps-fixed" size={18} color="#1565C0" /><Text className="text-primary text-xs font-bold flex-1 text-right">سيتم التقاط GPS والوقت تلقائياً عند الضغط على «حفظ الزيارة».</Text></View>
             </View>
           </View>
         </View>
@@ -207,7 +196,6 @@ export default function RecordVisitScreen() {
         </Pressable>
       </ScrollView>
 
-      <LocationPicker visible={locationPickerVisible} value={location ? { label: "الموقع المحدد", coordinates: location } : null} onClose={() => setLocationPickerVisible(false)} onConfirm={(selected) => { setLocation(selected.coordinates); setCapturedAt(new Date().toISOString()); setLocationStatus(`تم تحديد موقع الزيارة: ${selected.label}`); setLocationPickerVisible(false); }} />
       <Modal visible={overrideModalVisible} transparent animationType="slide" onRequestClose={() => setOverrideModalVisible(false)}>
         <View className="flex-1 justify-end bg-black/40"><View className="bg-background rounded-t-[28px] px-5 pt-5 pb-8"><View className="flex-row-reverse items-center justify-between mb-4"><Text className="text-lg font-bold text-foreground">تجاوز مدير النظام</Text><Pressable onPress={() => setOverrideModalVisible(false)}><MaterialIcons name="close" size={24} color="#102A43" /></Pressable></View><Text className="text-sm text-muted text-right leading-5 mb-4">الزيارة خارج نطاق الجهة. أدخل PIN المدير وسبباً واضحاً ليتم حفظ التجاوز مع سجل الزيارة.</Text><Text className="font-bold text-foreground text-right mb-2">PIN المدير</Text><TextInput value={overridePin} onChangeText={setOverridePin} secureTextEntry keyboardType="number-pad" placeholder="PIN" placeholderTextColor="#7C8798" textAlign="right" className="h-14 rounded-2xl border border-border bg-surface px-4 text-foreground mb-4" /><Text className="font-bold text-foreground text-right mb-2">سبب التجاوز *</Text><TextInput value={overrideReason} onChangeText={setOverrideReason} placeholder="مثال: GPS غير دقيق داخل المبنى" placeholderTextColor="#7C8798" textAlign="right" multiline className="min-h-24 rounded-2xl border border-border bg-surface px-4 py-3 text-foreground mb-4" /><Pressable onPress={confirmOverride} className="h-14 rounded-2xl bg-warning items-center justify-center flex-row-reverse gap-2"><MaterialIcons name="verified-user" size={21} color="#FFFFFF" /><Text className="text-white font-bold">تأكيد التجاوز والحفظ</Text></Pressable></View></View>
       </Modal>
