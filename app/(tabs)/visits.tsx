@@ -4,18 +4,23 @@ import { Alert, FlatList, Pressable, Text, TextInput, View } from "react-native"
 
 import { ScreenHeader } from "@/components/screen-header";
 import { ScreenContainer } from "@/components/screen-container";
+import { useAccountSession } from "@/lib/account-session";
 import { useVisitStore } from "@/lib/visit-store";
 import { formatArabicDate } from "@/lib/visit-utils";
 
 export default function VisitsScreen() {
   const { data, deleteVisit } = useVisitStore();
+  const { session } = useAccountSession();
+  const isManager = session?.role === "manager";
+  const today = new Date();
   const [query, setQuery] = useState("");
-  const filtered = data.visits.filter((visit) => `${visit.entityName} ${visit.entityKind} ${visit.specialty ?? ""} ${visit.category ?? ""} ${visit.geographicLocation ?? ""}`.toLowerCase().includes(query.trim().toLowerCase()));
+  const visibleVisits = data.visits.filter((visit) => isManager || (visit.representativeId === session?.representativeId && new Date(visit.recordedAt).toDateString() === today.toDateString()));
+  const filtered = visibleVisits.filter((visit) => `${visit.entityName} ${visit.entityKind} ${visit.specialty ?? ""} ${visit.category ?? ""} ${visit.geographicLocation ?? ""}`.toLowerCase().includes(query.trim().toLowerCase()));
 
   return (
     <ScreenContainer className="px-5" containerClassName="bg-background">
       <View className="pt-[18px] flex-1">
-        <ScreenHeader title="الزيارات" subtitle={`${data.visits.length} زيارة محفوظة`} icon="event-note" />
+        <ScreenHeader title="الزيارات" subtitle={isManager ? `${filtered.length} زيارة محفوظة` : `${filtered.length} زيارة لك اليوم`} icon="event-note" />
         <View className="h-13 rounded-2xl border border-border bg-surface px-4 flex-row-reverse items-center gap-2 mb-4">
           <MaterialIcons name="search" size={21} color="#102A43" />
           <TextInput value={query} onChangeText={setQuery} placeholder="ابحث بالجهة أو النوع أو التخصص أو الفئة أو الموقع" placeholderTextColor="#7C8798" textAlign="right" className="flex-1 h-full text-foreground font-semibold" />
@@ -39,9 +44,7 @@ export default function VisitsScreen() {
                   </View>
                 </View>
                 {item.notes ? <Text className="text-sm text-muted border-t border-border pt-3 mt-3 text-right leading-5">{item.notes}</Text> : null}
-                <Pressable onPress={() => Alert.alert("حذف الزيارة", "هل تريد حذف هذه الزيارة نهائياً؟", [{ text: "إلغاء", style: "cancel" }, { text: "حذف", style: "destructive", onPress: () => deleteVisit(item.id) }])} className="self-start mt-3 px-2 py-1" style={({ pressed }) => [{ opacity: pressed ? 0.6 : 1 }]}>
-                  <Text className="text-error font-bold text-xs">حذف</Text>
-                </Pressable>
+                {isManager ? <Pressable onPress={() => Alert.alert("حذف الزيارة", "هل تريد حذف هذه الزيارة نهائياً؟", [{ text: "إلغاء", style: "cancel" }, { text: "حذف", style: "destructive", onPress: () => deleteVisit(item.id) }])} className="self-start mt-3 px-2 py-1" style={({ pressed }) => [{ opacity: pressed ? 0.6 : 1 }]}><Text className="text-error font-bold text-xs">حذف</Text></Pressable> : null}
               </View>
             );
           }}
