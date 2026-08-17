@@ -16,6 +16,7 @@ const options = [
   { label: "جهات الزيارة", subtitle: "العيادات والصيدليات والمستشفيات والمراكز", icon: "local-hospital" as const, route: "/entities" },
   { label: "المندوبون", subtitle: "تعديل أسماء المندوبين وحالتهم", icon: "groups" as const, route: "/settings" },
   { label: "المهام المسندة", subtitle: "متابعة الزيارات التي أسندها المدير", icon: "assignment-ind" as const, route: "/tasks" },
+  { label: "اعتماد الخطط الأسبوعية", subtitle: "مراجعة خطط المندوبين واعتمادها أو رفضها", icon: "fact-check" as const, route: "/plan-approvals" },
   { label: "إعدادات التقارير", subtitle: "البريد والتذكير والنسخة الاحتياطية", icon: "settings" as const, route: "/settings" },
   { label: "خريطة الزيارات", subtitle: "عرض مواقع الزيارات الموثقة حسب المندوب والجهة", icon: "map" as const, route: "/map" },
   { label: "تقرير تجاوزات الموقع", subtitle: "مراجعة زيارات تجاوز النطاق وأسبابها", icon: "gpp-maybe" as const, route: "/override-reports" },

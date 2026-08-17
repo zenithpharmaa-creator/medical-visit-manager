@@ -23,6 +23,7 @@ export default function TabLayout() {
       <Tabs.Screen name="reports" options={{ href: isManager ? undefined : null, title: "التقارير", tabBarIcon: ({ color }) => <IconSymbol name="chart.bar.fill" size={23} color={color} /> }} />
       <Tabs.Screen name="weekly" options={{ title: "الخطة", tabBarIcon: ({ color }) => <IconSymbol name="calendar" size={23} color={color} /> }} />
       <Tabs.Screen name="tasks" options={{ href: isManager ? undefined : null, title: "المهام", tabBarIcon: ({ color }) => <IconSymbol name="calendar" size={23} color={color} /> }} />
+      <Tabs.Screen name="plan-approvals" options={{ href: null, title: "اعتماد الخطط" }} />
       <Tabs.Screen name="management" options={{ href: isManager ? undefined : null, title: "الإدارة", tabBarIcon: ({ color }) => <IconSymbol name="gearshape.fill" size={23} color={color} /> }} />
       <Tabs.Screen name="entities" options={{ href: null }} />
       <Tabs.Screen name="settings" options={{ href: null }} />

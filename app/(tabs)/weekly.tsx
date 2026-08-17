@@ -78,6 +78,7 @@ export default function WeeklyPlanScreen() {
   const [timePickerVisible, setTimePickerVisible] = useState(false);
   const [editingPlan, setEditingPlan] = useState<PlannedVisit | null>(null);
   const [selectedRepFilter, setSelectedRepFilter] = useState(session?.representativeId ?? "all");
+  const [weekOffset, setWeekOffset] = useState(0);
   const [filterModal, setFilterModal] = useState(false);
   const [statusPlan, setStatusPlan] = useState<PlannedVisit | null>(null);
   const [approvalPlan, setApprovalPlan] = useState<PlannedVisit | null>(null);
@@ -93,7 +94,7 @@ export default function WeeklyPlanScreen() {
     const start = new Date(
       today.getFullYear(),
       today.getMonth(),
-      today.getDate() - offset,
+      today.getDate() - offset + weekOffset * 7,
     );
     return dayNames.map((name, index) => {
       const date = new Date(start);
@@ -110,7 +111,7 @@ export default function WeeklyPlanScreen() {
         holiday: name === "الجمعة",
       };
     });
-  }, [data.visits, data.plannedVisits]);
+  }, [data.visits, data.plannedVisits, weekOffset]);
   const formatDate = (date: Date) =>
     new Intl.DateTimeFormat("ar-YE", { day: "numeric", month: "short" }).format(
       date,
@@ -314,6 +315,7 @@ export default function WeeklyPlanScreen() {
           subtitle={isManager ? "جدول جميع المندوبين · السبت أول الأسبوع" : "خطتك الأسبوعية · السبت أول الأسبوع"}
           icon="calendar-month"
         />
+        <View className="flex-row-reverse items-center gap-2 mb-4"><Pressable onPress={() => setWeekOffset((value) => value - 1)} className="w-11 h-11 rounded-xl bg-surface border border-border items-center justify-center"><MaterialIcons name="chevron-right" size={24} color="#102A43" /></Pressable><View className="flex-1 h-11 rounded-xl bg-primary/10 border border-primary/20 items-center justify-center"><Text className="font-bold text-primary">{week[0]?.date ? `أسبوع ${formatDate(week[0].date)} – ${formatDate(week[5].date)}` : "الأسبوع الحالي"}</Text></View><Pressable onPress={() => setWeekOffset((value) => value + 1)} className="w-11 h-11 rounded-xl bg-surface border border-border items-center justify-center"><MaterialIcons name="chevron-left" size={24} color="#102A43" /></Pressable></View>
         <View className="rounded-2xl bg-white border border-border p-3 mb-4 flex-row-reverse items-center justify-center gap-3"><Image source={require("../../assets/images/icon.png")} className="w-12 h-12 rounded-xl" /><View className="items-end"><Text className="font-bold text-foreground">مدير الزيارات الطبية</Text><Text className="text-xs text-muted mt-1">الخطة الأسبوعية</Text></View></View>
         <View className="rounded-2xl bg-primary p-4 mb-4 flex-row-reverse items-center gap-3">
           <View className="w-11 h-11 rounded-xl bg-white/15 items-center justify-center">
