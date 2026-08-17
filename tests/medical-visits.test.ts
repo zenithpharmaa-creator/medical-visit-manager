@@ -7,7 +7,7 @@ import { ENTITY_CATEGORIES, SPECIALTIES } from "../lib/visit-utils";
 import type { Visit } from "../shared/visit-types";
 import { SANAA_OFFLINE_AREAS } from "../data/sanaa-offline";
 import { buildVisitExportRows, buildVisitsCsv, buildVisitsExcelBase64 } from "../lib/visit-export";
-import { parseBackupJson } from "../lib/backup-validation";
+import { mergeAppData, parseBackupJson } from "../lib/backup-validation";
 
 const visit = (recordedAt: string): Visit => ({
   id: recordedAt,
@@ -70,6 +70,15 @@ describe("JSON backup restore validation", () => {
   });
   it("يرفض ملفاً لا يحتوي على بيانات التطبيق", () => {
     expect(() => parseBackupJson(JSON.stringify({ hello: "world" }))).toThrow();
+  });
+  it("يدمج السجلات الجديدة ويحافظ على السجل الحالي عند تكرار المعرّف", () => {
+    const current = { data: { representatives: [{ id: "rep-1", name: "الحالي" }], representativeLocations: {}, entities: [{ id: "entity-1" }], visits: [{ id: "visit-1" }], plannedVisits: [], settings: {} } };
+    const incoming = { data: { representatives: [{ id: "rep-1", name: "مستورد" }], representativeLocations: {}, entities: [{ id: "entity-2" }], visits: [{ id: "visit-2" }], plannedVisits: [], settings: {} } };
+    const result = mergeAppData(parseBackupJson(JSON.stringify(current)).data, parseBackupJson(JSON.stringify(incoming)).data);
+    expect(result.data.representatives).toEqual([{ id: "rep-1", name: "الحالي" }]);
+    expect(result.data.entities).toHaveLength(2);
+    expect(result.data.visits).toHaveLength(2);
+    expect(result.summary.skippedRepresentatives).toBe(1);
   });
 });
 

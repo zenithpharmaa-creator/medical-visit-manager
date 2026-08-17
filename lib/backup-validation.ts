@@ -1,6 +1,31 @@
 import type { AppData } from "@/shared/visit-types";
 
 export type RestoreSummary = { representatives: number; entities: number; visits: number; plannedVisits: number };
+export type MergeSummary = RestoreSummary & { skippedRepresentatives: number; skippedEntities: number; skippedVisits: number; skippedPlannedVisits: number };
+
+function mergeById<T extends { id: string }>(current: T[], incoming: T[]) {
+  const ids = new Set(current.map((item) => item.id));
+  return { values: [...current, ...incoming.filter((item) => !ids.has(item.id))], skipped: incoming.filter((item) => ids.has(item.id)).length };
+}
+
+export function mergeAppData(current: AppData, incoming: AppData): { data: AppData; summary: MergeSummary } {
+  const representatives = mergeById(current.representatives, incoming.representatives);
+  const entities = mergeById(current.entities, incoming.entities);
+  const visits = mergeById(current.visits, incoming.visits);
+  const plannedVisits = mergeById(current.plannedVisits, incoming.plannedVisits);
+  return {
+    data: {
+      ...current,
+      representatives: representatives.values,
+      entities: entities.values,
+      visits: visits.values,
+      plannedVisits: plannedVisits.values,
+      representativeLocations: { ...incoming.representativeLocations, ...current.representativeLocations },
+      settings: current.settings,
+    },
+    summary: { representatives: representatives.values.length, entities: entities.values.length, visits: visits.values.length, plannedVisits: plannedVisits.values.length, skippedRepresentatives: representatives.skipped, skippedEntities: entities.skipped, skippedVisits: visits.skipped, skippedPlannedVisits: plannedVisits.skipped },
+  };
+}
 
 export function parseBackupJson(text: string): { data: AppData; summary: RestoreSummary } {
   const parsed: unknown = JSON.parse(text);

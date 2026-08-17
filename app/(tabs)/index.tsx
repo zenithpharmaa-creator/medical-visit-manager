@@ -25,6 +25,7 @@ import { saveManagerPassword } from "@/lib/manager-auth";
 import { saveRepresentativePassword } from "@/lib/representative-auth";
 import { validateRepresentativePassword } from "@/lib/representative-auth-validation";
 import { BACKUP_RECIPIENT, composeBackupEmail, createLocalBackup, ensureDailyLocalBackup, parseBackupJson, type BackupMeta } from "@/lib/local-backup";
+import { mergeAppData } from "@/lib/backup-validation";
 
 export default function HomeScreen() {
   const { data, loading, restoreData } = useVisitStore();
@@ -52,7 +53,8 @@ export default function HomeScreen() {
       const asset = result.assets[0];
       const text = await FileSystem.readAsStringAsync(asset.uri, { encoding: FileSystem.EncodingType.UTF8 });
       const parsed = parseBackupJson(text);
-      Alert.alert("تأكيد استعادة البيانات", `سيتم استبدال البيانات الحالية بالنسخة المختارة:\n\nالمندوبون: ${parsed.summary.representatives}\nالجهات: ${parsed.summary.entities}\nالزيارات: ${parsed.summary.visits}\nالخطط: ${parsed.summary.plannedVisits}\n\nتأكد من أن الملف هو النسخة الصحيحة قبل المتابعة.`, [{ text: "إلغاء", style: "cancel" }, { text: "استعادة البيانات", style: "destructive", onPress: () => { restoreData(parsed.data); Alert.alert("تمت الاستعادة", "تم استرجاع البيانات المحلية بنجاح. أعد فتح التطبيق إذا لم تظهر بعض القوائم فوراً."); } }]);
+      const merged = mergeAppData(data, parsed.data);
+      Alert.alert("اختيار طريقة الاستعادة", `النسخة تحتوي على ${parsed.summary.visits} زيارة و${parsed.summary.entities} جهة.\n\nيمكنك دمج السجلات الجديدة مع بياناتك الحالية، أو استبدال البيانات بالكامل.`, [{ text: "إلغاء", style: "cancel" }, { text: "استبدال بالكامل", style: "destructive", onPress: () => { restoreData(parsed.data); Alert.alert("تمت الاستعادة", "تم استبدال البيانات الحالية بالنسخة المختارة."); } }, { text: "دمج مع الحالي", onPress: () => { restoreData(merged.data); Alert.alert("تم الدمج", `تم الحفاظ على بيانات الجهاز وإضافة السجلات غير المكررة.\n\nالسجلات المتجاوزة لتكرار المعرّف: ${merged.summary.skippedVisits} زيارة، ${merged.summary.skippedEntities} جهة، ${merged.summary.skippedPlannedVisits} خطة.`); } }]);
     } catch (error) { Alert.alert("تعذر استيراد النسخة", error instanceof Error ? error.message : "اختر ملف JSON صادر من التطبيق."); }
     finally { setRestoreBusy(false); }
   };
