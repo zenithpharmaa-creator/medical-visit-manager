@@ -2,6 +2,7 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import * as MailComposer from "expo-mail-composer";
 import * as Print from "expo-print";
 import * as FileSystem from "expo-file-system/legacy";
+import { Asset } from "expo-asset";
 import * as XLSX from "xlsx";
 import * as Sharing from "expo-sharing";
 import { useMemo, useState } from "react";
@@ -19,7 +20,8 @@ export default function ReportsScreen() {
   const [isWorking, setIsWorking] = useState(false);
   const currentVisits = useMemo(() => getPeriodVisits(data.visits, period), [data.visits, period]);
   const title = reportTitle(period);
-  const html = useMemo(() => buildReportHtml({ visits: currentVisits, representatives: data.representatives, title, managerName: data.settings.managerName }), [currentVisits, data.representatives, data.settings.managerName, title]);
+  const logoUri = Asset.fromModule(require("../../assets/images/icon.png")).uri;
+  const html = useMemo(() => buildReportHtml({ visits: currentVisits, representatives: data.representatives, title, managerName: data.settings.managerName, logoUri }), [currentVisits, data.representatives, data.settings.managerName, title, logoUri]);
   const byRepresentative = data.representatives.map((representative) => ({ representative, count: currentVisits.filter((visit) => visit.representativeId === representative.id).length }));
 
   const run = async (action: "print" | "share" | "email" | "excel") => {
@@ -43,6 +45,10 @@ export default function ReportsScreen() {
         const workbook = XLSX.utils.book_new();
         const worksheet = XLSX.utils.json_to_sheet(rows);
         XLSX.utils.book_append_sheet(workbook, worksheet, "الزيارات");
+        const itemCounts = new Map<string, number>();
+        currentVisits.forEach((visit) => visit.visitedItems?.forEach((item) => itemCounts.set(item, (itemCounts.get(item) ?? 0) + 1)));
+        const rankingRows = [...itemCounts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "ar")).map(([item, count], index) => ({ "الترتيب": index + 1, "الصنف": item, "عدد الزيارات": count }));
+        XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(rankingRows), "ترتيب الأصناف");
         const base64 = XLSX.write(workbook, { type: "base64", bookType: "xlsx" });
         const uri = `${FileSystem.cacheDirectory}تقرير-الزيارات-${Date.now()}.xlsx`;
         await FileSystem.writeAsStringAsync(uri, base64, { encoding: FileSystem.EncodingType.Base64 });
