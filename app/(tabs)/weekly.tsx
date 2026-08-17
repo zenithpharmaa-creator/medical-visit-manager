@@ -3,7 +3,7 @@ import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
 import { File, Paths } from "expo-file-system";
 import * as XLSX from "xlsx";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
   Modal,
@@ -28,7 +28,7 @@ import {
   buildWeeklyReportRows,
   matchWeeklyVisits,
 } from "@/lib/weekly-report";
-import type { PlannedVisit, VisitShift } from "@/shared/visit-types";
+import type { PlannedVisit, PlannedVisitStatus, VisitShift } from "@/shared/visit-types";
 
 const dayNames = [
   "السبت",
@@ -79,6 +79,10 @@ export default function WeeklyPlanScreen() {
   const [editingPlan, setEditingPlan] = useState<PlannedVisit | null>(null);
   const [selectedRepFilter, setSelectedRepFilter] = useState(session?.representativeId ?? "all");
   const [filterModal, setFilterModal] = useState(false);
+  const [statusPlan, setStatusPlan] = useState<PlannedVisit | null>(null);
+  const [statusModalVisible, setStatusModalVisible] = useState(false);
+  const [cancellationReason, setCancellationReason] = useState("");
+  const lastNotifiedPendingCount = useRef(0);
   const week = useMemo(() => {
     const today = new Date();
     const offset = (today.getDay() + 1) % 7;
@@ -130,6 +134,13 @@ export default function WeeklyPlanScreen() {
   ).length;
   const totalPlanned = plannedWeek.length;
   const totalDone = executedWeek.length;
+  const pendingApprovalCount = data.plannedVisits.filter((plan) => plan.approvalStatus === "pending").length;
+  useEffect(() => {
+    if (isManager && pendingApprovalCount > lastNotifiedPendingCount.current) {
+      Alert.alert("خطة بانتظار الاعتماد", `لديك ${pendingApprovalCount} زيارة مخططة بانتظار اعتماد المدير.`);
+    }
+    lastNotifiedPendingCount.current = pendingApprovalCount;
+  }, [isManager, pendingApprovalCount]);
   const savePlan = () => {
     const entity = data.entities.find((item) => item.id === selectedEntity);
     const representativeId = isManager ? selectedRep : currentRepId;
@@ -152,6 +163,9 @@ export default function WeeklyPlanScreen() {
       scheduledTime: scheduledDateTime.toISOString(),
       shift: selectedShift,
       notes: notes.trim(),
+      approvalStatus: isManager ? "approved" : (editingPlan?.approvalStatus ?? "pending"),
+      planStatus: editingPlan?.planStatus ?? "planned",
+      cancellationReason: editingPlan?.cancellationReason,
     };
     if (editingPlan) updatePlannedVisit(plan); else addPlannedVisit(plan);
     setNotes(""); setEditingPlan(null);
@@ -173,7 +187,10 @@ export default function WeeklyPlanScreen() {
     setScheduledDateTime(plannedDate);
     setModalVisible(true);
   };
-  const openEditPlan = (plan: PlannedVisit) => { if (!isManager && plan.representativeId !== currentRepId) { Alert.alert("لا تملك الصلاحية", "يمكنك تعديل خطتك الأسبوعية الخاصة فقط."); return; } setEditingPlan(plan); setSelectedRep(plan.representativeId); setSelectedEntity(plan.entityId); setSelectedShift(plan.shift); setNotes(plan.notes ?? ""); setScheduledDateTime(new Date(plan.scheduledTime ?? `${plan.scheduledDate}T${plan.shift === "morning" ? "08:00" : "16:00"}:00`)); setModalVisible(true); };
+  const openEditPlan = (plan: PlannedVisit) => { if (!isManager && plan.representativeId !== currentRepId) { Alert.alert("لا تملك الصلاحية", "يمكنك تعديل خطتك الأسبوعية الخاصة فقط."); return; } if (!isManager && (plan.approvalStatus === "approved" || plan.planStatus === "cancelled")) { Alert.alert("الخطة مقفلة", "لا يمكن تعديل الخطة بعد اعتمادها أو إلغائها."); return; } setEditingPlan(plan); setSelectedRep(plan.representativeId); setSelectedEntity(plan.entityId); setSelectedShift(plan.shift); setNotes(plan.notes ?? ""); setScheduledDateTime(new Date(plan.scheduledTime ?? `${plan.scheduledDate}T${plan.shift === "morning" ? "08:00" : "16:00"}:00`)); setModalVisible(true); };
+  const approvePlan = (plan: PlannedVisit) => { updatePlannedVisit({ ...plan, approvalStatus: "approved" }); };
+  const openStatusModal = (plan: PlannedVisit) => { setStatusPlan(plan); setCancellationReason(""); setStatusModalVisible(true); };
+  const savePlanStatus = (status: PlannedVisitStatus) => { if (!statusPlan) return; if (status === "cancelled" && cancellationReason.trim().length < 3) { Alert.alert("سبب الإلغاء مطلوب", "اكتب سبباً مختصراً لإلغاء الزيارة."); return; } updatePlannedVisit({ ...statusPlan, planStatus: status, cancellationReason: status === "cancelled" ? cancellationReason.trim() : undefined }); setStatusModalVisible(false); setStatusPlan(null); };
   const printTable = async () => { const rows = visibleWeek.map((day) => `<tr><td>${day.key}</td><td>${day.name}${day.holiday ? " (إجازة)" : ""}</td><td>${day.planned.filter((item) => item.shift === "morning").map((item) => `${item.entityName} — ${repName(item.representativeId)}`).join("<br>") || "—"}</td><td>${day.planned.filter((item) => item.shift === "evening").map((item) => `${item.entityName} — ${repName(item.representativeId)}`).join("<br>") || "—"}</td></tr>`).join(""); try { await Print.printAsync({ html: `<html dir="rtl"><head><meta charset="utf-8"><style>body{font-family:Arial;color:#101820}h1,h2{text-align:center}table{width:100%;border-collapse:collapse}th,td{border:1px solid #3f4748;padding:10px;text-align:right}th{background:#d4d8d8}td{height:54px} .brand{color:#2f6b50;text-align:center;font-weight:bold}</style></head><body><div class="brand">مدير الزيارات الطبية</div><h1>الخطة الأسبوعية</h1><h2>اسم المندوب: ${selectedRepFilter === "all" ? "جميع المندوبين" : repName(selectedRepFilter)}</h2><table><thead><tr><th>التاريخ</th><th>اليوم</th><th>الفترة الصباحية<br>08:00 – 13:00</th><th>الفترة المسائية<br>16:00 – 20:00</th></tr></thead><tbody>${rows}</tbody></table></body></html>` }); } catch { Alert.alert("تعذر الطباعة", "حاول مرة أخرى بعد التأكد من اتصال الطابعة."); } };
   const exportPlan = async (type: "pdf" | "excel") => {
     const selectedName = selectedRepFilter === "all" ? "جميع المندوبين" : repName(selectedRepFilter);
@@ -242,14 +259,15 @@ export default function WeeklyPlanScreen() {
     return (
       <View className="gap-1">
         {plans.map((plan) => (
-          <Pressable key={plan.id} onPress={() => (isManager || plan.representativeId === currentRepId) && openEditPlan(plan)} className="rounded-lg bg-primary/10 px-2 py-1">
-            <Text className="text-primary font-bold text-xs text-right">
-              {plan.entityName}
-            </Text>
-            <Text className="text-primary/80 text-[10px] text-right">
-              مخطط · {repName(plan.representativeId)}
-            </Text>
-          </Pressable>
+          <View key={plan.id} className={`rounded-lg px-2 py-1 ${plan.planStatus === "cancelled" ? "bg-error/10" : plan.approvalStatus === "pending" ? "bg-warning/10" : plan.planStatus === "executed" ? "bg-success/10" : "bg-primary/10"}`}>
+            <Pressable onPress={() => (isManager || plan.representativeId === currentRepId) && openEditPlan(plan)}>
+              <Text className={`font-bold text-xs text-right ${plan.planStatus === "cancelled" ? "text-error" : plan.planStatus === "executed" ? "text-success" : "text-primary"}`}>{plan.entityName}</Text>
+              <Text className="text-primary/80 text-[10px] text-right">{plan.planStatus === "cancelled" ? "ملغاة" : plan.planStatus === "executed" ? "منفذة" : plan.approvalStatus === "pending" ? "بانتظار اعتماد المدير" : "معتمدة"} · {repName(plan.representativeId)}</Text>
+              {plan.planStatus === "cancelled" && plan.cancellationReason ? <Text className="text-error/80 text-[10px] text-right">سبب الإلغاء: {plan.cancellationReason}</Text> : null}
+            </Pressable>
+            {isManager && plan.approvalStatus === "pending" ? <Pressable onPress={() => approvePlan(plan)} className="mt-1 self-end rounded-md bg-primary px-2 py-1"><Text className="text-white text-[10px] font-bold">اعتماد</Text></Pressable> : null}
+            {isManager && plan.approvalStatus === "approved" && plan.planStatus !== "cancelled" ? <View className="flex-row-reverse gap-1 mt-1"><Pressable onPress={() => openStatusModal(plan)} className="rounded-md bg-success px-2 py-1"><Text className="text-white text-[10px] font-bold">منفذة</Text></Pressable><Pressable onPress={() => { setStatusPlan(plan); setCancellationReason(""); setStatusModalVisible(true); }} className="rounded-md bg-error px-2 py-1"><Text className="text-white text-[10px] font-bold">إلغاء</Text></Pressable></View> : null}
+          </View>
         ))}
         {done.map((visit) => (
           <View key={visit.id} className="rounded-lg bg-success/10 px-2 py-1">
@@ -289,7 +307,7 @@ export default function WeeklyPlanScreen() {
             <Text className="text-white font-bold text-lg">
               الخطة الأسبوعية
             </Text>
-            <Text className="text-white/80 text-xs mt-1">
+                          <Text className="text-white/80 text-xs mt-1">
               اسم المندوب: {isManager ? (activeRepFilter === "all" ? "جميع المندوبين" : repName(activeRepFilter)) : repName(currentRepId)} · {totalPlanned} مخطط · {totalDone}{" "}
               منفذ · {matchedCount} مطابق
             </Text>
@@ -431,6 +449,7 @@ export default function WeeklyPlanScreen() {
             ))}
           </View>
         </ScrollView>
+        {isManager && pendingApprovalCount > 0 ? <View className="rounded-2xl bg-warning/10 border border-warning/30 p-3 mt-5 mb-2 flex-row-reverse items-center gap-2"><MaterialIcons name="notifications-active" size={20} color="#B45309" /><Text className="flex-1 text-right text-warning font-bold text-sm">لديك {pendingApprovalCount} زيارة مخططة بانتظار اعتمادك. اضغط «اعتماد» بجانب الخطة.</Text></View> : null}
         {isManager ? (<><View className="flex-row-reverse items-center justify-between mt-5 mb-3">
           <Text className="font-bold text-foreground text-lg">
             تقرير المدير الأسبوعي
@@ -554,6 +573,7 @@ export default function WeeklyPlanScreen() {
           </View>
         </View>
       </Modal>
+      <Modal visible={statusModalVisible} transparent animationType="fade" onRequestClose={() => setStatusModalVisible(false)}><View className="flex-1 justify-end bg-black/35"><View className="bg-background rounded-t-[28px] p-5"><Text className="text-lg font-bold text-foreground text-right mb-3">تحديث حالة الخطة</Text><Text className="text-sm text-muted text-right mb-3">{statusPlan?.entityName ?? ""}</Text><TextInput value={cancellationReason} onChangeText={setCancellationReason} placeholder="سبب الإلغاء (مطلوب عند الإلغاء)" placeholderTextColor="#7C8798" textAlign="right" className="h-14 rounded-2xl border border-border bg-surface px-4 text-foreground mb-3" /><View className="flex-row-reverse gap-2"><Pressable onPress={() => savePlanStatus("executed")} className="flex-1 h-12 rounded-xl bg-success items-center justify-center"><Text className="text-white font-bold">منفذة</Text></Pressable><Pressable onPress={() => savePlanStatus("cancelled")} className="flex-1 h-12 rounded-xl bg-error items-center justify-center"><Text className="text-white font-bold">ملغاة</Text></Pressable></View><Pressable onPress={() => setStatusModalVisible(false)} className="h-11 rounded-xl bg-surface border border-border items-center justify-center mt-2"><Text className="text-foreground font-bold">إلغاء</Text></Pressable></View></View></Modal>
       <SelectionModal visible={filterModal} title="اختر المندوب لعرض جدوله" options={[{ label: "جميع المندوبين", value: "all" }, ...data.representatives.map((rep) => ({ label: rep.name, value: rep.id }))]} selected={selectedRepFilter} onClose={() => setFilterModal(false)} onSelect={(option) => { setSelectedRepFilter(option.value); setFilterModal(false); }} />
       <SelectionModal
         visible={repModal}

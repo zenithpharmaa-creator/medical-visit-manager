@@ -37,6 +37,9 @@ export type VisitLocation = {
   accuracy: number | null;
 };
 
+export type PlannedVisitStatus = "planned" | "executed" | "cancelled";
+export type PlanApprovalStatus = "pending" | "approved" | "rejected";
+
 export type PlannedVisit = {
   id: string;
   representativeId: string;
@@ -48,6 +51,9 @@ export type PlannedVisit = {
   shift: VisitShift;
   assignmentType?: "planned" | "assigned";
   taskStatus?: "assigned" | "accepted" | "rejected" | "completed";
+  approvalStatus?: PlanApprovalStatus;
+  planStatus?: PlannedVisitStatus;
+  cancellationReason?: string;
   assignedAt?: string;
   responseReason?: string;
   notes?: string;
