@@ -17,7 +17,7 @@ export default function VisitsScreen() {
   const [statusFilter, setStatusFilter] = useState<"all" | "verified" | "rejected" | "pending">("all");
   const visibleVisits = data.visits.filter((visit) => isManager || (visit.representativeId === session?.representativeId && new Date(visit.recordedAt).toDateString() === today.toDateString()));
   const filtered = visibleVisits.filter((visit) => {
-    const matchesQuery = `${visit.entityName} ${visit.entityKind} ${visit.specialty ?? ""} ${visit.category ?? ""} ${visit.geographicLocation ?? ""}`.toLowerCase().includes(query.trim().toLowerCase());
+    const matchesQuery = `${visit.entityName} ${visit.entityKind} ${visit.specialty ?? ""} ${visit.category ?? ""} ${visit.nearestPharmacy ?? ""} ${visit.entityRegion ?? ""} ${visit.entityAddress ?? ""} ${visit.geographicLocation ?? ""}`.toLowerCase().includes(query.trim().toLowerCase());
     const matchesStatus = statusFilter === "all" || visit.verificationStatus === statusFilter;
     return matchesQuery && matchesStatus;
   });
@@ -28,7 +28,7 @@ export default function VisitsScreen() {
         <ScreenHeader title="الزيارات" subtitle={isManager ? `${filtered.length} زيارة محفوظة` : `${filtered.length} زيارة لك اليوم`} icon="event-note" />
         <View className="h-13 rounded-2xl border border-border bg-surface px-4 flex-row-reverse items-center gap-2 mb-3">
           <MaterialIcons name="search" size={21} color="#102A43" />
-          <TextInput value={query} onChangeText={setQuery} placeholder="ابحث بالجهة أو النوع أو التخصص أو الفئة أو الموقع" placeholderTextColor="#7C8798" textAlign="right" className="flex-1 h-full text-foreground font-semibold" />
+          <TextInput value={query} onChangeText={setQuery} placeholder="ابحث بالطبيب أو الصيدلية أو المنطقة أو العنوان أو الموقع" placeholderTextColor="#7C8798" textAlign="right" className="flex-1 h-full text-foreground font-semibold" />
         </View>
         <View className="flex-row-reverse gap-2 mb-4">
           {([{ value: "all", label: "الكل" }, { value: "verified", label: "مقبولة" }, { value: "rejected", label: "مرفوضة" }, { value: "pending", label: "بانتظار التحقق" }] as const).map((option) => <Pressable key={option.value} onPress={() => setStatusFilter(option.value)} className={`flex-1 min-h-10 rounded-xl items-center justify-center px-1 ${statusFilter === option.value ? option.value === "rejected" ? "bg-error" : option.value === "pending" ? "bg-warning" : "bg-primary" : "bg-surface border border-border"}`}><Text className={`text-[11px] font-bold text-center ${statusFilter === option.value ? "text-white" : "text-foreground"}`}>{option.label}</Text></Pressable>)}
@@ -46,7 +46,7 @@ export default function VisitsScreen() {
                   <View className="w-10 h-10 rounded-xl bg-primary items-center justify-center"><MaterialIcons name="location-on" size={20} color="#FFFFFF" /></View>
                   <View className="flex-1 items-end">
                     <Text className="font-bold text-foreground text-right">{item.entityName}</Text>
-                    <Text className="text-sm text-primary font-semibold mt-1 text-right">{item.entityKind} · {representative}</Text>{item.specialty || item.category ? <Text className="text-xs text-muted mt-1 text-right">{[item.specialty, item.category].filter(Boolean).join(" · ")}</Text> : null}{item.geographicLocation ? <Text className="text-xs text-muted mt-1 text-right">الموقع: {item.geographicLocation}</Text> : null}
+                    <Text className="text-sm text-primary font-semibold mt-1 text-right">{item.entityKind} · {representative}</Text>{item.specialty || item.category ? <Text className="text-xs text-muted mt-1 text-right">{[item.specialty, item.category].filter(Boolean).join(" · ")}</Text> : null}{item.entityRegion || item.geographicLocation ? <Text className="text-xs text-muted mt-1 text-right">المنطقة: {item.entityRegion === "north" ? "شمال صنعاء" : item.entityRegion === "south" ? "جنوب صنعاء" : item.geographicLocation ?? "صنعاء"}</Text> : null}{item.entityAddress ? <Text className="text-xs text-muted mt-1 text-right">العنوان: {item.entityAddress}</Text> : null}{item.nearestPharmacy ? <Text className="text-xs text-muted mt-1 text-right">أقرب صيدلية: {item.nearestPharmacy}</Text> : null}{item.geographicLocation && item.entityRegion ? <Text className="text-xs text-muted mt-1 text-right">الموقع الجغرافي: {item.geographicLocation}</Text> : null}
                     <Text className="text-xs text-muted mt-1 text-right">{formatArabicDate(item.recordedAt)}</Text>
                     {item.location ? <Text className="text-xs text-success mt-1 text-right">تم توثيق الموقع</Text> : <Text className="text-xs text-warning mt-1 text-right">لم يتوفر الموقع</Text>}
                     {item.verificationStatus === "pending" ? <Text className="text-xs text-warning font-bold mt-1 text-right">بانتظار التحقق عند عودة الاتصال</Text> : null}

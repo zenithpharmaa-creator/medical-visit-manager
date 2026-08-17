@@ -62,6 +62,11 @@ describe("Excel entity import", () => {
     expect(imported[0]).toMatchObject({ name: "د. خالد", kind: "صيدلية", contactName: "", address: "الرياض", specialty: "I.M", category: "A", nearestPharmacy: "صيدلية الشفاء", geographicLocation: "الرياض - العليا" });
   });
 
+  it("يقرأ قالب ملف اسمالطبيب.xlsx مع المسافات الزائدة في العناوين", () => {
+    const imported = parseEntitiesFromRows([{ "اسم الطبيب": "نسر العبسي", "نوع الجهة": "عيادة", "التخصص": "I.M", "الفئة": "A", "منطقة  الزيارة": "جنوب صنعاء", "الموقع الجغرافي ": "حي الخمسين", "خط الطول": "44.19", "خط العرض": "15.30", "اقرب صيدلية": "الخمسين", "العنوان": "شارع الخمسين", "الملاحضات": "ملاحظة" }]);
+    expect(imported[0]).toMatchObject({ name: "نسر العبسي", region: "south", geographicLocation: "حي الخمسين", nearestPharmacy: "الخمسين", address: "شارع الخمسين", notes: "ملاحظة", geographicCoordinates: { latitude: 15.3, longitude: 44.19 } });
+  });
+
   it("يتجاهل الصفوف الخالية من اسم الجهة", () => {
     expect(parseEntitiesFromRows([{ "نوع الجهة": "مستشفى" }])).toHaveLength(0);
   });

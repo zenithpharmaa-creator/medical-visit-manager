@@ -73,6 +73,8 @@ export type Visit = {
   category?: string;
   geographicLocation?: string;
   geographicCoordinates?: VisitLocation;
+  entityRegion?: RepresentativeRegion;
+  entityAddress?: string;
   nearestPharmacy?: string;
   recordedAt: string;
   location: VisitLocation | null;

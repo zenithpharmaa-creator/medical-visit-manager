@@ -91,8 +91,9 @@ export default function RecordVisitScreen() {
     const createdVisit = {
       id: buildId("visit"), representativeId: representativeForVisit?.id ?? "", entityId: selectedEntity.id,
       entityName: selectedEntity.name, entityKind: selectedEntity.kind, nearestPharmacy: selectedEntity.nearestPharmacy,
-      geographicCoordinates: selectedEntity.geographicCoordinates, specialty: selectedEntity.specialty, category: selectedEntity.category,
-      geographicLocation: selectedEntity.geographicLocation, recordedAt: capturedTimestamp, location: capturedLocation, notes: notes.trim(), photoUri: photoUri ?? undefined, visitedItems: selectedVisitedItems,
+      geographicCoordinates: selectedEntity.geographicCoordinates, entityRegion: selectedEntity.region, entityAddress: selectedEntity.address,
+      specialty: selectedEntity.specialty, category: selectedEntity.category, geographicLocation: selectedEntity.geographicLocation,
+      recordedAt: capturedTimestamp, location: capturedLocation, notes: notes.trim(), photoUri: photoUri ?? undefined, visitedItems: selectedVisitedItems,
       managerOverride: managerOverride || undefined, overrideReason: managerOverride ? reason : undefined,
       verificationStatus,
       offlineRecorded: !isManager,
