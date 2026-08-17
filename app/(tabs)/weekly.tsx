@@ -28,7 +28,7 @@ import {
   buildWeeklyReportRows,
   matchWeeklyVisits,
 } from "@/lib/weekly-report";
-import type { PlannedVisit, PlannedVisitStatus, VisitShift } from "@/shared/visit-types";
+import type { PlanApprovalStatus, PlannedVisit, PlannedVisitStatus, VisitShift } from "@/shared/visit-types";
 
 const dayNames = [
   "السبت",
@@ -80,6 +80,10 @@ export default function WeeklyPlanScreen() {
   const [selectedRepFilter, setSelectedRepFilter] = useState(session?.representativeId ?? "all");
   const [filterModal, setFilterModal] = useState(false);
   const [statusPlan, setStatusPlan] = useState<PlannedVisit | null>(null);
+  const [approvalPlan, setApprovalPlan] = useState<PlannedVisit | null>(null);
+  const [approvalModalVisible, setApprovalModalVisible] = useState(false);
+  const [approvalReason, setApprovalReason] = useState("");
+  const lastRepApprovalSnapshot = useRef<Record<string, string>>({});
   const [statusModalVisible, setStatusModalVisible] = useState(false);
   const [cancellationReason, setCancellationReason] = useState("");
   const lastNotifiedPendingCount = useRef(0);
@@ -141,6 +145,16 @@ export default function WeeklyPlanScreen() {
     }
     lastNotifiedPendingCount.current = pendingApprovalCount;
   }, [isManager, pendingApprovalCount]);
+  const representativeApprovalNotices = data.plannedVisits.filter((plan) => !isManager && plan.representativeId === currentRepId && plan.approvalStatus && plan.approvalStatus !== "pending");
+  useEffect(() => {
+    if (isManager || !currentRepId) return;
+    const notices = representativeApprovalNotices.filter((plan) => lastRepApprovalSnapshot.current[plan.id] && lastRepApprovalSnapshot.current[plan.id] !== plan.approvalStatus);
+    if (notices.length) {
+      const latest = notices[notices.length - 1];
+      Alert.alert(latest.approvalStatus === "approved" ? "تم اعتماد الخطة" : "تم رفض الخطة", latest.approvalStatus === "approved" ? `اعتمد المدير زيارة ${latest.entityName}.` : `رفض المدير زيارة ${latest.entityName}.${latest.responseReason ? ` السبب: ${latest.responseReason}` : ""}`);
+    }
+    representativeApprovalNotices.forEach((plan) => { lastRepApprovalSnapshot.current[plan.id] = plan.approvalStatus ?? "pending"; });
+  }, [isManager, currentRepId, representativeApprovalNotices]);
   const savePlan = () => {
     const entity = data.entities.find((item) => item.id === selectedEntity);
     const representativeId = isManager ? selectedRep : currentRepId;
@@ -163,7 +177,7 @@ export default function WeeklyPlanScreen() {
       scheduledTime: scheduledDateTime.toISOString(),
       shift: selectedShift,
       notes: notes.trim(),
-      approvalStatus: isManager ? "approved" : (editingPlan?.approvalStatus ?? "pending"),
+      approvalStatus: (isManager ? "approved" : "pending") as PlanApprovalStatus,
       planStatus: editingPlan?.planStatus ?? "planned",
       cancellationReason: editingPlan?.cancellationReason,
     };
@@ -188,7 +202,9 @@ export default function WeeklyPlanScreen() {
     setModalVisible(true);
   };
   const openEditPlan = (plan: PlannedVisit) => { if (!isManager && plan.representativeId !== currentRepId) { Alert.alert("لا تملك الصلاحية", "يمكنك تعديل خطتك الأسبوعية الخاصة فقط."); return; } if (!isManager && (plan.approvalStatus === "approved" || plan.planStatus === "cancelled")) { Alert.alert("الخطة مقفلة", "لا يمكن تعديل الخطة بعد اعتمادها أو إلغائها."); return; } setEditingPlan(plan); setSelectedRep(plan.representativeId); setSelectedEntity(plan.entityId); setSelectedShift(plan.shift); setNotes(plan.notes ?? ""); setScheduledDateTime(new Date(plan.scheduledTime ?? `${plan.scheduledDate}T${plan.shift === "morning" ? "08:00" : "16:00"}:00`)); setModalVisible(true); };
-  const approvePlan = (plan: PlannedVisit) => { updatePlannedVisit({ ...plan, approvalStatus: "approved" }); };
+  const approvePlan = (plan: PlannedVisit) => { updatePlannedVisit({ ...plan, approvalStatus: "approved", responseReason: undefined }); };
+  const openRejectPlan = (plan: PlannedVisit) => { setApprovalPlan(plan); setApprovalReason(""); setApprovalModalVisible(true); };
+  const rejectPlan = () => { if (!approvalPlan) return; if (approvalReason.trim().length < 3) { Alert.alert("سبب الرفض مطلوب", "اكتب سبباً مختصراً ليستفيد المندوب عند التعديل."); return; } updatePlannedVisit({ ...approvalPlan, approvalStatus: "rejected", responseReason: approvalReason.trim() }); setApprovalModalVisible(false); setApprovalPlan(null); };
   const openStatusModal = (plan: PlannedVisit) => { setStatusPlan(plan); setCancellationReason(""); setStatusModalVisible(true); };
   const savePlanStatus = (status: PlannedVisitStatus) => { if (!statusPlan) return; if (status === "cancelled" && cancellationReason.trim().length < 3) { Alert.alert("سبب الإلغاء مطلوب", "اكتب سبباً مختصراً لإلغاء الزيارة."); return; } updatePlannedVisit({ ...statusPlan, planStatus: status, cancellationReason: status === "cancelled" ? cancellationReason.trim() : undefined }); setStatusModalVisible(false); setStatusPlan(null); };
   const printTable = async () => { const rows = visibleWeek.map((day) => `<tr><td>${day.key}</td><td>${day.name}${day.holiday ? " (إجازة)" : ""}</td><td>${day.planned.filter((item) => item.shift === "morning").map((item) => `${item.entityName} — ${repName(item.representativeId)}`).join("<br>") || "—"}</td><td>${day.planned.filter((item) => item.shift === "evening").map((item) => `${item.entityName} — ${repName(item.representativeId)}`).join("<br>") || "—"}</td></tr>`).join(""); try { await Print.printAsync({ html: `<html dir="rtl"><head><meta charset="utf-8"><style>body{font-family:Arial;color:#101820}h1,h2{text-align:center}table{width:100%;border-collapse:collapse}th,td{border:1px solid #3f4748;padding:10px;text-align:right}th{background:#d4d8d8}td{height:54px} .brand{color:#2f6b50;text-align:center;font-weight:bold}</style></head><body><div class="brand">مدير الزيارات الطبية</div><h1>الخطة الأسبوعية</h1><h2>اسم المندوب: ${selectedRepFilter === "all" ? "جميع المندوبين" : repName(selectedRepFilter)}</h2><table><thead><tr><th>التاريخ</th><th>اليوم</th><th>الفترة الصباحية<br>08:00 – 13:00</th><th>الفترة المسائية<br>16:00 – 20:00</th></tr></thead><tbody>${rows}</tbody></table></body></html>` }); } catch { Alert.alert("تعذر الطباعة", "حاول مرة أخرى بعد التأكد من اتصال الطابعة."); } };
@@ -265,7 +281,7 @@ export default function WeeklyPlanScreen() {
               <Text className="text-primary/80 text-[10px] text-right">{plan.planStatus === "cancelled" ? "ملغاة" : plan.planStatus === "executed" ? "منفذة" : plan.approvalStatus === "pending" ? "بانتظار اعتماد المدير" : "معتمدة"} · {repName(plan.representativeId)}</Text>
               {plan.planStatus === "cancelled" && plan.cancellationReason ? <Text className="text-error/80 text-[10px] text-right">سبب الإلغاء: {plan.cancellationReason}</Text> : null}
             </Pressable>
-            {isManager && plan.approvalStatus === "pending" ? <Pressable onPress={() => approvePlan(plan)} className="mt-1 self-end rounded-md bg-primary px-2 py-1"><Text className="text-white text-[10px] font-bold">اعتماد</Text></Pressable> : null}
+            {isManager && plan.approvalStatus === "pending" ? <View className="flex-row-reverse gap-1 mt-1"><Pressable onPress={() => approvePlan(plan)} className="rounded-md bg-primary px-2 py-1"><Text className="text-white text-[10px] font-bold">اعتماد</Text></Pressable><Pressable onPress={() => openRejectPlan(plan)} className="rounded-md bg-error px-2 py-1"><Text className="text-white text-[10px] font-bold">رفض</Text></Pressable></View> : null}
             {isManager && plan.approvalStatus === "approved" && plan.planStatus !== "cancelled" ? <View className="flex-row-reverse gap-1 mt-1"><Pressable onPress={() => openStatusModal(plan)} className="rounded-md bg-success px-2 py-1"><Text className="text-white text-[10px] font-bold">منفذة</Text></Pressable><Pressable onPress={() => { setStatusPlan(plan); setCancellationReason(""); setStatusModalVisible(true); }} className="rounded-md bg-error px-2 py-1"><Text className="text-white text-[10px] font-bold">إلغاء</Text></Pressable></View> : null}
           </View>
         ))}
