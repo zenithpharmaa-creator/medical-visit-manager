@@ -1,13 +1,15 @@
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import * as Haptics from "expo-haptics";
+import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
 import { useEffect, useMemo, useState } from "react";
-import { Alert, Modal, Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { Alert, Image, Modal, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 
 import { FormField } from "@/components/form-field";
 import { ScreenHeader } from "@/components/screen-header";
 import { SelectionModal } from "@/components/selection-modal";
 import { ScreenContainer } from "@/components/screen-container";
+import { LocationPicker } from "@/components/location-picker";
 import { notifyManagerOfOverride } from "@/lib/override-notification";
 import { useAccountSession } from "@/lib/account-session";
 import { useVisitStore } from "@/lib/visit-store";
@@ -44,6 +46,8 @@ export default function RecordVisitScreen() {
   const [overrideModalVisible, setOverrideModalVisible] = useState(false);
   const [overridePin, setOverridePin] = useState("");
   const [overrideReason, setOverrideReason] = useState("");
+  const [photoUri, setPhotoUri] = useState<string | null>(null);
+  const [locationPickerVisible, setLocationPickerVisible] = useState(false);
   const activeRepresentative = session?.representativeId ? data.representatives.find((item) => item.id === session.representativeId) : undefined;
   const representativeForVisit = isManager ? selectedRepresentative : activeRepresentative;
 
@@ -79,16 +83,26 @@ export default function RecordVisitScreen() {
       id: buildId("visit"), representativeId: representativeForVisit?.id ?? "", entityId: selectedEntity.id,
       entityName: selectedEntity.name, entityKind: selectedEntity.kind, nearestPharmacy: selectedEntity.nearestPharmacy,
       geographicCoordinates: selectedEntity.geographicCoordinates, specialty: selectedEntity.specialty, category: selectedEntity.category,
-      geographicLocation: selectedEntity.geographicLocation, recordedAt: capturedTimestamp, location: capturedLocation, notes: notes.trim(),
+      geographicLocation: selectedEntity.geographicLocation, recordedAt: capturedTimestamp, location: capturedLocation, notes: notes.trim(), photoUri: photoUri ?? undefined,
       managerOverride: managerOverride || undefined, overrideReason: managerOverride ? reason : undefined,
     };
     addVisit(createdVisit);
     if (managerOverride) void notifyManagerOfOverride({ settings: data.settings, visit: createdVisit, representativeName: representativeForVisit.name });
     setOverrideModalVisible(false); setOverridePin(""); setOverrideReason("");
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    Alert.alert("تم حفظ الزيارة", managerOverride ? "تم التسجيل بتجاوز المدير مع حفظ السبب." : "تم تسجيل وقت وموقع الزيارة بنجاح.", [{ text: "تسجيل زيارة أخرى", onPress: () => { setSelectedEntity(null); setNotes(""); setCapturedAt(null); setLocation(null); } }]);
+    Alert.alert("تم حفظ الزيارة", managerOverride ? "تم التسجيل بتجاوز المدير مع حفظ السبب." : "تم تسجيل وقت وموقع الزيارة بنجاح.", [{ text: "تسجيل زيارة أخرى", onPress: () => { setSelectedEntity(null); setNotes(""); setCapturedAt(null); setLocation(null); setPhotoUri(null); } }]);
   };
 
+  const takePhoto = async () => {
+    const permission = await ImagePicker.requestCameraPermissionsAsync();
+    if (permission.status !== "granted") { Alert.alert("يلزم إذن الكاميرا", "اسمح للتطبيق باستخدام الكاميرا لالتقاط صورة الزيارة."); return; }
+    const result = await ImagePicker.launchCameraAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, allowsEditing: true, aspect: [4, 3], quality: 0.75 });
+    if (!result.canceled) setPhotoUri(result.assets[0].uri);
+  };
+  const choosePhoto = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, allowsEditing: true, aspect: [4, 3], quality: 0.75 });
+    if (!result.canceled) setPhotoUri(result.assets[0].uri);
+  };
   const saveVisit = async () => {
     if (!selectedEntity) { Alert.alert("اختر جهة الزيارة", "أضف جهة من شاشة الإدارة أو استوردها من Excel أولاً."); return; }
     const freshLocation = await captureLocation();
@@ -139,11 +153,24 @@ export default function RecordVisitScreen() {
                 <Text className="text-xs text-primary mt-1 text-right">{locationStatus}</Text>
               </View>
             ) : <Text className="text-muted text-right mb-3">{locationStatus}</Text>}
-            <Pressable onPress={captureLocation} disabled={isLocating} className="rounded-xl bg-primary h-12 items-center justify-center flex-row-reverse gap-2" style={({ pressed }) => [{ opacity: pressed || isLocating ? 0.72 : 1 }]}>
-              <MaterialIcons name={isLocating ? "sync" : "gps-fixed"} size={19} color="#FFFFFF" />
-              <Text className="text-white font-bold">{isLocating ? "جاري تحديد الموقع..." : "التقاط الموقع والوقت"}</Text>
-            </Pressable>
+            <View className="gap-2">
+              <Pressable onPress={captureLocation} disabled={isLocating} className="rounded-xl bg-primary h-12 items-center justify-center flex-row-reverse gap-2" style={({ pressed }) => [{ opacity: pressed || isLocating ? 0.72 : 1 }]}>
+                <MaterialIcons name={isLocating ? "sync" : "gps-fixed"} size={19} color="#FFFFFF" />
+                <Text className="text-white font-bold">{isLocating ? "جاري تحديد الموقع..." : "التقاط الموقع والوقت"}</Text>
+              </Pressable>
+              <Pressable onPress={() => setLocationPickerVisible(true)} className="rounded-xl bg-foreground h-12 items-center justify-center flex-row-reverse gap-2">
+                <MaterialIcons name="map" size={19} color="#FFFFFF" />
+                <Text className="text-white font-bold">تحديد الموقع على الخريطة</Text>
+              </Pressable>
+            </View>
           </View>
+        </View>
+
+        <View className="rounded-2xl border border-border bg-surface p-4 mb-4">
+          <View className="flex-row-reverse items-center gap-2 mb-3"><View className="w-7 h-7 rounded-lg bg-primary items-center justify-center"><MaterialIcons name="photo-camera" size={15} color="#FFFFFF" /></View><Text className="font-bold text-foreground">صورة الزيارة (اختياري)</Text></View>
+          {photoUri ? <Image source={{ uri: photoUri }} className="w-full h-44 rounded-xl mb-3" resizeMode="cover" /> : <Text className="text-sm text-muted text-right mb-3">يمكنك التقاط صورة أو اختيارها من الجهاز وإرفاقها مع الزيارة.</Text>}
+          <View className="flex-row-reverse gap-2"><Pressable onPress={takePhoto} className="flex-1 h-11 rounded-xl bg-primary items-center justify-center flex-row-reverse gap-1"><MaterialIcons name="photo-camera" size={18} color="#FFFFFF" /><Text className="text-white font-bold text-xs">التقاط صورة</Text></Pressable><Pressable onPress={choosePhoto} className="flex-1 h-11 rounded-xl bg-foreground items-center justify-center flex-row-reverse gap-1"><MaterialIcons name="photo-library" size={18} color="#FFFFFF" /><Text className="text-white font-bold text-xs">اختيار صورة</Text></Pressable></View>
+          {photoUri ? <Pressable onPress={() => setPhotoUri(null)} className="self-end mt-2"><Text className="text-error font-bold text-xs">إزالة الصورة</Text></Pressable> : null}
         </View>
 
         <FormField label="ملاحظات الزيارة (اختياري)" icon="notes" value={notes} onChangeText={setNotes} placeholder="اكتب ملخصاً قصيراً للزيارة" multiline />
@@ -154,6 +181,7 @@ export default function RecordVisitScreen() {
         </Pressable>
       </ScrollView>
 
+      <LocationPicker visible={locationPickerVisible} value={location ? { label: "الموقع المحدد", coordinates: location } : null} onClose={() => setLocationPickerVisible(false)} onConfirm={(selected) => { setLocation(selected.coordinates); setCapturedAt(new Date().toISOString()); setLocationStatus(`تم تحديد موقع الزيارة: ${selected.label}`); setLocationPickerVisible(false); }} />
       <Modal visible={overrideModalVisible} transparent animationType="slide" onRequestClose={() => setOverrideModalVisible(false)}>
         <View className="flex-1 justify-end bg-black/40"><View className="bg-background rounded-t-[28px] px-5 pt-5 pb-8"><View className="flex-row-reverse items-center justify-between mb-4"><Text className="text-lg font-bold text-foreground">تجاوز مدير النظام</Text><Pressable onPress={() => setOverrideModalVisible(false)}><MaterialIcons name="close" size={24} color="#102A43" /></Pressable></View><Text className="text-sm text-muted text-right leading-5 mb-4">الزيارة خارج نطاق الجهة. أدخل PIN المدير وسبباً واضحاً ليتم حفظ التجاوز مع سجل الزيارة.</Text><Text className="font-bold text-foreground text-right mb-2">PIN المدير</Text><TextInput value={overridePin} onChangeText={setOverridePin} secureTextEntry keyboardType="number-pad" placeholder="PIN" placeholderTextColor="#7C8798" textAlign="right" className="h-14 rounded-2xl border border-border bg-surface px-4 text-foreground mb-4" /><Text className="font-bold text-foreground text-right mb-2">سبب التجاوز *</Text><TextInput value={overrideReason} onChangeText={setOverrideReason} placeholder="مثال: GPS غير دقيق داخل المبنى" placeholderTextColor="#7C8798" textAlign="right" multiline className="min-h-24 rounded-2xl border border-border bg-surface px-4 py-3 text-foreground mb-4" /><Pressable onPress={confirmOverride} className="h-14 rounded-2xl bg-warning items-center justify-center flex-row-reverse gap-2"><MaterialIcons name="verified-user" size={21} color="#FFFFFF" /><Text className="text-white font-bold">تأكيد التجاوز والحفظ</Text></Pressable></View></View>
       </Modal>

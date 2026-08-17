@@ -14,7 +14,7 @@ type Props = {
   onConfirm: (value: { label: string; coordinates: VisitLocation }) => void;
 };
 
-const FALLBACK_REGION: MapRegion = { latitude: 24.7136, longitude: 46.6753, latitudeDelta: 0.18, longitudeDelta: 0.18 };
+const FALLBACK_REGION: MapRegion = { latitude: 15.3694, longitude: 44.191, latitudeDelta: 0.12, longitudeDelta: 0.12 };
 
 export function LocationPicker({ visible, value, onClose, onConfirm }: Props) {
   const [selected, setSelected] = useState(value);

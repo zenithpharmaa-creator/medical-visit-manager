@@ -67,6 +67,7 @@ export type Visit = {
   recordedAt: string;
   location: VisitLocation | null;
   notes: string;
+  photoUri?: string;
   managerOverride?: boolean;
   overrideReason?: string;
 };
