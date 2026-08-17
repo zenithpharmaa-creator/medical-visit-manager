@@ -132,7 +132,9 @@ export default function WeeklyPlanScreen() {
   const totalDone = executedWeek.length;
   const savePlan = () => {
     const entity = data.entities.find((item) => item.id === selectedEntity);
-    if (!entity || !selectedRep) {
+    const representativeId = isManager ? selectedRep : currentRepId;
+    if (!isManager) setSelectedRep(currentRepId);
+    if (!entity || !representativeId) {
       Alert.alert("بيانات ناقصة", "اختر المندوب والطبيب والفترة.");
       return;
     }
@@ -142,7 +144,7 @@ export default function WeeklyPlanScreen() {
     }
     const plan = {
       id: editingPlan?.id ?? buildId("planned"),
-      representativeId: selectedRep,
+      representativeId,
       entityId: entity.id,
       entityName: entity.name,
       entityKind: entity.kind,
@@ -164,13 +166,14 @@ export default function WeeklyPlanScreen() {
       return;
     }
     setEditingPlan(null);
+    if (!isManager) setSelectedRep(currentRepId);
     setSelectedDayIndex(index);
     const plannedDate = new Date(week[index].date);
     plannedDate.setHours(selectedShift === "morning" ? 8 : 16, 0, 0, 0);
     setScheduledDateTime(plannedDate);
     setModalVisible(true);
   };
-  const openEditPlan = (plan: PlannedVisit) => { setEditingPlan(plan); setSelectedRep(plan.representativeId); setSelectedEntity(plan.entityId); setSelectedShift(plan.shift); setNotes(plan.notes ?? ""); setScheduledDateTime(new Date(plan.scheduledTime ?? `${plan.scheduledDate}T${plan.shift === "morning" ? "08:00" : "16:00"}:00`)); setModalVisible(true); };
+  const openEditPlan = (plan: PlannedVisit) => { if (!isManager && plan.representativeId !== currentRepId) { Alert.alert("لا تملك الصلاحية", "يمكنك تعديل خطتك الأسبوعية الخاصة فقط."); return; } setEditingPlan(plan); setSelectedRep(plan.representativeId); setSelectedEntity(plan.entityId); setSelectedShift(plan.shift); setNotes(plan.notes ?? ""); setScheduledDateTime(new Date(plan.scheduledTime ?? `${plan.scheduledDate}T${plan.shift === "morning" ? "08:00" : "16:00"}:00`)); setModalVisible(true); };
   const printTable = async () => { const rows = visibleWeek.map((day) => `<tr><td>${day.key}</td><td>${day.name}${day.holiday ? " (إجازة)" : ""}</td><td>${day.planned.filter((item) => item.shift === "morning").map((item) => `${item.entityName} — ${repName(item.representativeId)}`).join("<br>") || "—"}</td><td>${day.planned.filter((item) => item.shift === "evening").map((item) => `${item.entityName} — ${repName(item.representativeId)}`).join("<br>") || "—"}</td></tr>`).join(""); try { await Print.printAsync({ html: `<html dir="rtl"><head><meta charset="utf-8"><style>body{font-family:Arial;color:#101820}h1,h2{text-align:center}table{width:100%;border-collapse:collapse}th,td{border:1px solid #3f4748;padding:10px;text-align:right}th{background:#d4d8d8}td{height:54px} .brand{color:#2f6b50;text-align:center;font-weight:bold}</style></head><body><div class="brand">مدير الزيارات الطبية</div><h1>الخطة الأسبوعية</h1><h2>اسم المندوب: ${selectedRepFilter === "all" ? "جميع المندوبين" : repName(selectedRepFilter)}</h2><table><thead><tr><th>التاريخ</th><th>اليوم</th><th>الفترة الصباحية<br>08:00 – 13:00</th><th>الفترة المسائية<br>16:00 – 20:00</th></tr></thead><tbody>${rows}</tbody></table></body></html>` }); } catch { Alert.alert("تعذر الطباعة", "حاول مرة أخرى بعد التأكد من اتصال الطابعة."); } };
   const exportPlan = async (type: "pdf" | "excel") => {
     const selectedName = selectedRepFilter === "all" ? "جميع المندوبين" : repName(selectedRepFilter);
@@ -239,7 +242,7 @@ export default function WeeklyPlanScreen() {
     return (
       <View className="gap-1">
         {plans.map((plan) => (
-          <Pressable key={plan.id} onPress={() => isManager && openEditPlan(plan)} className="rounded-lg bg-primary/10 px-2 py-1">
+          <Pressable key={plan.id} onPress={() => (isManager || plan.representativeId === currentRepId) && openEditPlan(plan)} className="rounded-lg bg-primary/10 px-2 py-1">
             <Text className="text-primary font-bold text-xs text-right">
               {plan.entityName}
             </Text>
@@ -392,7 +395,7 @@ export default function WeeklyPlanScreen() {
                     <Text className="text-[10px] text-amber-700 mt-1">
                       إجازة
                     </Text>
-                  ) : isManager ? (
+                  ) : (
                     <Pressable
                       onPress={() => openPlan(index)}
                       className="mt-2 rounded-lg bg-primary px-2 py-1"
@@ -401,7 +404,7 @@ export default function WeeklyPlanScreen() {
                         + خطة
                       </Text>
                     </Pressable>
-                  ) : null}
+                  )}
                 </View>
                 <View
                   style={{ width: column.shift }}
@@ -493,7 +496,7 @@ export default function WeeklyPlanScreen() {
               <MaterialIcons name="schedule" size={22} color="#102A43" />
             </Pressable>
             {timePickerVisible ? <View className="rounded-2xl bg-surface border border-border p-2 mb-3"><NativeDateTimePicker value={scheduledDateTime} mode="time" onChange={(value: Date) => { setScheduledDateTime(value); setTimePickerVisible(false); }} /></View> : null}
-            <Pressable
+            {isManager ? <Pressable
               onPress={() => setRepModal(true)}
               className="h-14 rounded-2xl border border-border bg-surface px-4 flex-row-reverse items-center justify-between mb-3"
             >
@@ -505,7 +508,7 @@ export default function WeeklyPlanScreen() {
                 size={24}
                 color="#102A43"
               />
-            </Pressable>
+            </Pressable> : <View className="h-14 rounded-2xl border border-primary/20 bg-primary/10 px-4 flex-row-reverse items-center justify-between mb-3"><Text className="font-bold text-primary">{repName(currentRepId)}</Text><Text className="text-xs text-muted">حسابك</Text></View>}
             <Pressable
               onPress={() => setEntityModal(true)}
               className="h-14 rounded-2xl border border-border bg-surface px-4 flex-row-reverse items-center justify-between mb-3"
