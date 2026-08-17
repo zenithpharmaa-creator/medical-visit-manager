@@ -59,6 +59,8 @@ export type PlannedVisit = {
   notes?: string;
 };
 
+export type VisitVerificationStatus = "pending" | "verified" | "rejected" | "override";
+
 export type Visit = {
   id: string;
   representativeId: string;
@@ -75,6 +77,11 @@ export type Visit = {
   notes: string;
   photoUri?: string;
   visitedItems?: string[];
+  verificationStatus?: VisitVerificationStatus;
+  verificationCheckedAt?: string;
+  verificationDistanceMeters?: number;
+  verificationReason?: string;
+  offlineRecorded?: boolean;
   managerOverride?: boolean;
   overrideReason?: string;
 };

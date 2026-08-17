@@ -1,7 +1,9 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { PropsWithChildren, createContext, useContext, useEffect, useMemo, useState } from "react";
+import { useNetworkState } from "expo-network";
 
 import { AppData, AppSettings, MedicalEntity, Representative, Visit } from "@/shared/visit-types";
+import { distanceBetweenMeters, isWithinGeofence } from "@/lib/visit-utils";
 
 const STORAGE_KEY = "medical-visit-manager-data-v1";
 const REPRESENTATIVE_NAMES: Record<string, string> = { "rep-1": "علي الشعيبي", "rep-2": "محمد الحداد", "rep-3": "محمود الرميمة" };
@@ -25,6 +27,7 @@ type VisitStoreValue = {
   data: AppData;
   loading: boolean;
   addVisit: (visit: Visit) => void;
+  updateVisit: (visit: Visit) => void;
   addPlannedVisit: (visit: AppData["plannedVisits"][number]) => void;
   updatePlannedVisit: (visit: AppData["plannedVisits"][number]) => void;
   addEntity: (entity: MedicalEntity) => void;
@@ -43,6 +46,7 @@ const VisitStore = createContext<VisitStoreValue | null>(null);
 export function VisitProvider({ children }: PropsWithChildren) {
   const [data, setData] = useState<AppData>(INITIAL_DATA);
   const [loading, setLoading] = useState(true);
+  const networkState = useNetworkState();
 
   useEffect(() => {
     AsyncStorage.getItem(STORAGE_KEY)
@@ -64,6 +68,31 @@ export function VisitProvider({ children }: PropsWithChildren) {
       .finally(() => setLoading(false));
   }, []);
 
+  useEffect(() => {
+    if (networkState.isInternetReachable !== true) return;
+    setData((current) => {
+      let changed = false;
+      const checkedAt = new Date().toISOString();
+      const visits = current.visits.map((visit) => {
+        if (visit.verificationStatus !== "pending") return visit;
+        const entity = current.entities.find((item) => item.id === visit.entityId);
+        const expected = entity?.geographicCoordinates ?? visit.geographicCoordinates;
+        if (!visit.location || !expected) {
+          changed = true;
+          return { ...visit, verificationStatus: "rejected" as const, verificationCheckedAt: checkedAt, verificationReason: "تعذر التحقق: لا توجد إحداثيات كافية للجهة أو الزيارة." };
+        }
+        const distanceMeters = distanceBetweenMeters(visit.location, expected);
+        const accepted = isWithinGeofence(distanceMeters, current.settings.geofenceRadiusMeters);
+        changed = true;
+        return { ...visit, geographicCoordinates: expected, verificationStatus: accepted ? "verified" as const : "rejected" as const, verificationCheckedAt: checkedAt, verificationDistanceMeters: Math.round(distanceMeters), verificationReason: accepted ? "تمت المطابقة تلقائياً عند عودة الاتصال." : `مرفوضة: موقع الزيارة يبعد ${Math.round(distanceMeters)} متراً عن موقع الجهة، والحد المسموح ${current.settings.geofenceRadiusMeters} متر.` };
+      });
+      if (!changed) return current;
+      const next = { ...current, visits };
+      AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next)).catch(() => undefined);
+      return next;
+    });
+  }, [networkState.isInternetReachable]);
+
   const save = (updater: (current: AppData) => AppData) => {
     setData((current) => {
       const next = updater(current);
@@ -77,6 +106,7 @@ export function VisitProvider({ children }: PropsWithChildren) {
       data,
       loading,
       addVisit: (visit) => save((current) => ({ ...current, visits: [visit, ...current.visits] })),
+      updateVisit: (visit) => save((current) => ({ ...current, visits: current.visits.map((item) => item.id === visit.id ? visit : item) })),
       addPlannedVisit: (visit) => save((current) => ({ ...current, plannedVisits: [visit, ...current.plannedVisits] })),
       updatePlannedVisit: (visit) => save((current) => ({ ...current, plannedVisits: current.plannedVisits.map((item) => item.id === visit.id ? visit : item) })),
       addEntity: (entity) => save((current) => ({ ...current, entities: [entity, ...current.entities] })),

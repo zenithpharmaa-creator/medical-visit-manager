@@ -2,6 +2,7 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import * as Haptics from "expo-haptics";
 import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
+import { useNetworkState } from "expo-network";
 import { useEffect, useMemo, useState } from "react";
 import { Alert, Image, Modal, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 
@@ -14,7 +15,7 @@ import { notifyManagerOfOverride } from "@/lib/override-notification";
 import { useAccountSession } from "@/lib/account-session";
 import { useVisitStore } from "@/lib/visit-store";
 import { buildId, distanceBetweenMeters, formatArabicDate, isWithinGeofence } from "@/lib/visit-utils";
-import { MedicalEntity, Representative, VisitLocation } from "@/shared/visit-types";
+import { MedicalEntity, Representative, VisitLocation, VisitVerificationStatus } from "@/shared/visit-types";
 
 type PickerTarget = "representative" | "entity" | null;
 
@@ -33,6 +34,7 @@ function SelectBox({ value, onPress, placeholder }: { value?: string; onPress: (
 
 export default function RecordVisitScreen() {
   const { data, addVisit } = useVisitStore();
+  const networkState = useNetworkState();
   const { session } = useAccountSession();
   const isManager = session?.role === "manager";
   const [picker, setPicker] = useState<PickerTarget>(null);
@@ -53,6 +55,7 @@ export default function RecordVisitScreen() {
   const activeRepresentative = session?.representativeId ? data.representatives.find((item) => item.id === session.representativeId) : undefined;
   const representativeForVisit = isManager ? selectedRepresentative : activeRepresentative;
   const filteredVisitedItems = data.settings.visitedItems.filter((item) => item.toLowerCase().includes(visitedItemsSearch.trim().toLowerCase()));
+  const internetAvailable = networkState.isInternetReachable === true;
 
   const pickerOptions = useMemo(() => {
     if (picker === "representative") {
@@ -71,7 +74,7 @@ export default function RecordVisitScreen() {
       if (permission.status !== "granted") { setLocationStatus("تم رفض إذن الموقع؛ لا يمكن تسجيل زيارة موثقة."); Alert.alert("يلزم إذن الموقع", "يُستخدم الموقع فقط لتوثيق مكان الزيارة عند التسجيل."); return null; }
       const result = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
       const nextLocation = { latitude: result.coords.latitude, longitude: result.coords.longitude, accuracy: result.coords.accuracy };
-      setLocation(nextLocation); setCapturedAt(new Date().toISOString()); setLocationStatus("تم التقاط الموقع تلقائياً بنجاح.");
+      setLocation(nextLocation); setCapturedAt(new Date().toISOString()); setLocationStatus(`تم التقاط الموقع تلقائياً بنجاح${internetAvailable ? " — الاتصال متاح" : " — سيُتحقق من الموقع عند عودة الاتصال"}.`);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       return nextLocation;
     } catch { setLocationStatus("تعذر التقاط الموقع. تأكد من إشارة GPS ثم أعد المحاولة."); Alert.alert("تعذر تحديد الموقع", "تأكد من وجود إشارة GPS جيدة ثم أعد المحاولة."); return null; }
@@ -80,20 +83,25 @@ export default function RecordVisitScreen() {
 
   useEffect(() => { void captureLocation(); }, []);
 
+
   const persistVisit = (managerOverride = false, reason = "", capturedLocation = location, capturedTimestamp = capturedAt) => {
     if (!representativeForVisit || !selectedEntity || !capturedTimestamp || !capturedLocation) return;
+    const verificationStatus: VisitVerificationStatus = managerOverride ? "override" : isManager ? "verified" : "pending";
     const createdVisit = {
       id: buildId("visit"), representativeId: representativeForVisit?.id ?? "", entityId: selectedEntity.id,
       entityName: selectedEntity.name, entityKind: selectedEntity.kind, nearestPharmacy: selectedEntity.nearestPharmacy,
       geographicCoordinates: selectedEntity.geographicCoordinates, specialty: selectedEntity.specialty, category: selectedEntity.category,
       geographicLocation: selectedEntity.geographicLocation, recordedAt: capturedTimestamp, location: capturedLocation, notes: notes.trim(), photoUri: photoUri ?? undefined, visitedItems: selectedVisitedItems,
       managerOverride: managerOverride || undefined, overrideReason: managerOverride ? reason : undefined,
+      verificationStatus,
+      offlineRecorded: !isManager,
+      verificationReason: managerOverride ? "تم اعتماد الزيارة بتجاوز مدير النظام." : isManager ? "تم التحقق عند التسجيل من حساب المدير." : "بانتظار التحقق عند عودة الاتصال.",
     };
     addVisit(createdVisit);
     if (managerOverride) void notifyManagerOfOverride({ settings: data.settings, visit: createdVisit, representativeName: representativeForVisit.name });
     setOverrideModalVisible(false); setOverridePin(""); setOverrideReason("");
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    Alert.alert("تم حفظ الزيارة", managerOverride ? "تم التسجيل بتجاوز المدير مع حفظ السبب." : "تم تسجيل وقت وموقع الزيارة بنجاح.", [{ text: "تسجيل زيارة أخرى", onPress: () => { setSelectedEntity(null); setNotes(""); setCapturedAt(null); setLocation(null); setPhotoUri(null); setSelectedVisitedItems([]); setVisitedItemsSearch(""); } }]);
+    Alert.alert("تم حفظ الزيارة", managerOverride ? "تم التسجيل بتجاوز المدير مع حفظ السبب." : !isManager ? "تم حفظ الزيارة دون إنترنت، وستُراجع تلقائياً عند عودة الاتصال." : "تم تسجيل وقت وموقع الزيارة بنجاح.", [{ text: "تسجيل زيارة أخرى", onPress: () => { setSelectedEntity(null); setNotes(""); setCapturedAt(null); setLocation(null); setPhotoUri(null); setSelectedVisitedItems([]); setVisitedItemsSearch(""); } }]);
   };
 
   const takePhoto = async () => {
@@ -111,11 +119,15 @@ export default function RecordVisitScreen() {
     const freshLocation = await captureLocation();
     if (!freshLocation) return;
     const freshCapturedAt = new Date().toISOString();
-    if (!selectedEntity.geographicCoordinates) { Alert.alert("موقع الجهة غير موثّق", "لا يمكن حفظ الزيارة قبل حفظ إحداثيات الجهة من GPS أو الخريطة."); return; }
-    const distanceMeters = distanceBetweenMeters(freshLocation, selectedEntity.geographicCoordinates);
-    if (!isWithinGeofence(distanceMeters, data.settings.geofenceRadiusMeters)) {
+    if (!selectedEntity.geographicCoordinates && isManager) { Alert.alert("موقع الجهة غير موثّق", "لا يمكن حفظ الزيارة قبل حفظ إحداثيات الجهة من GPS أو الخريطة."); return; }
+    const distanceMeters = selectedEntity.geographicCoordinates ? distanceBetweenMeters(freshLocation, selectedEntity.geographicCoordinates) : null;
+    if (isManager && distanceMeters !== null && !isWithinGeofence(distanceMeters, data.settings.geofenceRadiusMeters)) {
       if (!data.settings.managerPin) { Alert.alert("الزيارة خارج النطاق", `المسافة ${Math.round(distanceMeters)} متر. لا يوجد PIN مدير مضبوط لتجاوز الشرط.`); return; }
       setOverrideModalVisible(true); return;
+    }
+    if (!isManager) {
+      persistVisit(false, "", freshLocation, freshCapturedAt);
+      return;
     }
     persistVisit(false, "", freshLocation, freshCapturedAt);
   };
@@ -132,9 +144,13 @@ export default function RecordVisitScreen() {
       <ScrollView contentContainerStyle={{ paddingTop: 18, paddingBottom: 36 }} showsVerticalScrollIndicator={false}>
         <ScreenHeader title="تسجيل زيارة" subtitle="وثّق الزيارة بالموقع والوقت" icon="add-location-alt" />
 
-        <View className="rounded-2xl bg-primary/10 border border-primary/20 p-4 mb-5 flex-row-reverse gap-3">
+        <View className="rounded-2xl bg-primary/10 border border-primary/20 p-4 mb-3 flex-row-reverse gap-3">
           <MaterialIcons name="privacy-tip" size={22} color="#1565C0" />
           <Text className="text-primary font-semibold flex-1 text-right leading-5">يُلتقط الموقع مرة واحدة عند الضغط على الزر، ولا يتم تتبع موقع المندوب بشكل مستمر.</Text>
+        </View>
+        <View className={`rounded-xl px-4 py-3 mb-5 flex-row-reverse items-center gap-2 ${internetAvailable ? "bg-success/10 border border-success/20" : "bg-warning/10 border border-warning/20"}`}>
+          <MaterialIcons name={internetAvailable ? "cloud-done" : "cloud-off"} size={19} color={internetAvailable ? "#16835B" : "#D97706"} />
+          <Text className={`text-xs font-bold flex-1 text-right ${internetAvailable ? "text-success" : "text-warning"}`}>{internetAvailable ? "الاتصال متاح — ستتم المطابقة تلقائياً" : "لا يوجد إنترنت — ستُحفظ الزيارة وتُراجع عند عودة الاتصال"}</Text>
         </View>
 
         {isManager ? <FormField label="المندوب" icon="person"><SelectBox value={selectedRepresentative?.name} placeholder="اختر المندوب" onPress={() => setPicker("representative")} /></FormField> : <View className="rounded-2xl bg-primary/10 border border-primary/20 px-4 py-3 mb-4 flex-row-reverse items-center justify-between"><Text className="font-bold text-primary">{representativeForVisit?.name ?? "الحساب الحالي"}</Text><Text className="text-xs text-muted">الحساب النشط</Text></View>}
