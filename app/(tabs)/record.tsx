@@ -47,6 +47,7 @@ export default function RecordVisitScreen() {
   const [overridePin, setOverridePin] = useState("");
   const [overrideReason, setOverrideReason] = useState("");
   const [photoUri, setPhotoUri] = useState<string | null>(null);
+  const [selectedVisitedItems, setSelectedVisitedItems] = useState<string[]>([]);
   const [locationPickerVisible, setLocationPickerVisible] = useState(false);
   const activeRepresentative = session?.representativeId ? data.representatives.find((item) => item.id === session.representativeId) : undefined;
   const representativeForVisit = isManager ? selectedRepresentative : activeRepresentative;
@@ -83,14 +84,14 @@ export default function RecordVisitScreen() {
       id: buildId("visit"), representativeId: representativeForVisit?.id ?? "", entityId: selectedEntity.id,
       entityName: selectedEntity.name, entityKind: selectedEntity.kind, nearestPharmacy: selectedEntity.nearestPharmacy,
       geographicCoordinates: selectedEntity.geographicCoordinates, specialty: selectedEntity.specialty, category: selectedEntity.category,
-      geographicLocation: selectedEntity.geographicLocation, recordedAt: capturedTimestamp, location: capturedLocation, notes: notes.trim(), photoUri: photoUri ?? undefined,
+      geographicLocation: selectedEntity.geographicLocation, recordedAt: capturedTimestamp, location: capturedLocation, notes: notes.trim(), photoUri: photoUri ?? undefined, visitedItems: selectedVisitedItems,
       managerOverride: managerOverride || undefined, overrideReason: managerOverride ? reason : undefined,
     };
     addVisit(createdVisit);
     if (managerOverride) void notifyManagerOfOverride({ settings: data.settings, visit: createdVisit, representativeName: representativeForVisit.name });
     setOverrideModalVisible(false); setOverridePin(""); setOverrideReason("");
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    Alert.alert("تم حفظ الزيارة", managerOverride ? "تم التسجيل بتجاوز المدير مع حفظ السبب." : "تم تسجيل وقت وموقع الزيارة بنجاح.", [{ text: "تسجيل زيارة أخرى", onPress: () => { setSelectedEntity(null); setNotes(""); setCapturedAt(null); setLocation(null); setPhotoUri(null); } }]);
+    Alert.alert("تم حفظ الزيارة", managerOverride ? "تم التسجيل بتجاوز المدير مع حفظ السبب." : "تم تسجيل وقت وموقع الزيارة بنجاح.", [{ text: "تسجيل زيارة أخرى", onPress: () => { setSelectedEntity(null); setNotes(""); setCapturedAt(null); setLocation(null); setPhotoUri(null); setSelectedVisitedItems([]); } }]);
   };
 
   const takePhoto = async () => {
@@ -172,6 +173,10 @@ export default function RecordVisitScreen() {
           <View className="flex-row-reverse gap-2"><Pressable onPress={takePhoto} className="flex-1 h-11 rounded-xl bg-primary items-center justify-center flex-row-reverse gap-1"><MaterialIcons name="photo-camera" size={18} color="#FFFFFF" /><Text className="text-white font-bold text-xs">التقاط صورة</Text></Pressable><Pressable onPress={choosePhoto} className="flex-1 h-11 rounded-xl bg-foreground items-center justify-center flex-row-reverse gap-1"><MaterialIcons name="photo-library" size={18} color="#FFFFFF" /><Text className="text-white font-bold text-xs">اختيار صورة</Text></Pressable></View>
           {photoUri ? <Pressable onPress={() => setPhotoUri(null)} className="self-end mt-2"><Text className="text-error font-bold text-xs">إزالة الصورة</Text></Pressable> : null}
         </View> : null}
+
+        <FormField label="الأصناف المزارة (اختياري)" icon="inventory-2">
+          {data.settings.visitedItems.length ? <View className="flex-row-reverse flex-wrap gap-2">{data.settings.visitedItems.map((item) => { const selected = selectedVisitedItems.includes(item); return <Pressable key={item} onPress={() => setSelectedVisitedItems((current) => selected ? current.filter((value) => value !== item) : [...current, item])} className={`rounded-full border px-3 py-2 ${selected ? "bg-primary border-primary" : "bg-surface border-border"}`}><Text className={`text-xs font-bold ${selected ? "text-white" : "text-foreground"}`}>{item}</Text></Pressable>; })}</View> : <Text className="text-sm text-muted text-right">سيضيف مدير النظام الأصناف المزارة من الإعدادات لاحقاً.</Text>}
+        </FormField>
 
         <FormField label="ملاحظات الزيارة (اختياري)" icon="notes" value={notes} onChangeText={setNotes} placeholder="اكتب ملخصاً قصيراً للزيارة" multiline />
 

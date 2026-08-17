@@ -41,6 +41,8 @@ export default function SettingsScreen() {
   const [newRepModal, setNewRepModal] = useState(false);
   const [newRep, setNewRep] = useState({ name: "", phone: "", email: "", username: "", password: "", photoUri: "", region: "sanaa" as "north" | "south" | "sanaa" });
   const [newPasswordVisible, setNewPasswordVisible] = useState(false);
+  const [visitedItems, setVisitedItems] = useState<string[]>(data.settings.visitedItems ?? []);
+  const [newVisitedItem, setNewVisitedItem] = useState("");
 
   useEffect(() => {
     setRepresentativeNames(data.representatives.map((item) => item.name));
@@ -75,13 +77,23 @@ export default function SettingsScreen() {
     Alert.alert("تمت الإضافة", "تمت إضافة المندوب وحفظ بياناته.");
   };
 
+  const addVisitedItem = () => {
+    const item = newVisitedItem.trim();
+    if (!item) return;
+    if (visitedItems.some((existing) => existing.toLowerCase() === item.toLowerCase())) { Alert.alert("الصنف موجود", "هذا الصنف مضاف بالفعل إلى القائمة."); return; }
+    setVisitedItems((current) => [...current, item]);
+    setNewVisitedItem("");
+  };
+
+  const removeVisitedItem = (item: string) => setVisitedItems((current) => current.filter((existing) => existing !== item));
+
   const save = async () => {
     if (managerPassword.trim()) {
       try { await saveManagerPassword(managerPassword.trim()); } catch (error) { Alert.alert("كلمة مرور غير صالحة", error instanceof Error ? error.message : "أدخل كلمة مرور من 3 أحرف أو أرقام على الأقل."); return; }
     }
     const radius = Math.max(50, Math.min(2000, Number(geofenceRadiusMeters) || 200));
     setGeofenceRadiusMeters(String(radius));
-    updateSettings({ managerName: managerName.trim() || "مدير النظام", reportEmail: reportEmail.trim(), reminderTime: reminderTime.trim() || "18:00", geofenceRadiusMeters: radius, managerPin: managerPin.trim() });
+    updateSettings({ managerName: managerName.trim() || "مدير النظام", reportEmail: reportEmail.trim(), reminderTime: reminderTime.trim() || "18:00", geofenceRadiusMeters: radius, managerPin: managerPin.trim(), visitedItems });
     for (let index = 0; index < data.representatives.length; index += 1) {
       const item = data.representatives[index];
       const password = representativePasswords[index] ?? "";
@@ -103,6 +115,13 @@ export default function SettingsScreen() {
         <ScreenHeader title="الإعدادات" subtitle="بيانات الفريق والتقارير والنسخ الاحتياطي" icon="settings" />
         <View className="rounded-2xl bg-primary/10 border border-primary/20 p-4 mb-5 flex-row-reverse gap-3"><MaterialIcons name="security" size={21} color="#1565C0" /><Text className="flex-1 text-right text-primary text-sm leading-5">تُحفظ الزيارات والإعدادات على هذا الجهاز. كلمات مرور المندوبين تُحفظ في التخزين الآمن ولا تظهر في النسخة الاحتياطية العامة.</Text></View>
         <Text className="font-bold text-foreground text-right mb-3">إدارة النظام</Text>
+        <View className="rounded-2xl bg-surface border border-border p-4 mb-5">
+          <Text className="font-bold text-foreground text-right">الأصناف المزارة</Text>
+          <Text className="text-xs text-muted text-right mt-1 mb-3">أضف الأصناف التي سيختارها المدير والمندوب عند تسجيل الزيارة.</Text>
+          <View className="flex-row-reverse items-center gap-2 mb-3"><TextInput value={newVisitedItem} onChangeText={setNewVisitedItem} onSubmitEditing={addVisitedItem} returnKeyType="done" placeholder="مثال: صنف دوائي أو منتج" placeholderTextColor="#7C8798" textAlign="right" className={`${inputClass} flex-1 mb-0`} /><Pressable onPress={addVisitedItem} className="w-12 h-12 rounded-xl bg-primary items-center justify-center"><MaterialIcons name="add" size={22} color="#FFFFFF" /></Pressable></View>
+          <View className="flex-row-reverse flex-wrap gap-2">{visitedItems.map((item) => <View key={item} className="rounded-full bg-primary/10 border border-primary/20 px-3 py-2 flex-row-reverse items-center gap-2"><Text className="text-primary font-bold text-xs">{item}</Text><Pressable onPress={() => removeVisitedItem(item)}><MaterialIcons name="close" size={15} color="#C0392B" /></Pressable></View>)}</View>
+          {!visitedItems.length ? <Text className="text-xs text-muted text-right">لم تتم إضافة أصناف بعد.</Text> : null}
+        </View>
         <FormField label="اسم مدير النظام" icon="admin-panel-settings" value={managerName} onChangeText={setManagerName} placeholder="مدير النظام" />
         <FormField label="بريد استلام التقرير" icon="email" value={reportEmail} onChangeText={setReportEmail} placeholder="example@company.com" />
         <FormField label="وقت تذكير تجهيز التقرير اليومي" icon="schedule" value={reminderTime} onChangeText={setReminderTime} placeholder="18:00" />

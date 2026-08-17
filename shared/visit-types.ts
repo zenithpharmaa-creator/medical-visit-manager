@@ -68,6 +68,7 @@ export type Visit = {
   location: VisitLocation | null;
   notes: string;
   photoUri?: string;
+  visitedItems?: string[];
   managerOverride?: boolean;
   overrideReason?: string;
 };
@@ -78,6 +79,7 @@ export type AppSettings = {
   reminderTime: string;
   geofenceRadiusMeters: number;
   managerPin: string;
+  visitedItems: string[];
 };
 
 export type RepresentativeLocation = { location: VisitLocation; updatedAt: string };

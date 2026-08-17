@@ -44,6 +44,7 @@ export default function VisitsScreen() {
                   </View>
                 </View>
                 {item.photoUri ? <Image source={{ uri: item.photoUri }} className="w-full h-40 rounded-xl border border-border mt-3" resizeMode="cover" /> : null}
+                {item.visitedItems?.length ? <Text className="text-xs text-primary mt-3 text-right">الأصناف المزارة: {item.visitedItems.join("، ")}</Text> : null}
                 {item.notes ? <Text className="text-sm text-muted border-t border-border pt-3 mt-3 text-right leading-5">{item.notes}</Text> : null}
                 {isManager ? <Pressable onPress={() => Alert.alert("حذف الزيارة", "هل تريد حذف هذه الزيارة نهائياً؟", [{ text: "إلغاء", style: "cancel" }, { text: "حذف", style: "destructive", onPress: () => deleteVisit(item.id) }])} className="self-start mt-3 px-2 py-1" style={({ pressed }) => [{ opacity: pressed ? 0.6 : 1 }]}><Text className="text-error font-bold text-xs">حذف</Text></Pressable> : null}
               </View>
