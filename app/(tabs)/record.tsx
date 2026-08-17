@@ -51,6 +51,7 @@ export default function RecordVisitScreen() {
   const [photoUri, setPhotoUri] = useState<string | null>(null);
   const [selectedVisitedItems, setSelectedVisitedItems] = useState<string[]>([]);
   const [visitedItemsSearch, setVisitedItemsSearch] = useState("");
+  const [entitySearch, setEntitySearch] = useState("");
   const [locationPickerVisible, setLocationPickerVisible] = useState(false);
   const activeRepresentative = session?.representativeId ? data.representatives.find((item) => item.id === session.representativeId) : undefined;
   const representativeForVisit = isManager ? selectedRepresentative : activeRepresentative;
@@ -58,12 +59,11 @@ export default function RecordVisitScreen() {
   const filteredVisitedItems = availableVisitedItems.filter((item) => item.toLowerCase().includes(visitedItemsSearch.trim().toLowerCase()));
   const internetAvailable = networkState.isInternetReachable === true;
 
-  const pickerOptions = useMemo(() => {
-    if (picker === "representative") {
-      return data.representatives.filter((item) => item.active).map((item) => ({ label: item.name, value: item.id }));
-    }
-    return data.entities.map((item) => ({ label: item.name, value: item.id, helper: [item.kind, item.specialty, item.category, item.nearestPharmacy ? `أقرب صيدلية: ${item.nearestPharmacy}` : "", item.geographicLocation].filter(Boolean).join(" · ") }));
-  }, [data.entities, data.representatives, picker]);
+  const entityPickerOptions = useMemo(() => {
+    const query = entitySearch.trim().toLocaleLowerCase();
+    return data.entities.map((item) => ({ label: item.name, value: item.id, helper: [item.kind, item.specialty, item.category, item.nearestPharmacy ? `أقرب صيدلية: ${item.nearestPharmacy}` : "", item.geographicLocation].filter(Boolean).join(" · ") })).filter((item) => !query || `${item.label} ${item.helper}`.toLocaleLowerCase().includes(query));
+  }, [data.entities, entitySearch]);
+  const pickerOptions = useMemo(() => picker === "representative" ? data.representatives.filter((item) => item.active).map((item) => ({ label: item.name, value: item.id })) : entityPickerOptions, [data.representatives, entityPickerOptions, picker]);
 
   const captureLocation = async (): Promise<VisitLocation | null> => {
     setIsLocating(true);
@@ -156,7 +156,8 @@ export default function RecordVisitScreen() {
 
         {isManager ? <FormField label="المندوب" icon="person"><SelectBox value={selectedRepresentative?.name} placeholder="اختر المندوب" onPress={() => setPicker("representative")} /></FormField> : <View className="rounded-2xl bg-primary/10 border border-primary/20 px-4 py-3 mb-4 flex-row-reverse items-center justify-between"><Text className="font-bold text-primary">{representativeForVisit?.name ?? "الحساب الحالي"}</Text><Text className="text-xs text-muted">الحساب النشط</Text></View>}
         <FormField label="اسم الطبيب" icon="person">
-          <SelectBox value={selectedEntity?.name} placeholder={data.entities.length ? "اختر جهة الزيارة" : "لا توجد جهات مسجلة"} onPress={() => data.entities.length ? setPicker("entity") : Alert.alert("لا توجد جهات", "انتقل إلى شاشة الإدارة لإضافة جهة يدوياً أو استيراد ملف Excel.")} />
+          <TextInput value={entitySearch} onChangeText={setEntitySearch} placeholder="ابحث باسم الطبيب أو الجهة" placeholderTextColor="#7C8798" textAlign="right" className="h-12 rounded-xl border border-border bg-background px-4 text-foreground font-semibold mb-3" />
+          <SelectBox value={selectedEntity?.name} placeholder={data.entities.length ? `اختر جهة الزيارة${entitySearch.trim() ? ` (${entityPickerOptions.length})` : ""}` : "لا توجد جهات مسجلة"} onPress={() => data.entities.length ? setPicker("entity") : Alert.alert("لا توجد جهات", "انتقل إلى شاشة الإدارة لإضافة جهة يدوياً أو استيراد ملف Excel.")} />
         </FormField>
 
         <View className="mb-4">
@@ -217,7 +218,7 @@ export default function RecordVisitScreen() {
         onClose={() => setPicker(null)}
         onSelect={(option) => {
           if (picker === "representative") setSelectedRepresentative(data.representatives.find((item) => item.id === option.value) ?? data.representatives[0]);
-          else setSelectedEntity(data.entities.find((item) => item.id === option.value) ?? null);
+          else { setSelectedEntity(data.entities.find((item) => item.id === option.value) ?? null); setEntitySearch(""); }
         }}
       />
     </ScreenContainer>
