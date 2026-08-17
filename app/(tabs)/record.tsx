@@ -166,12 +166,12 @@ export default function RecordVisitScreen() {
           </View>
         </View>
 
-        <View className="rounded-2xl border border-border bg-surface p-4 mb-4">
+        {isManager ? <View className="rounded-2xl border border-border bg-surface p-4 mb-4">
           <View className="flex-row-reverse items-center gap-2 mb-3"><View className="w-7 h-7 rounded-lg bg-primary items-center justify-center"><MaterialIcons name="photo-camera" size={15} color="#FFFFFF" /></View><Text className="font-bold text-foreground">صورة الزيارة (اختياري)</Text></View>
           {photoUri ? <Image source={{ uri: photoUri }} className="w-full h-44 rounded-xl mb-3" resizeMode="cover" /> : <Text className="text-sm text-muted text-right mb-3">يمكنك التقاط صورة أو اختيارها من الجهاز وإرفاقها مع الزيارة.</Text>}
           <View className="flex-row-reverse gap-2"><Pressable onPress={takePhoto} className="flex-1 h-11 rounded-xl bg-primary items-center justify-center flex-row-reverse gap-1"><MaterialIcons name="photo-camera" size={18} color="#FFFFFF" /><Text className="text-white font-bold text-xs">التقاط صورة</Text></Pressable><Pressable onPress={choosePhoto} className="flex-1 h-11 rounded-xl bg-foreground items-center justify-center flex-row-reverse gap-1"><MaterialIcons name="photo-library" size={18} color="#FFFFFF" /><Text className="text-white font-bold text-xs">اختيار صورة</Text></Pressable></View>
           {photoUri ? <Pressable onPress={() => setPhotoUri(null)} className="self-end mt-2"><Text className="text-error font-bold text-xs">إزالة الصورة</Text></Pressable> : null}
-        </View>
+        </View> : null}
 
         <FormField label="ملاحظات الزيارة (اختياري)" icon="notes" value={notes} onChangeText={setNotes} placeholder="اكتب ملخصاً قصيراً للزيارة" multiline />
 
