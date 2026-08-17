@@ -2,7 +2,7 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import * as DocumentPicker from "expo-document-picker";
 import { File } from "expo-file-system";
 import { useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, Alert, FlatList, Modal, Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { ActivityIndicator, Alert, FlatList, Modal, Platform, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import * as XLSX from "xlsx";
 
 import { InteractiveMap } from "@/components/interactive-map";
@@ -64,7 +64,8 @@ export default function EntitiesScreen() {
   const [editGeographicLocation, setEditGeographicLocation] = useState("");
   const [editLocationPickerVisible, setEditLocationPickerVisible] = useState(false);
   const [regionFilter, setRegionFilter] = useState<"all" | "north" | "south">("all");
-  const [showOfflineMap, setShowOfflineMap] = useState(false);
+  // Use the local Sana'a map first on Android to avoid native map initialization crashes; interactive map remains opt-in.
+  const [showOfflineMap, setShowOfflineMap] = useState(Platform.OS === "android");
   const [entityQuery, setEntityQuery] = useState("");
   const [incompleteModalVisible, setIncompleteModalVisible] = useState(false);
   const [entityLimit, setEntityLimit] = useState(25);
