@@ -153,9 +153,8 @@ export default function RecordVisitScreen() {
         </View>
 
         {isManager ? <FormField label="المندوب" icon="person"><SelectBox value={selectedRepresentative?.name} placeholder="اختر المندوب" onPress={() => setPicker("representative")} /></FormField> : <View className="rounded-2xl bg-primary/10 border border-primary/20 px-4 py-3 mb-4 flex-row-reverse items-center justify-between"><Text className="font-bold text-primary">{representativeForVisit?.name ?? "الحساب الحالي"}</Text><Text className="text-xs text-muted">الحساب النشط</Text></View>}
-        <FormField label="اسم الطبيب" icon="person">
-          <TextInput value={entitySearch} onChangeText={setEntitySearch} placeholder="ابحث باسم الطبيب أو الجهة" placeholderTextColor="#7C8798" textAlign="right" className="h-12 rounded-xl border border-border bg-background px-4 text-foreground font-semibold mb-3" />
-          <SelectBox value={selectedEntity?.name} placeholder={data.entities.length ? `اختر جهة الزيارة${entitySearch.trim() ? ` (${entityPickerOptions.length})` : ""}` : "لا توجد جهات مسجلة"} onPress={() => data.entities.length ? setPicker("entity") : Alert.alert("لا توجد جهات", "انتقل إلى شاشة الإدارة لإضافة جهة يدوياً أو استيراد ملف Excel.")} />
+        <FormField label="اسم الطبيب أو الجهة" icon="person">
+          <Pressable onPress={() => data.entities.length ? setPicker("entity") : Alert.alert("لا توجد جهات", "انتقل إلى شاشة الإدارة لإضافة جهة يدوياً أو استيراد ملف Excel.")} className="min-h-14 rounded-2xl border border-border bg-surface px-4 py-3 flex-row-reverse items-center justify-between"><View className="flex-row-reverse items-center gap-2"><MaterialIcons name="keyboard-arrow-down" size={24} color="#102A43" /><Text className="text-primary font-bold text-xs">فتح القائمة</Text></View><View className="items-end flex-1"><Text className={`font-bold text-right ${selectedEntity ? "text-foreground" : "text-muted"}`}>{selectedEntity?.name || (data.entities.length ? "ابحث واختر الطبيب أو الجهة" : "لا توجد جهات مسجلة")}</Text>{selectedEntity ? <Text className="text-xs text-muted text-right mt-1">{selectedEntity.kind} · {selectedEntity.region === "south" ? "جنوب صنعاء" : "شمال صنعاء"}</Text> : <Text className="text-[11px] text-muted text-right mt-1">قائمة منسدلة مع بحث سريع</Text>}</View></Pressable>
         </FormField>
 
         <View className="mb-4">
@@ -210,6 +209,10 @@ export default function RecordVisitScreen() {
           if (picker === "representative") setSelectedRepresentative(data.representatives.find((item) => item.id === option.value) ?? data.representatives[0]);
           else { setSelectedEntity(data.entities.find((item) => item.id === option.value) ?? null); setEntitySearch(""); }
         }}
+        searchable={picker === "entity"}
+        searchValue={picker === "entity" ? entitySearch : ""}
+        onSearchChange={picker === "entity" ? setEntitySearch : undefined}
+        searchPlaceholder="ابحث باسم الطبيب أو الجهة"
       />
     </ScreenContainer>
   );

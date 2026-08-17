@@ -1,5 +1,5 @@
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import { FlatList, Modal, Pressable, Text, View } from "react-native";
+import { FlatList, Modal, Pressable, Text, TextInput, View } from "react-native";
 
 type Option = { label: string; value: string; helper?: string };
 
@@ -10,9 +10,13 @@ type Props = {
   selected?: string;
   onClose: () => void;
   onSelect: (option: Option) => void;
+  searchable?: boolean;
+  searchValue?: string;
+  onSearchChange?: (value: string) => void;
+  searchPlaceholder?: string;
 };
 
-export function SelectionModal({ visible, title, options, selected, onClose, onSelect }: Props) {
+export function SelectionModal({ visible, title, options, selected, onClose, onSelect, searchable = false, searchValue = "", onSearchChange, searchPlaceholder = "بحث سريع..." }: Props) {
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <Pressable className="flex-1 justify-end bg-black/35" onPress={onClose}>
@@ -23,6 +27,7 @@ export function SelectionModal({ visible, title, options, selected, onClose, onS
               <MaterialIcons name="close" size={24} color="#102A43" />
             </Pressable>
           </View>
+          {searchable ? <View className="h-12 rounded-xl border border-border bg-surface px-3 flex-row-reverse items-center gap-2 mb-3"><MaterialIcons name="search" size={20} color="#102A43" /><TextInput value={searchValue} onChangeText={onSearchChange} placeholder={searchPlaceholder} placeholderTextColor="#7C8798" textAlign="right" className="flex-1 h-full text-foreground font-semibold" /></View> : null}
           <FlatList
             data={options}
             keyExtractor={(item) => item.value}
