@@ -9,6 +9,7 @@ import { ScreenHeader } from "@/components/screen-header";
 import { SelectionModal } from "@/components/selection-modal";
 import { ScreenContainer } from "@/components/screen-container";
 import { notifyManagerOfOverride } from "@/lib/override-notification";
+import { useAccountSession } from "@/lib/account-session";
 import { useVisitStore } from "@/lib/visit-store";
 import { buildId, distanceBetweenMeters, formatArabicDate, isWithinGeofence } from "@/lib/visit-utils";
 import { MedicalEntity, Representative, VisitLocation } from "@/shared/visit-types";
@@ -30,6 +31,8 @@ function SelectBox({ value, onPress, placeholder }: { value?: string; onPress: (
 
 export default function RecordVisitScreen() {
   const { data, addVisit } = useVisitStore();
+  const { session } = useAccountSession();
+  const isManager = session?.role === "manager";
   const [picker, setPicker] = useState<PickerTarget>(null);
   const [selectedRepresentative, setSelectedRepresentative] = useState<Representative>(data.representatives[0]);
   const [selectedEntity, setSelectedEntity] = useState<MedicalEntity | null>(null);
@@ -41,6 +44,8 @@ export default function RecordVisitScreen() {
   const [overrideModalVisible, setOverrideModalVisible] = useState(false);
   const [overridePin, setOverridePin] = useState("");
   const [overrideReason, setOverrideReason] = useState("");
+  const activeRepresentative = session?.representativeId ? data.representatives.find((item) => item.id === session.representativeId) : undefined;
+  const representativeForVisit = isManager ? selectedRepresentative : activeRepresentative;
 
   const pickerOptions = useMemo(() => {
     if (picker === "representative") {
@@ -69,16 +74,16 @@ export default function RecordVisitScreen() {
   useEffect(() => { void captureLocation(); }, []);
 
   const persistVisit = (managerOverride = false, reason = "", capturedLocation = location, capturedTimestamp = capturedAt) => {
-    if (!selectedEntity || !capturedTimestamp || !capturedLocation) return;
+    if (!representativeForVisit || !selectedEntity || !capturedTimestamp || !capturedLocation) return;
     const createdVisit = {
-      id: buildId("visit"), representativeId: selectedRepresentative.id, entityId: selectedEntity.id,
+      id: buildId("visit"), representativeId: representativeForVisit?.id ?? "", entityId: selectedEntity.id,
       entityName: selectedEntity.name, entityKind: selectedEntity.kind, nearestPharmacy: selectedEntity.nearestPharmacy,
       geographicCoordinates: selectedEntity.geographicCoordinates, specialty: selectedEntity.specialty, category: selectedEntity.category,
       geographicLocation: selectedEntity.geographicLocation, recordedAt: capturedTimestamp, location: capturedLocation, notes: notes.trim(),
       managerOverride: managerOverride || undefined, overrideReason: managerOverride ? reason : undefined,
     };
     addVisit(createdVisit);
-    if (managerOverride) void notifyManagerOfOverride({ settings: data.settings, visit: createdVisit, representativeName: selectedRepresentative.name });
+    if (managerOverride) void notifyManagerOfOverride({ settings: data.settings, visit: createdVisit, representativeName: representativeForVisit.name });
     setOverrideModalVisible(false); setOverridePin(""); setOverrideReason("");
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     Alert.alert("تم حفظ الزيارة", managerOverride ? "تم التسجيل بتجاوز المدير مع حفظ السبب." : "تم تسجيل وقت وموقع الزيارة بنجاح.", [{ text: "تسجيل زيارة أخرى", onPress: () => { setSelectedEntity(null); setNotes(""); setCapturedAt(null); setLocation(null); } }]);
@@ -115,9 +120,7 @@ export default function RecordVisitScreen() {
           <Text className="text-primary font-semibold flex-1 text-right leading-5">يُلتقط الموقع مرة واحدة عند الضغط على الزر، ولا يتم تتبع موقع المندوب بشكل مستمر.</Text>
         </View>
 
-        <FormField label="المندوب" icon="person">
-          <SelectBox value={selectedRepresentative?.name} placeholder="اختر المندوب" onPress={() => setPicker("representative")} />
-        </FormField>
+        {isManager ? <FormField label="المندوب" icon="person"><SelectBox value={selectedRepresentative?.name} placeholder="اختر المندوب" onPress={() => setPicker("representative")} /></FormField> : <View className="rounded-2xl bg-primary/10 border border-primary/20 px-4 py-3 mb-4 flex-row-reverse items-center justify-between"><Text className="font-bold text-primary">{representativeForVisit?.name ?? "الحساب الحالي"}</Text><Text className="text-xs text-muted">الحساب النشط</Text></View>}
         <FormField label="اسم الطبيب" icon="person">
           <SelectBox value={selectedEntity?.name} placeholder={data.entities.length ? "اختر جهة الزيارة" : "لا توجد جهات مسجلة"} onPress={() => data.entities.length ? setPicker("entity") : Alert.alert("لا توجد جهات", "انتقل إلى شاشة الإدارة لإضافة جهة يدوياً أو استيراد ملف Excel.")} />
         </FormField>
