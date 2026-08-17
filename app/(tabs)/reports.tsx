@@ -1,25 +1,40 @@
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import * as MailComposer from "expo-mail-composer";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Print from "expo-print";
 import * as FileSystem from "expo-file-system/legacy";
 import { Asset } from "expo-asset";
 import * as XLSX from "xlsx";
 import * as Sharing from "expo-sharing";
-import { useMemo, useState } from "react";
-import { Alert, Pressable, ScrollView, Text, View } from "react-native";
+import { useEffect, useMemo, useState } from "react";
+import { Alert, Modal, Pressable, ScrollView, Text, View } from "react-native";
 
 import { MetricCard } from "@/components/metric-card";
 import { ScreenHeader } from "@/components/screen-header";
 import { ScreenContainer } from "@/components/screen-container";
 import { buildReportHtml, getPeriodVisits, ReportPeriod, reportTitle } from "@/lib/reporting";
+
+const REPORT_FILTERS_KEY = "medical-visit-manager:report-filters";
+const pad2 = (value: number) => String(value).padStart(2, "0");
+const dateKey = (date: Date) => `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
+const monthLabel = (date: Date) => date.toLocaleDateString("ar-YE", { month: "long", year: "numeric" });
 import { useVisitStore } from "@/lib/visit-store";
 
 export default function ReportsScreen() {
   const { data } = useVisitStore();
   const [period, setPeriod] = useState<ReportPeriod>("daily");
   const [isWorking, setIsWorking] = useState(false);
-  const currentVisits = useMemo(() => getPeriodVisits(data.visits, period), [data.visits, period]);
-  const title = reportTitle(period);
+  const [representativeFilter, setRepresentativeFilter] = useState("all");
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
+  const [calendarTarget, setCalendarTarget] = useState<"from" | "to" | null>(null);
+  const [calendarMonth, setCalendarMonth] = useState(() => new Date());
+  const basePeriodVisits = useMemo(() => getPeriodVisits(data.visits, period), [data.visits, period]);
+  const currentVisits = useMemo(() => basePeriodVisits.filter((visit) => { const day = visit.recordedAt.slice(0, 10); const inRange = (!fromDate || day >= fromDate) && (!toDate || day <= toDate); const byRep = representativeFilter === "all" || visit.representativeId === representativeFilter; return inRange && byRep; }), [basePeriodVisits, fromDate, toDate, representativeFilter]);
+  const title = period === "monthly" && (fromDate || toDate) ? `تقرير شهري من ${fromDate || "البداية"} إلى ${toDate || "النهاية"}` : reportTitle(period);
+  const calendarDays = useMemo(() => { const year = calendarMonth.getFullYear(); const month = calendarMonth.getMonth(); const first = new Date(year, month, 1).getDay(); const count = new Date(year, month + 1, 0).getDate(); return [...Array(first).fill(null), ...Array.from({ length: count }, (_, index) => new Date(year, month, index + 1))]; }, [calendarMonth]);
+  useEffect(() => { void AsyncStorage.getItem(REPORT_FILTERS_KEY).then((raw) => { if (!raw) return; try { const saved = JSON.parse(raw) as { representativeFilter?: string; fromDate?: string; toDate?: string }; setRepresentativeFilter(saved.representativeFilter ?? "all"); setFromDate(saved.fromDate ?? ""); setToDate(saved.toDate ?? ""); } catch { /* ignore malformed preferences */ } }); }, []);
+  useEffect(() => { void AsyncStorage.setItem(REPORT_FILTERS_KEY, JSON.stringify({ representativeFilter, fromDate, toDate })); }, [representativeFilter, fromDate, toDate]);
   const logoUri = Asset.fromModule(require("../../assets/images/icon.png")).uri;
   const html = useMemo(() => buildReportHtml({ visits: currentVisits, representatives: data.representatives, title, managerName: data.settings.managerName, logoUri }), [currentVisits, data.representatives, data.settings.managerName, title, logoUri]);
   const byRepresentative = data.representatives.map((representative) => ({ representative, count: currentVisits.filter((visit) => visit.representativeId === representative.id).length }));
@@ -77,15 +92,16 @@ export default function ReportsScreen() {
         <View className="flex-row-reverse rounded-2xl bg-surface border border-border p-1 mb-5">
           {(["daily", "monthly"] as ReportPeriod[]).map((item) => <Pressable key={item} onPress={() => setPeriod(item)} className={`flex-1 h-11 rounded-xl items-center justify-center ${period === item ? "bg-primary" : ""}`} style={({ pressed }) => [{ opacity: pressed ? 0.8 : 1 }]}><Text className={`font-bold ${period === item ? "text-white" : "text-muted"}`}>{item === "daily" ? "يومي" : "شهري"}</Text></Pressable>)}
         </View>
+        {period === "monthly" ? <View className="rounded-2xl bg-surface border border-border p-4 mb-5 gap-3"><Text className="font-bold text-foreground text-right">تخصيص التقرير الشهري</Text><View className="flex-row-reverse gap-2"><Pressable onPress={() => setCalendarTarget("from")} className="flex-1 h-12 rounded-xl border border-border bg-background px-3 flex-row-reverse items-center justify-between"><MaterialIcons name="event" size={18} color="#1565C0" /><Text className={`text-xs font-bold text-right ${fromDate ? "text-foreground" : "text-muted"}`}>{fromDate || "من تاريخ"}</Text></Pressable><Pressable onPress={() => setCalendarTarget("to")} className="flex-1 h-12 rounded-xl border border-border bg-background px-3 flex-row-reverse items-center justify-between"><MaterialIcons name="event" size={18} color="#1565C0" /><Text className={`text-xs font-bold text-right ${toDate ? "text-foreground" : "text-muted"}`}>{toDate || "إلى تاريخ"}</Text></Pressable></View><View className="flex-row-reverse flex-wrap gap-2"><Pressable onPress={() => setRepresentativeFilter("all")} className={`flex-1 min-w-[30%] h-10 rounded-xl items-center justify-center ${representativeFilter === "all" ? "bg-primary" : "bg-background border border-border"}`}><Text className={`text-xs font-bold ${representativeFilter === "all" ? "text-white" : "text-foreground"}`}>كل المندوبين</Text></Pressable>{data.representatives.filter((item) => item.active).map((rep) => <Pressable key={rep.id} onPress={() => setRepresentativeFilter(rep.id)} className={`flex-1 min-w-[30%] h-10 rounded-xl items-center justify-center ${representativeFilter === rep.id ? "bg-primary" : "bg-background border border-border"}`}><Text className={`text-xs font-bold ${representativeFilter === rep.id ? "text-white" : "text-foreground"}`} numberOfLines={1}>{rep.name.replace("المندوب ", "")}</Text></Pressable>)}</View><Pressable onPress={() => { setFromDate(""); setToDate(""); setRepresentativeFilter("all"); }} className="h-10 rounded-xl border border-border items-center justify-center"><Text className="text-xs font-bold text-muted">مسح فلاتر التقرير</Text></Pressable></View> : null}
         <View className="rounded-2xl bg-primary p-5 mb-5 items-end"><Text className="text-white/80 font-semibold">الفترة المختارة</Text><Text className="text-white font-bold text-lg mt-1">{title}</Text><Text className="text-white/80 text-sm mt-2">{currentVisits.length} زيارة ضمن التقرير</Text></View>
         <Text className="font-bold text-foreground text-right mb-3">توزيع الزيارات حسب المندوب</Text>
         <View className="flex-row-reverse gap-3 mb-6">{byRepresentative.map(({ representative, count }, index) => <MetricCard key={representative.id} label={representative.name.replace("المندوب ", "") || `مندوب ${index + 1}`} value={count} icon="person" tone={index === 1 ? "success" : index === 2 ? "warning" : "primary"} />)}</View>
         <View className="gap-3">
-          <Pressable onPress={() => run("print")} disabled={isWorking} className="h-14 rounded-2xl bg-foreground items-center justify-center flex-row-reverse gap-2" style={({ pressed }) => [{ opacity: pressed || isWorking ? 0.75 : 1 }]}><MaterialIcons name="print" size={21} color="#FFFFFF" /><Text className="text-white font-bold">طباعة التقرير</Text></Pressable>
-          <Pressable onPress={() => run("share")} disabled={isWorking} className="h-14 rounded-2xl bg-primary items-center justify-center flex-row-reverse gap-2" style={({ pressed }) => [{ opacity: pressed || isWorking ? 0.75 : 1 }]}><MaterialIcons name="share" size={21} color="#FFFFFF" /><Text className="text-white font-bold">حفظ أو مشاركة PDF</Text></Pressable>
+          <View className="flex-row-reverse gap-2"><Pressable onPress={() => run("print")} disabled={isWorking} className="flex-1 h-14 rounded-2xl bg-foreground items-center justify-center flex-row-reverse gap-2" style={({ pressed }) => [{ opacity: pressed || isWorking ? 0.75 : 1 }]}><MaterialIcons name="print" size={21} color="#FFFFFF" /><Text className="text-white font-bold">طباعة مباشرة</Text></Pressable><Pressable onPress={() => run("share")} disabled={isWorking} className="flex-1 h-14 rounded-2xl bg-primary items-center justify-center flex-row-reverse gap-2" style={({ pressed }) => [{ opacity: pressed || isWorking ? 0.75 : 1 }]}><MaterialIcons name="picture-as-pdf" size={21} color="#FFFFFF" /><Text className="text-white font-bold">تصدير PDF</Text></Pressable></View>
           <Pressable onPress={() => run("email")} disabled={isWorking} className="h-14 rounded-2xl bg-success items-center justify-center flex-row-reverse gap-2" style={({ pressed }) => [{ opacity: pressed || isWorking ? 0.75 : 1 }]}><MaterialIcons name="email" size={21} color="#FFFFFF" /><Text className="text-white font-bold">إرسال التقرير بالبريد</Text></Pressable>
           <Pressable onPress={() => run("excel")} disabled={isWorking} className="h-14 rounded-2xl bg-[#217346] items-center justify-center flex-row-reverse gap-2" style={({ pressed }) => [{ opacity: pressed || isWorking ? 0.75 : 1 }]}><MaterialIcons name="table-chart" size={21} color="#FFFFFF" /><Text className="text-white font-bold">تصدير Excel</Text></Pressable>
         </View>
+        <Modal visible={calendarTarget !== null} transparent animationType="slide" onRequestClose={() => setCalendarTarget(null)}><View className="flex-1 justify-end bg-black/35"><View className="bg-background rounded-t-[28px] px-5 pt-5 pb-8"><View className="flex-row-reverse items-center justify-between mb-4"><Pressable onPress={() => setCalendarTarget(null)} className="w-10 h-10 rounded-xl bg-surface items-center justify-center"><MaterialIcons name="close" size={22} color="#102A43" /></Pressable><Text className="text-xl font-bold text-foreground">اختر {calendarTarget === "from" ? "تاريخ البداية" : "تاريخ النهاية"}</Text></View><View className="flex-row-reverse items-center justify-between mb-4"><Pressable onPress={() => setCalendarMonth((current) => new Date(current.getFullYear(), current.getMonth() - 1, 1))} className="w-11 h-11 rounded-xl bg-surface items-center justify-center"><MaterialIcons name="chevron-right" size={24} color="#102A43" /></Pressable><Text className="font-bold text-foreground">{monthLabel(calendarMonth)}</Text><Pressable onPress={() => setCalendarMonth((current) => new Date(current.getFullYear(), current.getMonth() + 1, 1))} className="w-11 h-11 rounded-xl bg-surface items-center justify-center"><MaterialIcons name="chevron-left" size={24} color="#102A43" /></Pressable></View><View className="flex-row-reverse flex-wrap gap-2">{calendarDays.map((day, index) => day ? <Pressable key={dateKey(day)} onPress={() => { if (calendarTarget === "from") setFromDate(dateKey(day)); else setToDate(dateKey(day)); setCalendarTarget(null); }} className="w-[12%] aspect-square rounded-xl bg-surface items-center justify-center"><Text className="font-bold text-foreground">{day.getDate()}</Text></Pressable> : <View key={`blank-${index}`} className="w-[12%] aspect-square" />)}</View></View></View></Modal>
         <View className="rounded-2xl bg-surface border border-border p-4 mt-5 flex-row-reverse gap-3"><MaterialIcons name="info-outline" size={21} color="#1565C0" /><Text className="flex-1 text-right text-sm text-muted leading-5">يُنشأ ملف PDF من التقرير داخل الهاتف؛ ويمكن طباعته أو مشاركته أو فتح البريد مع التقرير كمرفق.</Text></View>
       </ScrollView>
     </ScreenContainer>
