@@ -79,12 +79,15 @@ export function VisitProvider({ children }: PropsWithChildren) {
         const expected = entity?.geographicCoordinates ?? visit.geographicCoordinates;
         if (!visit.location || !expected) {
           changed = true;
-          return { ...visit, verificationStatus: "rejected" as const, verificationCheckedAt: checkedAt, verificationReason: "تعذر التحقق: لا توجد إحداثيات كافية للجهة أو الزيارة." };
+          const result = "تعذر التحقق: لا توجد إحداثيات كافية للجهة أو الزيارة.";
+          return { ...visit, verificationStatus: "rejected" as const, verificationCheckedAt: checkedAt, verificationReason: result, verificationLog: [...(visit.verificationLog ?? []), { checkedAt, status: "rejected" as const, result }] };
         }
         const distanceMeters = distanceBetweenMeters(visit.location, expected);
         const accepted = isWithinGeofence(distanceMeters, current.settings.geofenceRadiusMeters);
         changed = true;
-        return { ...visit, geographicCoordinates: expected, verificationStatus: accepted ? "verified" as const : "rejected" as const, verificationCheckedAt: checkedAt, verificationDistanceMeters: Math.round(distanceMeters), verificationReason: accepted ? "تمت المطابقة تلقائياً عند عودة الاتصال." : `مرفوضة: موقع الزيارة يبعد ${Math.round(distanceMeters)} متراً عن موقع الجهة، والحد المسموح ${current.settings.geofenceRadiusMeters} متر.` };
+        const result = accepted ? "تمت المطابقة تلقائياً عند عودة الاتصال." : `مرفوضة: موقع الزيارة يبعد ${Math.round(distanceMeters)} متراً عن موقع الجهة، والحد المسموح ${current.settings.geofenceRadiusMeters} متر.`;
+        const status = accepted ? "verified" as const : "rejected" as const;
+        return { ...visit, geographicCoordinates: expected, verificationStatus: status, verificationCheckedAt: checkedAt, verificationDistanceMeters: Math.round(distanceMeters), verificationReason: result, verificationLog: [...(visit.verificationLog ?? []), { checkedAt, status, distanceMeters: Math.round(distanceMeters), result }] };
       });
       if (!changed) return current;
       const next = { ...current, visits };

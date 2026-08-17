@@ -60,6 +60,7 @@ export type PlannedVisit = {
 };
 
 export type VisitVerificationStatus = "pending" | "verified" | "rejected" | "override";
+export type VisitVerificationLog = { checkedAt: string; status: VisitVerificationStatus; distanceMeters?: number; result: string };
 
 export type Visit = {
   id: string;
@@ -81,6 +82,7 @@ export type Visit = {
   verificationCheckedAt?: string;
   verificationDistanceMeters?: number;
   verificationReason?: string;
+  verificationLog?: VisitVerificationLog[];
   offlineRecorded?: boolean;
   managerOverride?: boolean;
   overrideReason?: string;
