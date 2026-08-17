@@ -1,5 +1,5 @@
 import { Tabs } from "expo-router";
-import { Platform } from "react-native";
+import { Platform, useWindowDimensions } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { HapticTab } from "@/components/haptic-tab";
@@ -12,9 +12,11 @@ export default function TabLayout() {
   const { session } = useAccountSession();
   const isManager = session?.role === "manager";
   const insets = useSafeAreaInsets();
+  const { width } = useWindowDimensions();
+  const compactTabs = width < 390;
   const bottomPadding = Platform.OS === "web" ? 10 : Math.max(insets.bottom, 8);
   return (
-    <Tabs screenOptions={{ headerShown: false, tabBarActiveTintColor: colors.tint, tabBarInactiveTintColor: colors.muted, tabBarActiveBackgroundColor: "rgba(21, 101, 192, 0.12)", tabBarButton: HapticTab, tabBarLabelStyle: { fontWeight: "700", fontSize: 10 }, tabBarItemStyle: { marginHorizontal: 2, borderRadius: 14 }, tabBarStyle: { height: 58 + bottomPadding, paddingTop: 6, paddingBottom: bottomPadding, backgroundColor: colors.background, borderTopColor: colors.border } }}>
+    <Tabs screenOptions={{ headerShown: false, tabBarActiveTintColor: colors.tint, tabBarInactiveTintColor: colors.muted, tabBarActiveBackgroundColor: "rgba(21, 101, 192, 0.12)", tabBarButton: HapticTab, tabBarLabelStyle: { fontWeight: "700", fontSize: compactTabs ? 8 : 10, lineHeight: compactTabs ? 10 : 12, maxWidth: compactTabs ? 48 : 64 }, tabBarItemStyle: { flex: 1, minWidth: 0, marginHorizontal: compactTabs ? 1 : 2, borderRadius: 14 }, tabBarStyle: { height: (compactTabs ? 54 : 58) + bottomPadding, paddingTop: compactTabs ? 4 : 6, paddingBottom: bottomPadding, backgroundColor: colors.background, borderTopColor: colors.border } }}>
       <Tabs.Screen name="index" options={{ href: isManager ? undefined : null, title: "الرئيسية", tabBarIcon: ({ color }) => <IconSymbol name="house.fill" size={23} color={color} /> }} />
       <Tabs.Screen name="record" options={{ title: "تسجيل", tabBarIcon: ({ color }) => <IconSymbol name="location.fill" size={23} color={color} /> }} />
       <Tabs.Screen name="visits" options={{ title: "الزيارات", tabBarIcon: ({ color }) => <IconSymbol name="calendar" size={23} color={color} /> }} />
