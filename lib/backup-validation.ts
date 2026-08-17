@@ -1,18 +1,35 @@
-import type { AppData } from "@/shared/visit-types";
+import type { AppData, MedicalEntity, PlannedVisit, Representative, Visit } from "@/shared/visit-types";
 
 export type RestoreSummary = { representatives: number; entities: number; visits: number; plannedVisits: number };
 export type MergeSummary = RestoreSummary & { skippedRepresentatives: number; skippedEntities: number; skippedVisits: number; skippedPlannedVisits: number };
 
-function mergeById<T extends { id: string }>(current: T[], incoming: T[]) {
-  const ids = new Set(current.map((item) => item.id));
-  return { values: [...current, ...incoming.filter((item) => !ids.has(item.id))], skipped: incoming.filter((item) => ids.has(item.id)).length };
+const clean = (value: unknown) => String(value ?? "").trim().toLocaleLowerCase("ar-YE").replace(/[ًٌٍَُِّْـ]/g, "").replace(/\s+/g, " ");
+const entityKey = (item: MedicalEntity) => `${clean(item.name)}|${clean(item.kind)}|${clean(item.region)}`;
+const hasConflict = (left: MedicalEntity, right: MedicalEntity) => ["address", "nearestPharmacy", "geographicLocation", "specialty", "category"].some((field) => { const a = clean(left[field as keyof MedicalEntity]); const b = clean(right[field as keyof MedicalEntity]); return Boolean(a && b && a !== b); });
+const sameEntity = (left: MedicalEntity, right: MedicalEntity) => left.id === right.id || (entityKey(left) === entityKey(right) && Boolean(clean(left.name)) && !hasConflict(left, right));
+const sameRepresentative = (left: Representative, right: Representative) => left.id === right.id || (clean(left.name) === clean(right.name) && Boolean(clean(left.name)));
+const sameVisit = (left: Visit, right: Visit, entityMap: Map<string, string>, representativeMap: Map<string, string>) => left.id === right.id || (Boolean(left.recordedAt && right.recordedAt) && representativeMap.get(left.representativeId) === representativeMap.get(right.representativeId) && entityMap.get(left.entityId) === entityMap.get(right.entityId) && left.recordedAt === right.recordedAt);
+const samePlan = (left: PlannedVisit, right: PlannedVisit, entityMap: Map<string, string>, representativeMap: Map<string, string>) => left.id === right.id || (representativeMap.get(left.representativeId) === representativeMap.get(right.representativeId) && entityMap.get(left.entityId) === entityMap.get(right.entityId) && left.scheduledDate === right.scheduledDate && clean(left.scheduledTime) === clean(right.scheduledTime));
+
+function mergeCollection<T>(current: T[], incoming: T[], isSame: (left: T, right: T) => boolean) {
+  const values = [...current];
+  let skipped = 0;
+  for (const item of incoming) {
+    if (values.some((existing) => isSame(existing, item))) skipped += 1;
+    else values.push(item);
+  }
+  return { values, skipped };
 }
 
 export function mergeAppData(current: AppData, incoming: AppData): { data: AppData; summary: MergeSummary } {
-  const representatives = mergeById(current.representatives, incoming.representatives);
-  const entities = mergeById(current.entities, incoming.entities);
-  const visits = mergeById(current.visits, incoming.visits);
-  const plannedVisits = mergeById(current.plannedVisits, incoming.plannedVisits);
+  const representatives = mergeCollection(current.representatives, incoming.representatives, sameRepresentative);
+  const representativeMap = new Map<string, string>();
+  for (const imported of incoming.representatives) representativeMap.set(imported.id, current.representatives.find((existing) => sameRepresentative(existing, imported))?.id ?? imported.id);
+  const entities = mergeCollection(current.entities, incoming.entities, sameEntity);
+  const entityMap = new Map<string, string>();
+  for (const imported of incoming.entities) entityMap.set(imported.id, current.entities.find((existing) => sameEntity(existing, imported))?.id ?? imported.id);
+  const visits = mergeCollection(current.visits, incoming.visits, (left, right) => sameVisit(left, right, entityMap, representativeMap));
+  const plannedVisits = mergeCollection(current.plannedVisits, incoming.plannedVisits, (left, right) => samePlan(left, right, entityMap, representativeMap));
   return {
     data: {
       ...current,
