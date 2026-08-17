@@ -54,7 +54,8 @@ export default function RecordVisitScreen() {
   const [locationPickerVisible, setLocationPickerVisible] = useState(false);
   const activeRepresentative = session?.representativeId ? data.representatives.find((item) => item.id === session.representativeId) : undefined;
   const representativeForVisit = isManager ? selectedRepresentative : activeRepresentative;
-  const filteredVisitedItems = data.settings.visitedItems.filter((item) => item.toLowerCase().includes(visitedItemsSearch.trim().toLowerCase()));
+  const availableVisitedItems = isManager ? data.settings.visitedItems : (activeRepresentative?.assignedItems ?? []);
+  const filteredVisitedItems = availableVisitedItems.filter((item) => item.toLowerCase().includes(visitedItemsSearch.trim().toLowerCase()));
   const internetAvailable = networkState.isInternetReachable === true;
 
   const pickerOptions = useMemo(() => {
@@ -193,7 +194,7 @@ export default function RecordVisitScreen() {
         </View> : null}
 
         <FormField label="الأصناف المزارة (اختياري)" icon="inventory-2">
-          {data.settings.visitedItems.length ? <View><TextInput value={visitedItemsSearch} onChangeText={setVisitedItemsSearch} placeholder="ابحث عن صنف بسرعة" placeholderTextColor="#7C8798" textAlign="right" className="h-12 rounded-xl border border-border bg-background px-4 text-foreground font-semibold mb-3" />{filteredVisitedItems.length ? <View className="flex-row-reverse flex-wrap gap-2">{filteredVisitedItems.map((item) => { const selected = selectedVisitedItems.includes(item); return <Pressable key={item} onPress={() => setSelectedVisitedItems((current) => selected ? current.filter((value) => value !== item) : [...current, item])} className={`rounded-full border px-3 py-2 ${selected ? "bg-primary border-primary" : "bg-surface border-border"}`}><Text className={`text-xs font-bold ${selected ? "text-white" : "text-foreground"}`}>{item}</Text></Pressable>; })}</View> : <Text className="text-sm text-muted text-right">لا توجد أصناف مطابقة للبحث.</Text>}</View> : <Text className="text-sm text-muted text-right">سيضيف مدير النظام الأصناف المزارة من الإعدادات لاحقاً.</Text>}
+          {availableVisitedItems.length ? <View><TextInput value={visitedItemsSearch} onChangeText={setVisitedItemsSearch} placeholder="ابحث عن صنف بسرعة" placeholderTextColor="#7C8798" textAlign="right" className="h-12 rounded-xl border border-border bg-background px-4 text-foreground font-semibold mb-3" />{filteredVisitedItems.length ? <View className="flex-row-reverse flex-wrap gap-2">{filteredVisitedItems.map((item) => { const selected = selectedVisitedItems.includes(item); return <Pressable key={item} onPress={() => setSelectedVisitedItems((current) => selected ? current.filter((value) => value !== item) : [...current, item])} className={`rounded-full border px-3 py-2 ${selected ? "bg-primary border-primary" : "bg-surface border-border"}`}><Text className={`text-xs font-bold ${selected ? "text-white" : "text-foreground"}`}>{item}</Text></Pressable>; })}</View> : <Text className="text-sm text-muted text-right">لا توجد أصناف مطابقة للبحث.</Text>}</View> : <Text className="text-sm text-muted text-right">سيضيف مدير النظام الأصناف المزارة من الإعدادات لاحقاً.</Text>}
         </FormField>
 
         <FormField label="ملاحظات الزيارة (اختياري)" icon="notes" value={notes} onChangeText={setNotes} placeholder="اكتب ملخصاً قصيراً للزيارة" multiline />

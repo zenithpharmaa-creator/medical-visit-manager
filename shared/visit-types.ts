@@ -11,6 +11,7 @@ export type Representative = {
   username?: string;
   photoUri?: string;
   region?: RepresentativeRegion;
+  assignedItems?: string[];
   active: boolean;
 };
 

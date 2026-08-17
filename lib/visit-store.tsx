@@ -9,12 +9,16 @@ const STORAGE_KEY = "medical-visit-manager-data-v1";
 const REPRESENTATIVE_NAMES: Record<string, string> = { "rep-1": "علي الشعيبي", "rep-2": "محمد الحداد", "rep-3": "محمود الرميمة" };
 const REPRESENTATIVE_REGIONS: Record<string, "north" | "south" | "sanaa"> = { "rep-1": "south", "rep-2": "north", "rep-3": "sanaa" };
 const LEGACY_REPRESENTATIVE_NAMES = new Set(["المندوب الأول", "المندوب الثاني", "المندوب الثالث"]);
+const REP_1_ITEMS = ["Akisol 2mg tab", "Akisol 5mg tab", "Losart 50mg tab", "Magnacef 200mg cap", "Magnacef 400mg cap", "Magnacef 30ml susp", "Magnacef 60ml susp", "Norcetam 200mg syr", "Norcetam 800mg tab", "Norcetam 400mg tab", "Novepam 1.5mg tab", "Novepam 3mg tab", "Pangesic 500mg tab", "Ramlac 300ml syr", "Zenoril 5mg tab", "Zenoril 10mg tab", "Zenoril 20mg tab", "Moxiram 1g tab", "Lanzoram 30mg cap"];
+const REP_2_ITEMS = [...REP_1_ITEMS];
+const REP_3_ITEMS = ["Amiram 25mg tab", "Amlocard 5mg tab", "Claritop 125mg susp", "Claritop 250mg tab", "Claritop 500mg tab", "Forticef 250mg susp", "Hyposec 20mg cap", "Infantril 50mg tab", "loxicam 15mg tab", "Zolam 0.25mg tab", "Zolam 0.5mg tab", "Trianil 25mg tab", "Vertizin 25mg tab", "Vertizin 75mg cap", "OflacinRam 200mg tab", "Ramoclav 156mg susp", "Ramoclav 312mg susp", "Motilat 1mg susp", "Motilat 10mg tab"];
+const REPRESENTATIVE_ITEMS: Record<string, string[]> = { "rep-1": REP_1_ITEMS, "rep-2": REP_2_ITEMS, "rep-3": REP_3_ITEMS };
 
 const INITIAL_DATA: AppData = {
   representatives: [
-    { id: "rep-1", name: REPRESENTATIVE_NAMES["rep-1"], region: REPRESENTATIVE_REGIONS["rep-1"], active: true },
-    { id: "rep-2", name: REPRESENTATIVE_NAMES["rep-2"], region: REPRESENTATIVE_REGIONS["rep-2"], active: true },
-    { id: "rep-3", name: REPRESENTATIVE_NAMES["rep-3"], region: REPRESENTATIVE_REGIONS["rep-3"], active: true },
+    { id: "rep-1", name: REPRESENTATIVE_NAMES["rep-1"], region: REPRESENTATIVE_REGIONS["rep-1"], assignedItems: REP_1_ITEMS, active: true },
+    { id: "rep-2", name: REPRESENTATIVE_NAMES["rep-2"], region: REPRESENTATIVE_REGIONS["rep-2"], assignedItems: REP_2_ITEMS, active: true },
+    { id: "rep-3", name: REPRESENTATIVE_NAMES["rep-3"], region: REPRESENTATIVE_REGIONS["rep-3"], assignedItems: REP_3_ITEMS, active: true },
   ],
   representativeLocations: {},
   entities: [],
@@ -56,7 +60,7 @@ export function VisitProvider({ children }: PropsWithChildren) {
           setData({
             ...INITIAL_DATA,
             ...parsed,
-            representatives: parsed.representatives?.length ? parsed.representatives.map((item) => ({ ...item, ...(REPRESENTATIVE_NAMES[item.id] && LEGACY_REPRESENTATIVE_NAMES.has(item.name) ? { name: REPRESENTATIVE_NAMES[item.id] } : {}), ...(REPRESENTATIVE_REGIONS[item.id] ? { region: REPRESENTATIVE_REGIONS[item.id] } : {}) })) : INITIAL_DATA.representatives,
+            representatives: parsed.representatives?.length ? parsed.representatives.map((item) => ({ ...item, ...(REPRESENTATIVE_NAMES[item.id] && LEGACY_REPRESENTATIVE_NAMES.has(item.name) ? { name: REPRESENTATIVE_NAMES[item.id] } : {}), ...(REPRESENTATIVE_REGIONS[item.id] ? { region: REPRESENTATIVE_REGIONS[item.id] } : {}), ...(!Array.isArray(item.assignedItems) && REPRESENTATIVE_ITEMS[item.id] ? { assignedItems: REPRESENTATIVE_ITEMS[item.id] } : {}) })) : INITIAL_DATA.representatives,
             representativeLocations: parsed.representativeLocations ?? {},
             entities: parsed.entities ?? [],
             plannedVisits: parsed.plannedVisits ?? [],
