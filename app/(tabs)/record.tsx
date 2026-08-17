@@ -48,9 +48,11 @@ export default function RecordVisitScreen() {
   const [overrideReason, setOverrideReason] = useState("");
   const [photoUri, setPhotoUri] = useState<string | null>(null);
   const [selectedVisitedItems, setSelectedVisitedItems] = useState<string[]>([]);
+  const [visitedItemsSearch, setVisitedItemsSearch] = useState("");
   const [locationPickerVisible, setLocationPickerVisible] = useState(false);
   const activeRepresentative = session?.representativeId ? data.representatives.find((item) => item.id === session.representativeId) : undefined;
   const representativeForVisit = isManager ? selectedRepresentative : activeRepresentative;
+  const filteredVisitedItems = data.settings.visitedItems.filter((item) => item.toLowerCase().includes(visitedItemsSearch.trim().toLowerCase()));
 
   const pickerOptions = useMemo(() => {
     if (picker === "representative") {
@@ -91,7 +93,7 @@ export default function RecordVisitScreen() {
     if (managerOverride) void notifyManagerOfOverride({ settings: data.settings, visit: createdVisit, representativeName: representativeForVisit.name });
     setOverrideModalVisible(false); setOverridePin(""); setOverrideReason("");
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    Alert.alert("تم حفظ الزيارة", managerOverride ? "تم التسجيل بتجاوز المدير مع حفظ السبب." : "تم تسجيل وقت وموقع الزيارة بنجاح.", [{ text: "تسجيل زيارة أخرى", onPress: () => { setSelectedEntity(null); setNotes(""); setCapturedAt(null); setLocation(null); setPhotoUri(null); setSelectedVisitedItems([]); } }]);
+    Alert.alert("تم حفظ الزيارة", managerOverride ? "تم التسجيل بتجاوز المدير مع حفظ السبب." : "تم تسجيل وقت وموقع الزيارة بنجاح.", [{ text: "تسجيل زيارة أخرى", onPress: () => { setSelectedEntity(null); setNotes(""); setCapturedAt(null); setLocation(null); setPhotoUri(null); setSelectedVisitedItems([]); setVisitedItemsSearch(""); } }]);
   };
 
   const takePhoto = async () => {
@@ -175,7 +177,7 @@ export default function RecordVisitScreen() {
         </View> : null}
 
         <FormField label="الأصناف المزارة (اختياري)" icon="inventory-2">
-          {data.settings.visitedItems.length ? <View className="flex-row-reverse flex-wrap gap-2">{data.settings.visitedItems.map((item) => { const selected = selectedVisitedItems.includes(item); return <Pressable key={item} onPress={() => setSelectedVisitedItems((current) => selected ? current.filter((value) => value !== item) : [...current, item])} className={`rounded-full border px-3 py-2 ${selected ? "bg-primary border-primary" : "bg-surface border-border"}`}><Text className={`text-xs font-bold ${selected ? "text-white" : "text-foreground"}`}>{item}</Text></Pressable>; })}</View> : <Text className="text-sm text-muted text-right">سيضيف مدير النظام الأصناف المزارة من الإعدادات لاحقاً.</Text>}
+          {data.settings.visitedItems.length ? <View><TextInput value={visitedItemsSearch} onChangeText={setVisitedItemsSearch} placeholder="ابحث عن صنف بسرعة" placeholderTextColor="#7C8798" textAlign="right" className="h-12 rounded-xl border border-border bg-background px-4 text-foreground font-semibold mb-3" />{filteredVisitedItems.length ? <View className="flex-row-reverse flex-wrap gap-2">{filteredVisitedItems.map((item) => { const selected = selectedVisitedItems.includes(item); return <Pressable key={item} onPress={() => setSelectedVisitedItems((current) => selected ? current.filter((value) => value !== item) : [...current, item])} className={`rounded-full border px-3 py-2 ${selected ? "bg-primary border-primary" : "bg-surface border-border"}`}><Text className={`text-xs font-bold ${selected ? "text-white" : "text-foreground"}`}>{item}</Text></Pressable>; })}</View> : <Text className="text-sm text-muted text-right">لا توجد أصناف مطابقة للبحث.</Text>}</View> : <Text className="text-sm text-muted text-right">سيضيف مدير النظام الأصناف المزارة من الإعدادات لاحقاً.</Text>}
         </FormField>
 
         <FormField label="ملاحظات الزيارة (اختياري)" icon="notes" value={notes} onChangeText={setNotes} placeholder="اكتب ملخصاً قصيراً للزيارة" multiline />
