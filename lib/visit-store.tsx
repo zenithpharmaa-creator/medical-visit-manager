@@ -2,7 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { PropsWithChildren, createContext, useContext, useEffect, useMemo, useState } from "react";
 import { useNetworkState } from "expo-network";
 
-import { AppData, AppSettings, MedicalEntity, Representative, Visit } from "@/shared/visit-types";
+import { AppData, AppSettings, MedicalEntity, Representative, Visit, PlanApprovalAudit } from "@/shared/visit-types";
 import { distanceBetweenMeters, isWithinGeofence } from "@/lib/visit-utils";
 
 const STORAGE_KEY = "medical-visit-manager-data-v1";
@@ -25,6 +25,7 @@ const INITIAL_DATA: AppData = {
   plannedVisits: [],
   visits: [],
   settings: { managerName: "مدير النظام", reportEmail: "", reminderTime: "18:00", geofenceRadiusMeters: 200, managerPin: "", visitedItems: [] },
+  planApprovalHistory: [],
 };
 
 type VisitStoreValue = {
@@ -44,6 +45,7 @@ type VisitStoreValue = {
   replaceEntities: (entities: MedicalEntity[]) => void;
   restoreData: (data: AppData) => void;
   updateRepresentativeLocation: (id: string, value: AppData["representativeLocations"][string]) => void;
+  addPlanApprovalAudit: (audit: PlanApprovalAudit) => void;
 };
 
 const VisitStore = createContext<VisitStoreValue | null>(null);
@@ -66,6 +68,7 @@ export function VisitProvider({ children }: PropsWithChildren) {
             entities: parsed.entities ?? [],
             plannedVisits: parsed.plannedVisits ?? [],
             visits: parsed.visits ?? [],
+            planApprovalHistory: parsed.planApprovalHistory ?? [],
             settings: { ...INITIAL_DATA.settings, ...(parsed.settings ?? {}), geofenceRadiusMeters: Number(parsed.settings?.geofenceRadiusMeters) || INITIAL_DATA.settings.geofenceRadiusMeters, managerPin: String(parsed.settings?.managerPin ?? INITIAL_DATA.settings.managerPin), visitedItems: Array.isArray(parsed.settings?.visitedItems) ? parsed.settings.visitedItems.filter((item): item is string => typeof item === "string") : [] },
           });
         }
@@ -131,6 +134,7 @@ export function VisitProvider({ children }: PropsWithChildren) {
       replaceEntities: (entities) => save((current) => ({ ...current, entities })),
       restoreData: (restored) => save(() => restored),
       updateRepresentativeLocation: (id, value) => save((current) => ({ ...current, representativeLocations: { ...current.representativeLocations, [id]: value } })),
+      addPlanApprovalAudit: (audit) => save((current) => ({ ...current, planApprovalHistory: [audit, ...(current.planApprovalHistory ?? [])] })),
     }),
     [data, loading],
   );

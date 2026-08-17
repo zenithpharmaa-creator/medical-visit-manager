@@ -40,6 +40,7 @@ export type VisitLocation = {
 
 export type PlannedVisitStatus = "planned" | "executed" | "cancelled";
 export type PlanApprovalStatus = "pending" | "approved" | "rejected";
+export type PlanApprovalAudit = { id: string; planId: string; action: "approved" | "rejected"; actedAt: string; actedBy: string; representativeId: string; representativeName: string; entityName: string; scheduledDate: string; reason?: string };
 
 export type PlannedVisit = {
   id: string;
@@ -109,4 +110,5 @@ export type AppData = {
   visits: Visit[];
   plannedVisits: PlannedVisit[];
   settings: AppSettings;
+  planApprovalHistory?: PlanApprovalAudit[];
 };
