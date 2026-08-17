@@ -10,7 +10,7 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { MetricCard } from "@/components/metric-card";
 import { ScreenHeader } from "@/components/screen-header";
@@ -22,6 +22,7 @@ import { monthlyOverrideCounts } from "@/lib/override-report";
 import { saveManagerPassword } from "@/lib/manager-auth";
 import { saveRepresentativePassword } from "@/lib/representative-auth";
 import { validateRepresentativePassword } from "@/lib/representative-auth-validation";
+import { BACKUP_RECIPIENT, composeBackupEmail, createLocalBackup, ensureDailyLocalBackup, type BackupMeta } from "@/lib/local-backup";
 
 export default function HomeScreen() {
   const { data, loading } = useVisitStore();
@@ -29,6 +30,38 @@ export default function HomeScreen() {
   const [accountMenuVisible, setAccountMenuVisible] = useState(false);
   const [passwordModalVisible, setPasswordModalVisible] = useState(false);
   const [newPassword, setNewPassword] = useState("");
+  const [backupMeta, setBackupMeta] = useState<BackupMeta | null>(null);
+  const [backupBusy, setBackupBusy] = useState(false);
+  const createDailyBackup = async (force = false) => {
+    if (session?.role !== "manager") return;
+    setBackupBusy(true);
+    try {
+      const next = force ? await createLocalBackup(data) : await ensureDailyLocalBackup(data);
+      setBackupMeta(next);
+    } catch { Alert.alert("تعذر إنشاء النسخة", "تحقق من مساحة التخزين المتاحة على الهاتف ثم حاول مرة أخرى."); }
+    finally { setBackupBusy(false); }
+  };
+  const shareBackupByEmail = async () => {
+    if (session?.role !== "manager") return;
+    setBackupBusy(true);
+    try {
+      const current = backupMeta ?? await ensureDailyLocalBackup(data);
+      setBackupMeta(current);
+      await composeBackupEmail(current.uri, current.createdAt);
+      Alert.alert("تم تجهيز البريد", `تم فتح رسالة بريد إلى ${BACKUP_RECIPIENT} وبداخلها النسخة الاحتياطية. اضغط إرسال من تطبيق البريد.`);
+    } catch { Alert.alert("تعذر فتح البريد", "تأكد من وجود تطبيق بريد مهيأ على الهاتف ثم حاول مرة أخرى."); }
+    finally { setBackupBusy(false); }
+  };
+  useEffect(() => {
+    if (session?.role !== "manager" || loading) return;
+    void createDailyBackup();
+    const now = new Date();
+    const nextMidnight = new Date(now);
+    nextMidnight.setDate(now.getDate() + 1);
+    nextMidnight.setHours(0, 0, 5, 0);
+    const timer = setTimeout(() => void createDailyBackup(), Math.max(1000, nextMidnight.getTime() - now.getTime()));
+    return () => clearTimeout(timer);
+  }, [session?.role, loading]);
   const activeRepresentative = session?.representativeId
     ? data.representatives.find((rep) => rep.id === session.representativeId)
     : undefined;
@@ -139,6 +172,7 @@ export default function HomeScreen() {
           </View>
           <MaterialIcons name="keyboard-arrow-down" size={22} color="#64748B" />
         </Pressable>
+        {session?.role === "manager" ? <View className="rounded-2xl bg-success/10 border border-success/25 p-4 mb-5"><View className="flex-row-reverse items-center gap-2"><MaterialIcons name="backup" size={22} color="#16835B" /><View className="flex-1 items-end"><Text className="font-bold text-foreground text-right">النسخة الاحتياطية اليومية</Text><Text className="text-xs text-muted text-right mt-1">تُحفظ محلياً عند فتح التطبيق، وتُجهّز عند منتصف الليل إذا كان التطبيق مفتوحاً.</Text></View></View><Text className="text-xs text-success font-semibold text-right mt-2">{backupMeta ? `آخر نسخة: ${formatArabicDate(backupMeta.createdAt)}` : backupBusy ? "جاري إنشاء النسخة..." : "لم تُنشأ نسخة اليوم بعد"}</Text><View className="flex-row-reverse gap-2 mt-3"><Pressable disabled={backupBusy} onPress={() => void createDailyBackup(true)} className="flex-1 h-11 rounded-xl bg-foreground items-center justify-center flex-row-reverse gap-1"><MaterialIcons name="save" size={17} color="#FFFFFF" /><Text className="text-white font-bold text-[11px]">إنشاء الآن</Text></Pressable><Pressable disabled={backupBusy} onPress={() => void shareBackupByEmail()} className="flex-1 h-11 rounded-xl bg-success items-center justify-center flex-row-reverse gap-1"><MaterialIcons name="email" size={17} color="#FFFFFF" /><Text className="text-white font-bold text-[11px]">فتح البريد</Text></Pressable></View></View> : null}
         <Modal
           visible={accountMenuVisible}
           transparent
