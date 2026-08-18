@@ -14,6 +14,7 @@ import { notifyManagerOfOverride } from "@/lib/override-notification";
 import { useAccountSession } from "@/lib/account-session";
 import { useVisitStore } from "@/lib/visit-store";
 import { buildId, distanceBetweenMeters, formatArabicDate, isWithinGeofence } from "@/lib/visit-utils";
+import { isFiniteLocation, normalizeLocation } from "@/lib/location-capture";
 import { MedicalEntity, Representative, VisitLocation, VisitVerificationStatus } from "@/shared/visit-types";
 
 type PickerTarget = "representative" | "entity" | null;
@@ -72,9 +73,35 @@ export default function RecordVisitScreen() {
       if (!enabled) { setLocationStatus("خدمة الموقع متوقفة. شغّل GPS ثم أعد المحاولة."); Alert.alert("خدمة الموقع متوقفة", "يرجى تشغيل خدمة الموقع في الجهاز ثم المحاولة."); return null; }
       const permission = await Location.requestForegroundPermissionsAsync();
       if (permission.status !== "granted") { setLocationStatus("تم رفض إذن الموقع؛ لا يمكن تسجيل زيارة موثقة."); Alert.alert("يلزم إذن الموقع", "يُستخدم الموقع فقط لتوثيق مكان الزيارة عند التسجيل."); return null; }
-      const result = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
-      const nextLocation = { latitude: result.coords.latitude, longitude: result.coords.longitude, accuracy: result.coords.accuracy };
-      setLocation(nextLocation); setCapturedAt(new Date().toISOString()); setLocationStatus(`تم التقاط الموقع تلقائياً بنجاح${internetAvailable ? " — الاتصال متاح" : " — سيُتحقق من الموقع عند عودة الاتصال"}.`);
+      let result: Location.LocationObject | null = null;
+      let usedLastKnown = false;
+      try {
+        const timeout = new Promise<never>((_, reject) => setTimeout(() => reject(new Error("LOCATION_TIMEOUT")), 30000));
+        result = await Promise.race([
+          Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High, mayShowUserSettingsDialog: true }),
+          timeout,
+        ]);
+      } catch {
+        const lastKnown = await Location.getLastKnownPositionAsync({ maxAge: 120000, requiredAccuracy: 100 });
+        const lastKnownAge = lastKnown ? Date.now() - lastKnown.timestamp : Number.POSITIVE_INFINITY;
+        if (lastKnown && lastKnownAge >= 0 && lastKnownAge <= 120000) {
+          result = lastKnown;
+          usedLastKnown = true;
+          setLocationStatus("تعذر الحصول على إصلاح GPS جديد؛ استُخدم آخر موقع GPS حديث محفوظ على الجهاز دون إنترنت.");
+        } else {
+          setLocationStatus("لم يصل إصلاح GPS خلال 30 ثانية. ابقَ في مكان مفتوحاً ثم أعد المحاولة.");
+          Alert.alert("لم يثبت موقع GPS", "لا حاجة للإنترنت لالتقاط GPS، لكن الهاتف يحتاج وقتاً وإشارة أقمار صناعية. اخرج إلى مكان مفتوح ثم اضغط حفظ الزيارة مرة أخرى.");
+          return null;
+        }
+      }
+      const nextLocation = normalizeLocation(result.coords, Date.now());
+      if (!nextLocation || !isFiniteLocation(nextLocation)) {
+        setLocationStatus("أعاد الهاتف إحداثيات غير صالحة؛ لم تُحفظ الزيارة.");
+        Alert.alert("إحداثيات غير صالحة", "لم يتم حفظ الزيارة لحماية سجل الموقع. أعد المحاولة بعد التأكد من تفعيل GPS.");
+        return null;
+      }
+      setLocation(nextLocation); setCapturedAt(new Date().toISOString());
+      if (!usedLastKnown) setLocationStatus(`تم التقاط الموقع تلقائياً بنجاح${internetAvailable ? " — الاتصال متاح" : " — GPS يعمل دون إنترنت وسيُتحقق لاحقاً"}.`);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       return nextLocation;
     } catch { setLocationStatus("تعذر التقاط الموقع. تأكد من إشارة GPS ثم أعد المحاولة."); Alert.alert("تعذر تحديد الموقع", "تأكد من وجود إشارة GPS جيدة ثم أعد المحاولة."); return null; }
@@ -190,9 +217,9 @@ export default function RecordVisitScreen() {
 
         <FormField label="ملاحظات الزيارة (اختياري)" icon="notes" value={notes} onChangeText={setNotes} placeholder="اكتب ملخصاً قصيراً للزيارة" multiline />
 
-        <Pressable onPress={saveVisit} className="rounded-2xl bg-success h-14 items-center justify-center flex-row-reverse gap-2 mt-1" style={({ pressed }) => [{ transform: [{ scale: pressed ? 0.98 : 1 }], opacity: pressed ? 0.9 : 1 }]}>
-          <MaterialIcons name="save" size={21} color="#FFFFFF" />
-          <Text className="text-white font-bold text-base">حفظ الزيارة</Text>
+        <Pressable disabled={isLocating} onPress={saveVisit} className={`rounded-2xl h-14 items-center justify-center flex-row-reverse gap-2 mt-1 ${isLocating ? "bg-muted" : "bg-success"}`} style={({ pressed }) => [{ transform: [{ scale: pressed ? 0.98 : 1 }], opacity: pressed ? 0.9 : 1 }]}>
+          <MaterialIcons name={isLocating ? "gps-fixed" : "save"} size={21} color="#FFFFFF" />
+          <Text className="text-white font-bold text-base">{isLocating ? "جاري التقاط GPS..." : "حفظ الزيارة"}</Text>
         </Pressable>
       </ScrollView>
 
