@@ -4,6 +4,7 @@ import { useNetworkState } from "expo-network";
 
 import { AppData, AppSettings, MedicalEntity, Representative, Visit, PlanApprovalAudit } from "@/shared/visit-types";
 import { distanceBetweenMeters, isWithinGeofence } from "@/lib/visit-utils";
+import { EMBEDDED_ENTITIES } from "@/data/embedded-entities";
 
 const STORAGE_KEY = "medical-visit-manager-data-v1";
 const REPRESENTATIVE_NAMES: Record<string, string> = { "rep-1": "علي الشعيبي", "rep-2": "محمد الحداد", "rep-3": "محمود الرميمة" };
@@ -21,7 +22,7 @@ const INITIAL_DATA: AppData = {
     { id: "rep-3", name: REPRESENTATIVE_NAMES["rep-3"], region: REPRESENTATIVE_REGIONS["rep-3"], assignedItems: REP_3_ITEMS, active: true },
   ],
   representativeLocations: {},
-  entities: [],
+  entities: EMBEDDED_ENTITIES,
   plannedVisits: [],
   visits: [],
   settings: { managerName: "مدير النظام", reportEmail: "", reminderTime: "18:00", geofenceRadiusMeters: 200, managerPin: "", visitedItems: [] },
@@ -65,7 +66,7 @@ export function VisitProvider({ children }: PropsWithChildren) {
             ...parsed,
             representatives: parsed.representatives?.length ? parsed.representatives.map((item) => ({ ...item, ...(REPRESENTATIVE_NAMES[item.id] && LEGACY_REPRESENTATIVE_NAMES.has(item.name) ? { name: REPRESENTATIVE_NAMES[item.id] } : {}), ...(REPRESENTATIVE_REGIONS[item.id] ? { region: REPRESENTATIVE_REGIONS[item.id] } : {}), ...(!Array.isArray(item.assignedItems) && REPRESENTATIVE_ITEMS[item.id] ? { assignedItems: REPRESENTATIVE_ITEMS[item.id] } : {}) })) : INITIAL_DATA.representatives,
             representativeLocations: parsed.representativeLocations ?? {},
-            entities: parsed.entities ?? [],
+            entities: parsed.entities?.length ? [...parsed.entities, ...EMBEDDED_ENTITIES.filter((embedded) => !parsed.entities?.some((saved) => saved.name.trim() === embedded.name.trim()))] : EMBEDDED_ENTITIES,
             plannedVisits: parsed.plannedVisits ?? [],
             visits: parsed.visits ?? [],
             planApprovalHistory: parsed.planApprovalHistory ?? [],
