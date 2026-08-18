@@ -3,6 +3,7 @@ import * as DocumentPicker from "expo-document-picker";
 import * as FileSystem from "expo-file-system/legacy";
 import { router } from "expo-router";
 import {
+  ActivityIndicator,
   Alert,
   Image,
   Modal,
@@ -36,6 +37,8 @@ export default function HomeScreen() {
   const [backupMeta, setBackupMeta] = useState<BackupMeta | null>(null);
   const [backupBusy, setBackupBusy] = useState(false);
   const [restoreBusy, setRestoreBusy] = useState(false);
+  const [restoreStage, setRestoreStage] = useState<"idle" | "reading" | "waiting" | "merging" | "replacing" | "done">("idle");
+  const restoreStageLabel = restoreStage === "reading" ? "جاري قراءة ملف النسخة الاحتياطية..." : restoreStage === "waiting" ? "تمت قراءة الملف، اختر طريقة الاستعادة..." : restoreStage === "merging" ? "جاري دمج السجلات ومنع التكرار..." : restoreStage === "replacing" ? "جاري استبدال البيانات بالنسخة المختارة..." : restoreStage === "done" ? "اكتملت عملية الاسترداد بنجاح" : "";
   const createDailyBackup = async (force = false) => {
     if (session?.role !== "manager") return;
     setBackupBusy(true);
@@ -46,16 +49,19 @@ export default function HomeScreen() {
     finally { setBackupBusy(false); }
   };
   const importBackup = async () => {
+    if (restoreBusy) return;
     setRestoreBusy(true);
+    setRestoreStage("reading");
     try {
       const result = await DocumentPicker.getDocumentAsync({ type: ["application/json", "text/json", "*/*"], copyToCacheDirectory: true });
-      if (result.canceled) return;
+      if (result.canceled) { setRestoreStage("idle"); return; }
       const asset = result.assets[0];
       const text = await FileSystem.readAsStringAsync(asset.uri, { encoding: FileSystem.EncodingType.UTF8 });
       const parsed = parseBackupJson(text);
-      Alert.alert("اختيار طريقة الاستعادة", `النسخة تحتوي على ${parsed.summary.visits} زيارة و${parsed.summary.entities} جهة.\n\nيمكنك دمج السجلات الجديدة مع بياناتك الحالية، أو استبدال البيانات بالكامل.`, [{ text: "إلغاء", style: "cancel" }, { text: "استبدال بالكامل", style: "destructive", onPress: () => { restoreData(parsed.data); Alert.alert("تمت الاستعادة", "تم استبدال البيانات الحالية بالنسخة المختارة."); } }, { text: "دمج مع الحالي", onPress: () => { const merged = mergeAppData(data, parsed.data); restoreData(merged.data); Alert.alert("تم الدمج", `تم الحفاظ على بيانات الجهاز وإضافة السجلات غير المكررة.\n\nالسجلات المتجاوزة لتكرار المعرّف: ${merged.summary.skippedVisits} زيارة، ${merged.summary.skippedEntities} جهة، ${merged.summary.skippedPlannedVisits} خطة.`); } }]);
+      setRestoreStage("waiting");
+      Alert.alert("اختيار طريقة الاستعادة", `النسخة تحتوي على ${parsed.summary.visits} زيارة و${parsed.summary.entities} جهة.\n\nيمكنك دمج السجلات الجديدة مع بياناتك الحالية، أو استبدال البيانات بالكامل.`, [{ text: "إلغاء", style: "cancel" }, { text: "استبدال بالكامل", style: "destructive", onPress: async () => { setRestoreStage("replacing"); await new Promise((resolve) => setTimeout(resolve, 50)); restoreData(parsed.data); setRestoreStage("done"); Alert.alert("تمت الاستعادة", "تم استبدال البيانات الحالية بالنسخة المختارة."); } }, { text: "دمج مع الحالي", onPress: async () => { setRestoreStage("merging"); await new Promise((resolve) => setTimeout(resolve, 50)); const merged = mergeAppData(data, parsed.data); restoreData(merged.data); setRestoreStage("done"); Alert.alert("تم الدمج", `تم الحفاظ على بيانات الجهاز وإضافة السجلات غير المكررة.\n\nالسجلات المتجاوزة لتكرار المعرّف: ${merged.summary.skippedVisits} زيارة، ${merged.summary.skippedEntities} جهة، ${merged.summary.skippedPlannedVisits} خطة.`); } }]);
     } catch (error) { Alert.alert("تعذر استيراد النسخة", error instanceof Error ? error.message : "اختر ملف JSON صادر من التطبيق."); }
-    finally { setRestoreBusy(false); }
+    finally { setRestoreBusy(false); setTimeout(() => setRestoreStage("idle"), 900); }
   };
   const shareBackupByEmail = async () => {
     if (session?.role !== "manager") return;
@@ -189,6 +195,7 @@ export default function HomeScreen() {
           <MaterialIcons name="keyboard-arrow-down" size={22} color="#64748B" />
         </Pressable>
         {session?.role === "manager" ? <View className="rounded-2xl bg-success/10 border border-success/25 p-4 mb-5"><View className="flex-row-reverse items-center gap-2"><MaterialIcons name="backup" size={22} color="#16835B" /><View className="flex-1 items-end"><Text className="font-bold text-foreground text-right">النسخة الاحتياطية اليومية</Text><Text className="text-xs text-muted text-right mt-1">تُحفظ محلياً عند فتح التطبيق، وتُجهّز عند منتصف الليل إذا كان التطبيق مفتوحاً.</Text></View></View><Text className="text-xs text-success font-semibold text-right mt-2">{backupMeta ? `آخر نسخة: ${formatArabicDate(backupMeta.createdAt)}` : backupBusy ? "جاري إنشاء النسخة..." : "لم تُنشأ نسخة اليوم بعد"}</Text><View className="flex-row-reverse gap-2 mt-3"><Pressable disabled={backupBusy || restoreBusy} onPress={() => void createDailyBackup(true)} className="flex-1 h-11 rounded-xl bg-foreground items-center justify-center flex-row-reverse gap-1"><MaterialIcons name="save" size={17} color="#FFFFFF" /><Text className="text-white font-bold text-[11px]">إنشاء الآن</Text></Pressable><Pressable disabled={backupBusy || restoreBusy} onPress={() => void shareBackupByEmail()} className="flex-1 h-11 rounded-xl bg-success items-center justify-center flex-row-reverse gap-1"><MaterialIcons name="email" size={17} color="#FFFFFF" /><Text className="text-white font-bold text-[11px]">فتح البريد</Text></Pressable></View><Pressable disabled={backupBusy || restoreBusy} onPress={() => void importBackup()} className="h-11 rounded-xl border border-primary bg-background items-center justify-center flex-row-reverse gap-2 mt-2"><MaterialIcons name="upload-file" size={18} color="#1565C0" /><Text className="text-primary font-bold text-xs">{restoreBusy ? "جاري قراءة النسخة..." : "استيراد نسخة JSON واستعادة البيانات"}</Text></Pressable></View> : null}
+        <Modal visible={restoreStage !== "idle"} transparent animationType="fade" onRequestClose={() => undefined}><View className="flex-1 items-center justify-center bg-black/40 px-6"><View className="w-full rounded-3xl bg-background border border-border p-6 items-center"><ActivityIndicator size="large" color="#1565C0" /><Text className="text-lg font-bold text-foreground text-center mt-4">استرداد النسخة الاحتياطية</Text><Text className="text-sm text-muted text-center mt-2 leading-5">{restoreStageLabel}</Text><View className="w-full h-3 rounded-full bg-surface overflow-hidden mt-5"><View className={`h-full rounded-full ${restoreStage === "done" ? "bg-success" : "bg-primary"}`} style={{ width: restoreStage === "reading" ? "25%" : restoreStage === "waiting" ? "50%" : restoreStage === "merging" || restoreStage === "replacing" ? "75%" : "100%" }} /></View><Text className="text-xs text-muted text-center mt-3">لا تغلق التطبيق ولا تضغط زر الاسترداد مرة أخرى.</Text></View></View></Modal>
         <Modal
           visible={accountMenuVisible}
           transparent
