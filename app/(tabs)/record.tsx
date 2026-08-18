@@ -3,7 +3,7 @@ import * as Haptics from "expo-haptics";
 import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
 import { useNetworkState } from "expo-network";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Alert, Image, Modal, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 
 import { FormField } from "@/components/form-field";
@@ -15,6 +15,7 @@ import { useAccountSession } from "@/lib/account-session";
 import { useVisitStore } from "@/lib/visit-store";
 import { buildId, distanceBetweenMeters, formatArabicDate, isWithinGeofence } from "@/lib/visit-utils";
 import { isFiniteLocation, normalizeLocation } from "@/lib/location-capture";
+import { appendLocationDiagnostic, loadLocationDiagnostics, type LocationDiagnostic } from "@/lib/location-diagnostics";
 import { MedicalEntity, Representative, VisitLocation, VisitVerificationStatus } from "@/shared/visit-types";
 
 type PickerTarget = "representative" | "entity" | null;
@@ -45,6 +46,8 @@ export default function RecordVisitScreen() {
   const [location, setLocation] = useState<VisitLocation | null>(null);
   const [isLocating, setIsLocating] = useState(false);
   const [locationStatus, setLocationStatus] = useState("سيتم التقاط الموقع والوقت تلقائياً عند الضغط على حفظ الزيارة.");
+  const [locationSource, setLocationSource] = useState<"gps" | "last_known" | null>(null);
+  const [locationDiagnostics, setLocationDiagnostics] = useState<LocationDiagnostic[]>([]);
   const [overrideModalVisible, setOverrideModalVisible] = useState(false);
   const [overridePin, setOverridePin] = useState("");
   const [overrideReason, setOverrideReason] = useState("");
@@ -58,6 +61,10 @@ export default function RecordVisitScreen() {
   const availableVisitedItems = isManager ? data.settings.visitedItems : (activeRepresentative?.assignedItems ?? []);
   const filteredVisitedItems = availableVisitedItems.filter((item) => item.toLowerCase().includes(visitedItemsSearch.trim().toLowerCase()));
   const internetAvailable = networkState.isInternetReachable === true;
+  const logLocationDiagnostic = (entry: Omit<LocationDiagnostic, "id" | "createdAt" | "offline">) => {
+    void appendLocationDiagnostic({ ...entry, offline: !internetAvailable }).then((saved) => setLocationDiagnostics((current) => [saved, ...current].slice(0, 20)));
+  };
+  useEffect(() => { void loadLocationDiagnostics().then((items) => setLocationDiagnostics(items.slice(0, 20))); }, []);
 
   const entityPickerOptions = useMemo(() => {
     const query = entitySearch.trim().toLocaleLowerCase();
@@ -67,12 +74,14 @@ export default function RecordVisitScreen() {
 
   const captureLocation = async (): Promise<VisitLocation | null> => {
     setIsLocating(true);
+    setLocationSource(null);
+    logLocationDiagnostic({ stage: "started", result: "pending", source: "none", message: "بدأت محاولة التقاط الموقع عند حفظ الزيارة." });
     setLocationStatus("جاري التقاط موقعك الحالي تلقائياً...");
     try {
       const enabled = await Location.hasServicesEnabledAsync();
-      if (!enabled) { setLocationStatus("خدمة الموقع متوقفة. شغّل GPS ثم أعد المحاولة."); Alert.alert("خدمة الموقع متوقفة", "يرجى تشغيل خدمة الموقع في الجهاز ثم المحاولة."); return null; }
+      if (!enabled) { setLocationStatus("خدمة الموقع متوقفة. شغّل GPS ثم أعد المحاولة."); logLocationDiagnostic({ stage: "failure", result: "failed", source: "none", message: "فشل الالتقاط: خدمة الموقع/GPS متوقفة." }); Alert.alert("خدمة الموقع متوقفة", "يرجى تشغيل خدمة الموقع في الجهاز ثم المحاولة."); return null; }
       const permission = await Location.requestForegroundPermissionsAsync();
-      if (permission.status !== "granted") { setLocationStatus("تم رفض إذن الموقع؛ لا يمكن تسجيل زيارة موثقة."); Alert.alert("يلزم إذن الموقع", "يُستخدم الموقع فقط لتوثيق مكان الزيارة عند التسجيل."); return null; }
+      if (permission.status !== "granted") { setLocationStatus("تم رفض إذن الموقع؛ لا يمكن تسجيل زيارة موثقة."); logLocationDiagnostic({ stage: "permission", result: "failed", source: "none", message: `فشل الالتقاط: حالة إذن الموقع هي ${permission.status}.` }); Alert.alert("يلزم إذن الموقع", "يُستخدم الموقع فقط لتوثيق مكان الزيارة عند التسجيل."); return null; }
       let result: Location.LocationObject | null = null;
       let usedLastKnown = false;
       try {
@@ -87,9 +96,12 @@ export default function RecordVisitScreen() {
         if (lastKnown && lastKnownAge >= 0 && lastKnownAge <= 120000) {
           result = lastKnown;
           usedLastKnown = true;
+          setLocationSource("last_known");
+          logLocationDiagnostic({ stage: "last_known", result: "success", source: "last_known", accuracy: lastKnown.coords.accuracy, latitude: lastKnown.coords.latitude, longitude: lastKnown.coords.longitude, message: "استُخدم آخر موقع GPS حديث محفوظ على الجهاز بعد انتهاء محاولة التقاط موقع جديد." });
           setLocationStatus("تعذر الحصول على إصلاح GPS جديد؛ استُخدم آخر موقع GPS حديث محفوظ على الجهاز دون إنترنت.");
         } else {
           setLocationStatus("لم يصل إصلاح GPS خلال 30 ثانية. ابقَ في مكان مفتوحاً ثم أعد المحاولة.");
+          logLocationDiagnostic({ stage: "failure", result: "failed", source: "none", message: "فشل الالتقاط: لم يصل إصلاح GPS حديث خلال 30 ثانية ولا يوجد آخر موقع مناسب." });
           Alert.alert("لم يثبت موقع GPS", "لا حاجة للإنترنت لالتقاط GPS، لكن الهاتف يحتاج وقتاً وإشارة أقمار صناعية. اخرج إلى مكان مفتوح ثم اضغط حفظ الزيارة مرة أخرى.");
           return null;
         }
@@ -97,14 +109,16 @@ export default function RecordVisitScreen() {
       const nextLocation = normalizeLocation(result.coords, Date.now());
       if (!nextLocation || !isFiniteLocation(nextLocation)) {
         setLocationStatus("أعاد الهاتف إحداثيات غير صالحة؛ لم تُحفظ الزيارة.");
+        logLocationDiagnostic({ stage: "failure", result: "failed", source: "none", message: "فشل الالتقاط: أعاد الهاتف إحداثيات غير صالحة." });
         Alert.alert("إحداثيات غير صالحة", "لم يتم حفظ الزيارة لحماية سجل الموقع. أعد المحاولة بعد التأكد من تفعيل GPS.");
         return null;
       }
+      if (!usedLastKnown) { setLocationSource("gps"); logLocationDiagnostic({ stage: "success", result: "success", source: "gps", accuracy: nextLocation.accuracy, latitude: nextLocation.latitude, longitude: nextLocation.longitude, message: "تم التقاط موقع GPS جديد بنجاح." }); }
       setLocation(nextLocation); setCapturedAt(new Date().toISOString());
       if (!usedLastKnown) setLocationStatus(`تم التقاط الموقع تلقائياً بنجاح${internetAvailable ? " — الاتصال متاح" : " — GPS يعمل دون إنترنت وسيُتحقق لاحقاً"}.`);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       return nextLocation;
-    } catch { setLocationStatus("تعذر التقاط الموقع. تأكد من إشارة GPS ثم أعد المحاولة."); Alert.alert("تعذر تحديد الموقع", "تأكد من وجود إشارة GPS جيدة ثم أعد المحاولة."); return null; }
+    } catch (error) { const reason = error instanceof Error ? error.message : "خطأ غير معروف"; setLocationStatus("تعذر التقاط الموقع. تأكد من إشارة GPS ثم أعد المحاولة."); logLocationDiagnostic({ stage: "failure", result: "failed", source: "none", message: `استثناء أثناء التقاط الموقع: ${reason}` }); Alert.alert("تعذر تحديد الموقع", "تأكد من وجود إشارة GPS جيدة ثم أعد المحاولة."); return null; }
     finally { setIsLocating(false); }
   };
 
@@ -194,7 +208,7 @@ export default function RecordVisitScreen() {
               <View className="items-end mb-3">
                 <Text className="font-bold text-success">تم الالتقاط بنجاح</Text>
                 <Text className="text-sm text-muted mt-1">{formatArabicDate(capturedAt)}</Text>
-                {location ? <Text className="text-xs text-muted mt-1">دقة الموقع: {Math.round(location.accuracy ?? 0)} متر</Text> : null}
+                {location ? <><Text className="text-xs text-muted mt-1">دقة الموقع: {location.accuracy != null ? `${Math.round(location.accuracy)} متر` : "غير متاحة"}</Text><Text className="text-xs text-primary mt-1 text-right">المصدر: {locationSource === "gps" ? "GPS مباشر من الهاتف" : "آخر موقع GPS محفوظ محلياً"}</Text><Text className="text-[11px] text-muted mt-1 text-right">الإحداثيات: {location.latitude.toFixed(6)} ، {location.longitude.toFixed(6)}</Text></> : null}
                 <Text className="text-xs text-primary mt-1 text-right">{locationStatus}</Text>
               </View>
             ) : <Text className="text-muted text-right mb-3">{locationStatus}</Text>}
@@ -203,6 +217,8 @@ export default function RecordVisitScreen() {
             </View>
           </View>
         </View>
+
+        <View className="rounded-2xl border border-border bg-surface p-4 mb-4"><View className="flex-row-reverse items-center justify-between mb-3"><View className="flex-row-reverse items-center gap-2"><View className="w-7 h-7 rounded-lg bg-foreground items-center justify-center"><MaterialIcons name="bug-report" size={15} color="#FFFFFF" /></View><Text className="font-bold text-foreground">سجل تشخيص الموقع</Text></View><Text className="text-[10px] text-muted">محفوظ على الجهاز</Text></View>{locationDiagnostics.length ? <ScrollView nestedScrollEnabled style={{ maxHeight: 170 }} contentContainerStyle={{ gap: 8 }}>{locationDiagnostics.slice(0, 8).map((entry) => <View key={entry.id} className={`rounded-xl border px-3 py-2 ${entry.result === "success" ? "bg-success/10 border-success/20" : entry.result === "failed" ? "bg-error/10 border-error/20" : "bg-primary/10 border-primary/20"}`}><View className="flex-row-reverse items-center justify-between"><Text className={`text-xs font-bold ${entry.result === "success" ? "text-success" : entry.result === "failed" ? "text-error" : "text-primary"}`}>{entry.result === "success" ? "نجاح" : entry.result === "failed" ? "فشل" : "جاري الفحص"}</Text><Text className="text-[10px] text-muted">{formatArabicDate(entry.createdAt)}</Text></View><Text className="text-[11px] text-foreground text-right mt-1">{entry.message}</Text>{entry.source && entry.source !== "none" ? <Text className="text-[10px] text-muted text-right mt-1">المصدر: {entry.source === "gps" ? "GPS مباشر" : "آخر موقع محفوظ"}{entry.accuracy != null ? ` · الدقة ${Math.round(entry.accuracy)}م` : ""}</Text> : null}</View>)}</ScrollView> : <Text className="text-xs text-muted text-right">ستظهر هنا كل محاولة التقاط وسبب نجاحها أو فشلها.</Text>}</View>
 
         {isManager ? <View className="rounded-2xl border border-border bg-surface p-4 mb-4">
           <View className="flex-row-reverse items-center gap-2 mb-3"><View className="w-7 h-7 rounded-lg bg-primary items-center justify-center"><MaterialIcons name="photo-camera" size={15} color="#FFFFFF" /></View><Text className="font-bold text-foreground">صورة الزيارة (اختياري)</Text></View>
