@@ -23,6 +23,7 @@ import { useAccountSession } from "@/lib/account-session";
 import { useVisitStore } from "@/lib/visit-store";
 import { formatArabicDate, visitsForDate } from "@/lib/visit-utils";
 import { monthlyOverrideCounts } from "@/lib/override-report";
+import { Visit } from "@/shared/visit-types";
 import { saveManagerPassword } from "@/lib/manager-auth";
 import { saveRepresentativePassword } from "@/lib/representative-auth";
 import { validateRepresentativePassword } from "@/lib/representative-auth-validation";
@@ -30,7 +31,7 @@ import { BACKUP_RECIPIENT, composeBackupEmail, createLocalBackup, ensureDailyLoc
 import { mergeAppData } from "@/lib/backup-validation";
 
 export default function HomeScreen() {
-  const { data, loading, restoreData } = useVisitStore();
+  const { data, loading, restoreData, updateVisit } = useVisitStore();
   const { session, logout } = useAccountSession();
   const [accountMenuVisible, setAccountMenuVisible] = useState(false);
   const [passwordModalVisible, setPasswordModalVisible] = useState(false);
@@ -40,6 +41,20 @@ export default function HomeScreen() {
   const [restoreBusy, setRestoreBusy] = useState(false);
   const [restoreStage, setRestoreStage] = useState<"idle" | "reading" | "waiting" | "merging" | "replacing" | "done">("idle");
   const restoreStageLabel = restoreStage === "reading" ? "جاري قراءة ملف النسخة الاحتياطية..." : restoreStage === "waiting" ? "تمت قراءة الملف، اختر طريقة الاستعادة..." : restoreStage === "merging" ? "جاري دمج السجلات ومنع التكرار..." : restoreStage === "replacing" ? "جاري استبدال البيانات بالنسخة المختارة..." : restoreStage === "done" ? "اكتملت عملية الاسترداد بنجاح" : "";
+  const [selectedRecentVisit, setSelectedRecentVisit] = useState<Visit | null>(null);
+  const [visitDetailsVisible, setVisitDetailsVisible] = useState(false);
+  const [visitEditVisible, setVisitEditVisible] = useState(false);
+  const [editVisitNotes, setEditVisitNotes] = useState("");
+  const openVisitDetails = (visit: Visit) => { setSelectedRecentVisit(visit); setVisitDetailsVisible(true); };
+  const openVisitEdit = (visit: Visit) => { setSelectedRecentVisit(visit); setEditVisitNotes(visit.notes ?? ""); setVisitEditVisible(true); };
+  const saveVisitEdit = () => {
+    if (!selectedRecentVisit) return;
+    const updated = { ...selectedRecentVisit, notes: editVisitNotes.trim() };
+    updateVisit(updated);
+    setSelectedRecentVisit(updated);
+    setVisitEditVisible(false);
+    Alert.alert("تم تحديث الزيارة", "تم حفظ ملاحظات الزيارة بنجاح.");
+  };
   const createDailyBackup = async (force = false) => {
     if (session?.role !== "manager") return;
     setBackupBusy(true);
@@ -263,6 +278,17 @@ export default function HomeScreen() {
               </Pressable>
             </Pressable>
           </Pressable>
+        </Modal>
+        <Modal visible={visitDetailsVisible} transparent animationType="slide" onRequestClose={() => setVisitDetailsVisible(false)}>
+          <View className="flex-1 justify-end bg-black/35">
+            <View className="bg-background rounded-t-[28px] p-5 max-h-[85%]">
+              <View className="flex-row-reverse items-center justify-between mb-4"><Pressable onPress={() => setVisitDetailsVisible(false)} className="w-10 h-10 rounded-xl bg-surface items-center justify-center"><MaterialIcons name="close" size={22} color="#102A43" /></Pressable><Text className="text-xl font-bold text-foreground">تفاصيل الزيارة</Text><MaterialIcons name="location-on" size={24} color="#1565C0" /></View>
+              {selectedRecentVisit ? <ScrollView contentContainerStyle={{ gap: 12, paddingBottom: 12 }}><View className="rounded-2xl bg-primary/10 border border-primary/20 p-4"><Text className="text-lg font-bold text-foreground text-right">{selectedRecentVisit.entityName}</Text><Text className="text-sm text-primary text-right mt-1">{selectedRecentVisit.entityKind}</Text></View><View className="rounded-2xl bg-surface border border-border p-4 gap-2"><Text className="text-sm text-foreground text-right">التاريخ والوقت: {formatArabicDate(selectedRecentVisit.recordedAt)}</Text><Text className="text-sm text-foreground text-right">الحالة: {selectedRecentVisit.verificationStatus === "verified" ? "مقبولة" : selectedRecentVisit.verificationStatus === "rejected" ? "مرفوضة" : "بانتظار التحقق"}</Text><Text className="text-sm text-foreground text-right">المزامنة: {selectedRecentVisit.offlineRecorded ? "محفوظة دون اتصال" : "محفوظة مع الاتصال"}</Text><Text className="text-sm text-foreground text-right">الأصناف: {selectedRecentVisit.visitedItems?.length ? selectedRecentVisit.visitedItems.join("، ") : "لا توجد أصناف مسجلة"}</Text><Text className="text-sm text-foreground text-right">الملاحظات: {selectedRecentVisit.notes || "لا توجد ملاحظات"}</Text></View></ScrollView> : null}
+            </View>
+          </View>
+        </Modal>
+        <Modal visible={visitEditVisible} transparent animationType="slide" onRequestClose={() => setVisitEditVisible(false)}>
+          <View className="flex-1 justify-end bg-black/35"><View className="bg-background rounded-t-[28px] p-5"><View className="flex-row-reverse items-center justify-between mb-4"><Pressable onPress={() => setVisitEditVisible(false)} className="w-10 h-10 rounded-xl bg-surface items-center justify-center"><MaterialIcons name="close" size={22} color="#102A43" /></Pressable><Text className="text-xl font-bold text-foreground">تعديل ملاحظات الزيارة</Text><MaterialIcons name="edit" size={23} color="#1565C0" /></View><Text className="text-sm text-muted text-right mb-2">{selectedRecentVisit?.entityName ?? "الزيارة"}</Text><TextInput value={editVisitNotes} onChangeText={setEditVisitNotes} placeholder="أدخل ملاحظات الزيارة" placeholderTextColor="#7C8798" textAlign="right" multiline className="min-h-28 rounded-2xl border border-border bg-surface p-4 text-foreground" /><Pressable onPress={saveVisitEdit} className="h-14 rounded-2xl bg-success items-center justify-center mt-4"><Text className="text-white font-bold">حفظ التعديل</Text></Pressable></View></View>
         </Modal>
         <Modal
           visible={passwordModalVisible}
@@ -530,21 +556,10 @@ export default function HomeScreen() {
         ) : (
           <View className="gap-3">
             {recentVisits.slice(0, 3).map((visit) => (
-              <View
-                key={visit.id}
-                className="rounded-2xl bg-surface border border-border p-4 flex-row-reverse items-center gap-3"
-              >
-                <View className="w-10 h-10 rounded-xl bg-primary items-center justify-center">
-                  <MaterialIcons name="location-on" size={20} color="#FFFFFF" />
-                </View>
-                <View className="items-end flex-1">
-                  <Text className="font-bold text-foreground text-right">
-                    {visit.entityName}
-                  </Text>
-                  <Text className="text-xs text-muted mt-1 text-right">
-                    {visit.entityKind} · {formatArabicDate(visit.recordedAt)}
-                  </Text>
-                </View>
+              <View key={visit.id} className="rounded-2xl bg-surface border border-border p-4 flex-row-reverse items-center gap-3">
+                <View className="w-10 h-10 rounded-xl bg-primary items-center justify-center"><MaterialIcons name="location-on" size={20} color="#FFFFFF" /></View>
+                <View className="items-end flex-1 min-w-0"><Text className="font-bold text-foreground text-right" numberOfLines={1}>{visit.entityName}</Text><Text className="text-xs text-muted mt-1 text-right" numberOfLines={1}>{visit.entityKind} · {formatArabicDate(visit.recordedAt)}</Text></View>
+                <View className="flex-row-reverse gap-2"><Pressable onPress={() => openVisitDetails(visit)} accessibilityLabel="عرض تفاصيل الزيارة" className="w-9 h-9 rounded-xl bg-primary/10 border border-primary/20 items-center justify-center"><MaterialIcons name="visibility" size={18} color="#1565C0" /></Pressable><Pressable onPress={() => openVisitEdit(visit)} accessibilityLabel="تعديل الزيارة" className="w-9 h-9 rounded-xl bg-success/10 border border-success/20 items-center justify-center"><MaterialIcons name="edit" size={18} color="#16835B" /></Pressable></View>
               </View>
             ))}
           </View>
