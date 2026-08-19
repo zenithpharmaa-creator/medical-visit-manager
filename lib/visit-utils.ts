@@ -8,9 +8,19 @@ export const SPECIALTIES = [
 
 export const ENTITY_CATEGORIES = ["A", "B", "C"] as const;
 
+export function localDateKey(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+export function isSameLocalDay(first: Date, second: Date) {
+  return localDateKey(first) === localDateKey(second);
+}
+
 export function visitsForDate(visits: Visit[], date: Date) {
-  const target = date.toISOString().slice(0, 10);
-  return visits.filter((visit) => visit.recordedAt.slice(0, 10) === target);
+  return visits.filter((visit) => isSameLocalDay(new Date(visit.recordedAt), date));
 }
 
 export function formatArabicDate(iso: string) {
@@ -18,8 +28,9 @@ export function formatArabicDate(iso: string) {
     day: "numeric",
     month: "short",
     year: "numeric",
-    hour: "numeric",
+    hour: "2-digit",
     minute: "2-digit",
+    hourCycle: "h23",
   }).format(new Date(iso));
 }
 

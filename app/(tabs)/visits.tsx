@@ -10,7 +10,7 @@ import { ScreenHeader } from "@/components/screen-header";
 import { ScreenContainer } from "@/components/screen-container";
 import { useAccountSession } from "@/lib/account-session";
 import { useVisitStore } from "@/lib/visit-store";
-import { formatArabicDate } from "@/lib/visit-utils";
+import { formatArabicDate, isSameLocalDay } from "@/lib/visit-utils";
 
 export default function VisitsScreen() {
   const { data, deleteVisit } = useVisitStore();
@@ -19,9 +19,9 @@ export default function VisitsScreen() {
   const today = new Date();
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "verified" | "rejected" | "pending">("all");
-  const visibleVisits = data.visits.filter((visit) => isManager || (visit.representativeId === session?.representativeId && new Date(visit.recordedAt).toDateString() === today.toDateString()));
+  const visibleVisits = data.visits.filter((visit) => isManager || (visit.representativeId === session?.representativeId && isSameLocalDay(new Date(visit.recordedAt), today)));
   const filtered = visibleVisits.filter((visit) => {
-    const matchesQuery = `${visit.entityName} ${visit.entityKind} ${visit.specialty ?? ""} ${visit.category ?? ""} ${visit.nearestPharmacy ?? ""} ${visit.entityRegion ?? ""} ${visit.entityAddress ?? ""} ${visit.geographicLocation ?? ""}`.toLowerCase().includes(query.trim().toLowerCase());
+    const matchesQuery = isManager ? `${visit.entityName} ${visit.entityKind} ${visit.specialty ?? ""} ${visit.category ?? ""} ${visit.nearestPharmacy ?? ""} ${visit.entityRegion ?? ""} ${visit.entityAddress ?? ""} ${visit.geographicLocation ?? ""}`.toLowerCase().includes(query.trim().toLowerCase()) : true;
     const matchesStatus = statusFilter === "all" || visit.verificationStatus === statusFilter;
     return matchesQuery && matchesStatus;
   });
@@ -47,10 +47,10 @@ export default function VisitsScreen() {
     <ScreenContainer className="px-5" containerClassName="bg-background">
       <View className="pt-[18px] flex-1">
         <ScreenHeader title="الزيارات" subtitle={isManager ? `${filtered.length} زيارة محفوظة` : `${filtered.length} زيارة لك اليوم`} icon="event-note" />
-        <View className="h-13 rounded-2xl border border-border bg-surface px-4 flex-row-reverse items-center gap-2 mb-3">
+        {isManager ? <View className="h-13 rounded-2xl border border-border bg-surface px-4 flex-row-reverse items-center gap-2 mb-3">
           <MaterialIcons name="search" size={21} color="#102A43" />
           <TextInput value={query} onChangeText={setQuery} placeholder="ابحث بالطبيب أو الصيدلية أو المنطقة أو العنوان أو الموقع" placeholderTextColor="#7C8798" textAlign="right" className="flex-1 h-full text-foreground font-semibold" />
-        </View>
+        </View> : null}
         <View className="flex-row-reverse gap-2 mb-4">
           {([{ value: "all", label: "الكل" }, { value: "verified", label: "مقبولة" }, { value: "rejected", label: "مرفوضة" }, { value: "pending", label: "بانتظار التحقق" }] as const).map((option) => <Pressable key={option.value} onPress={() => setStatusFilter(option.value)} className={`flex-1 min-h-10 rounded-xl items-center justify-center px-1 ${statusFilter === option.value ? option.value === "rejected" ? "bg-error" : option.value === "pending" ? "bg-warning" : "bg-primary" : "bg-surface border border-border"}`}><Text className={`text-[11px] font-bold text-center ${statusFilter === option.value ? "text-white" : "text-foreground"}`}>{option.label}</Text></Pressable>)}
         </View>
