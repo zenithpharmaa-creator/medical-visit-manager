@@ -482,7 +482,7 @@ export default function HomeScreen() {
           </View>
         </View> : null}
 
-        <Pressable
+        {session?.role !== "manager" ? <Pressable
           onPress={() => router.push("/record")}
           className="rounded-2xl bg-primary p-5 mb-6 flex-row-reverse items-center justify-between"
           style={({ pressed }) => [
@@ -504,7 +504,7 @@ export default function HomeScreen() {
             </Text>
           </View>
           <MaterialIcons name="arrow-back-ios" size={17} color="#FFFFFF" />
-        </Pressable>
+        </Pressable> : null}
 
         <View className="flex-row-reverse items-center justify-between mb-3">
           <Text className="text-lg font-bold text-foreground">
