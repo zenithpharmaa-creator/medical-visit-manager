@@ -3,7 +3,7 @@ import * as Haptics from "expo-haptics";
 import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
 import { useNetworkState } from "expo-network";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Alert, Image, Modal, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 
 import { FormField } from "@/components/form-field";
@@ -20,6 +20,18 @@ import { appendLocationDiagnostic, type LocationDiagnostic } from "@/lib/locatio
 import { MedicalEntity, Representative, VisitLocation, VisitVerificationStatus } from "@/shared/visit-types";
 
 type PickerTarget = "representative" | "entity" | null;
+
+function entityMatchScore(name: string, helper: string, query: string) {
+  if (!query) return 99;
+  const normalizedName = name.toLocaleLowerCase();
+  const normalizedQuery = query.toLocaleLowerCase();
+  if (normalizedName === normalizedQuery) return 0;
+  if (normalizedName.startsWith(normalizedQuery)) return 1;
+  if (normalizedName.split(/\s+/).some((part) => part.startsWith(normalizedQuery))) return 2;
+  if (normalizedName.includes(normalizedQuery)) return 3;
+  if (helper.toLocaleLowerCase().includes(normalizedQuery)) return 4;
+  return 5;
+}
 
 function SelectBox({ value, onPress, placeholder }: { value?: string; onPress: () => void; placeholder: string }) {
   return (
@@ -56,6 +68,7 @@ export default function RecordVisitScreen() {
   const [visitedItemsSearch, setVisitedItemsSearch] = useState("");
   const [visitedItemsModalVisible, setVisitedItemsModalVisible] = useState(false);
   const [entitySearch, setEntitySearch] = useState("");
+  const entitySearchRef = useRef<TextInput>(null);
   const activeRepresentative = session?.representativeId ? data.representatives.find((item) => item.id === session.representativeId) : undefined;
   const representativeForVisit = isManager ? selectedRepresentative : activeRepresentative;
   const availableVisitedItems = isManager ? data.settings.visitedItems : (activeRepresentative?.assignedItems ?? []);
@@ -67,7 +80,10 @@ export default function RecordVisitScreen() {
 
   const entityPickerOptions = useMemo(() => {
     const query = entitySearch.trim().toLocaleLowerCase();
-    return data.entities.map((item) => ({ label: item.name, value: item.id, helper: [item.kind, item.specialty, item.category, item.nearestPharmacy ? `أقرب صيدلية: ${item.nearestPharmacy}` : "", item.geographicLocation].filter(Boolean).join(" · ") })).filter((item) => !query || `${item.label} ${item.helper}`.toLocaleLowerCase().includes(query));
+    return data.entities
+      .map((item) => ({ label: item.name, value: item.id, helper: [item.kind, item.specialty, item.category, item.nearestPharmacy ? `أقرب صيدلية: ${item.nearestPharmacy}` : "", item.geographicLocation].filter(Boolean).join(" · ") }))
+      .filter((item) => !query || `${item.label} ${item.helper}`.toLocaleLowerCase().includes(query))
+      .sort((a, b) => entityMatchScore(a.label, a.helper, query) - entityMatchScore(b.label, b.helper, query) || a.label.localeCompare(b.label, "ar"));
   }, [data.entities, entitySearch]);
   const pickerOptions = useMemo(() => picker === "representative" ? data.representatives.filter((item) => item.active).map((item) => ({ label: item.name, value: item.id })) : entityPickerOptions, [data.representatives, entityPickerOptions, picker]);
 
@@ -140,7 +156,7 @@ export default function RecordVisitScreen() {
     if (managerOverride) void notifyManagerOfOverride({ settings: data.settings, visit: createdVisit, representativeName: representativeForVisit.name });
     setOverrideModalVisible(false); setOverridePin(""); setOverrideReason("");
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    Alert.alert("تم حفظ الزيارة", managerOverride ? "تم التسجيل بتجاوز المدير مع حفظ السبب." : !isManager ? "تم حفظ الزيارة دون إنترنت، وستُراجع تلقائياً عند عودة الاتصال." : "تم تسجيل وقت وموقع الزيارة بنجاح.", [{ text: "تسجيل زيارة أخرى", onPress: () => { setSelectedEntity(null); setNotes(""); setCapturedAt(null); setLocation(null); setPhotoUri(null); setSelectedVisitedItems([]); setVisitedItemsSearch(""); } }]);
+    Alert.alert("تم حفظ الزيارة", managerOverride ? "تم التسجيل بتجاوز المدير مع حفظ السبب." : !isManager ? "تم حفظ الزيارة دون إنترنت، وستُراجع تلقائياً عند عودة الاتصال." : "تم تسجيل وقت وموقع الزيارة بنجاح.", [{ text: "تسجيل زيارة أخرى", onPress: () => { setSelectedEntity(null); setEntitySearch(""); setNotes(""); setCapturedAt(null); setLocation(null); setLocationSource(null); setLocationStatus("سيتم التقاط الموقع والوقت تلقائياً عند الضغط على حفظ الزيارة."); setPhotoUri(null); setSelectedVisitedItems([]); setVisitedItemsSearch(""); setTimeout(() => entitySearchRef.current?.focus(), 120); } }]);
   };
 
   const takePhoto = async () => {
@@ -201,14 +217,14 @@ export default function RecordVisitScreen() {
 
         {isManager ? <FormField label="المندوب" icon="person"><SelectBox value={selectedRepresentative?.name} placeholder="اختر المندوب" onPress={() => setPicker("representative")} /></FormField> : <View className="rounded-2xl bg-primary/10 border border-primary/20 px-4 py-3 mb-4 flex-row-reverse items-center justify-between"><Text className="font-bold text-primary">{representativeForVisit?.name ?? "الحساب الحالي"}</Text><Text className="text-xs text-muted">الحساب النشط</Text></View>}
         <FormField label="اسم الطبيب أو الجهة" icon="person">
-          <View className="h-14 rounded-2xl border border-border bg-surface px-4 flex-row-reverse items-center gap-2"><MaterialIcons name="search" size={20} color="#1565C0" /><TextInput value={entitySearch} onChangeText={setEntitySearch} placeholder="اكتب اسم الطبيب للبحث" placeholderTextColor="#7C8798" textAlign="right" className="flex-1 h-full text-foreground font-semibold" /></View>
+          <View className="h-14 rounded-2xl border border-border bg-surface px-4 flex-row-reverse items-center gap-2"><MaterialIcons name="search" size={20} color="#1565C0" /><TextInput ref={entitySearchRef} value={entitySearch} onChangeText={setEntitySearch} placeholder="اكتب اسم الطبيب للبحث" placeholderTextColor="#7C8798" textAlign="right" className="flex-1 h-full text-foreground font-semibold" /></View>
           <Pressable onPress={() => data.entities.length ? setPicker("entity") : Alert.alert("لا توجد جهات", "انتقل إلى شاشة الإدارة لإضافة جهة يدوياً أو استيراد ملف Excel.")} className="min-h-14 rounded-2xl border border-border bg-surface px-4 py-3 flex-row-reverse items-center justify-between"><View className="flex-row-reverse items-center gap-2"><MaterialIcons name="keyboard-arrow-down" size={24} color="#102A43" /><Text className="text-primary font-bold text-xs">فتح القائمة</Text></View><View className="items-end flex-1"><Text className={`font-bold text-right ${selectedEntity ? "text-foreground" : "text-muted"}`}>{selectedEntity?.name || (data.entities.length ? "ابحث واختر الطبيب أو الجهة" : "لا توجد جهات مسجلة")}</Text>{selectedEntity ? <Text className="text-xs text-muted text-right mt-1">{selectedEntity.kind} · {selectedEntity.region === "south" ? "جنوب صنعاء" : "شمال صنعاء"}</Text> : <Text className="text-[11px] text-muted text-right mt-1">قائمة منسدلة مع بحث سريع</Text>}</View></Pressable>
         </FormField>
 
 
 
 
-        <FormField label="الأصناف المزارة (اختياري)" icon="inventory-2">
+        <FormField label={`الأصناف المزارة${selectedVisitedItems.length ? ` (${selectedVisitedItems.length} مختار)` : ""} (اختياري)`} icon="inventory-2">
           {availableVisitedItems.length ? <><Pressable onPress={() => { setVisitedItemsSearch(""); setVisitedItemsModalVisible(true); }} className="min-h-14 rounded-2xl border border-border bg-surface px-4 py-3 flex-row-reverse items-center justify-between"><View className="flex-row-reverse items-center gap-2"><MaterialIcons name="keyboard-arrow-down" size={24} color="#102A43" /><Text className="text-primary font-bold text-xs">فتح القائمة</Text></View><View className="items-end flex-1"><Text className={`font-bold text-right ${selectedVisitedItems.length ? "text-foreground" : "text-muted"}`}>{selectedVisitedItems.length ? `${selectedVisitedItems.length} صنف مختار` : "اختر صنفاً أو أكثر"}</Text><Text className="text-[11px] text-muted text-right mt-1">الأصناف المتاحة لهذا الحساب فقط</Text></View></Pressable>{selectedVisitedItems.length ? <View className="flex-row-reverse flex-wrap gap-2 mt-3">{selectedVisitedItems.map((item) => <View key={item} className="rounded-full bg-primary/10 border border-primary/20 px-3 py-2"><Text className="text-primary text-xs font-bold">{item}</Text></View>)}</View> : null}<Modal visible={visitedItemsModalVisible} animationType="slide" onRequestClose={() => setVisitedItemsModalVisible(false)}><View className="flex-1 bg-background"><View className="px-5 pt-5 pb-3 border-b border-border flex-row-reverse items-center justify-between"><Pressable onPress={() => setVisitedItemsModalVisible(false)} className="w-10 h-10 rounded-xl bg-surface items-center justify-center"><MaterialIcons name="close" size={23} color="#102A43" /></Pressable><View className="flex-1 items-end mr-3"><Text className="text-xl font-bold text-foreground text-right">الأصناف المزارة</Text><Text className="text-xs text-muted text-right mt-1">اختر أكثر من صنف للطبيب نفسه</Text></View></View><View className="mx-5 mt-4 h-12 rounded-xl border border-border bg-surface px-3 flex-row-reverse items-center gap-2"><MaterialIcons name="search" size={20} color="#102A43" /><TextInput value={visitedItemsSearch} onChangeText={setVisitedItemsSearch} autoFocus placeholder="بحث سريع عن صنف..." placeholderTextColor="#7C8798" textAlign="right" className="flex-1 h-full text-foreground font-semibold" /></View><Text className="text-xs text-muted text-right mx-5 mt-2">المحدد: {selectedVisitedItems.length} · النتائج: {filteredVisitedItems.length}</Text><ScrollView contentContainerStyle={{ padding: 18, gap: 10, paddingBottom: 36 }} keyboardShouldPersistTaps="handled">{filteredVisitedItems.length ? filteredVisitedItems.map((item) => { const selected = selectedVisitedItems.includes(item); return <Pressable key={item} onPress={() => setSelectedVisitedItems((current) => selected ? current.filter((value) => value !== item) : [...current, item])} className={`rounded-2xl border p-4 flex-row-reverse items-center justify-between ${selected ? "bg-primary/10 border-primary" : "bg-surface border-border"}`}><View className="flex-row-reverse items-center gap-3"><View className={`w-8 h-8 rounded-lg items-center justify-center ${selected ? "bg-primary" : "bg-background border border-border"}`}><MaterialIcons name={selected ? "check" : "add"} size={18} color={selected ? "#FFFFFF" : "#64748B"} /></View><Text className="text-foreground font-bold text-right">{item}</Text></View><Text className={`text-xs font-bold ${selected ? "text-primary" : "text-muted"}`}>{selected ? "مختار" : "اختيار"}</Text></Pressable>; }) : <View className="items-center p-8"><MaterialIcons name="search-off" size={34} color="#64748B" /><Text className="text-sm text-muted mt-3">لا توجد أصناف مطابقة للبحث.</Text></View>}</ScrollView><Pressable onPress={() => setVisitedItemsModalVisible(false)} className="mx-5 mb-6 h-14 rounded-2xl bg-primary items-center justify-center flex-row-reverse gap-2"><MaterialIcons name="done" size={20} color="#FFFFFF" /><Text className="text-white font-bold">تم — حفظ الاختيارات</Text></Pressable></View></Modal></> : <Text className="text-sm text-muted text-right">سيضيف مدير النظام الأصناف المزارة من الإعدادات لاحقاً.</Text>}
         </FormField>
 
