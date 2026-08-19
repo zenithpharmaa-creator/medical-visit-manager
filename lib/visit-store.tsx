@@ -5,8 +5,10 @@ import { useNetworkState } from "expo-network";
 import { AppData, AppSettings, MedicalEntity, Representative, Visit, PlanApprovalAudit } from "@/shared/visit-types";
 import { distanceBetweenMeters, isWithinGeofence } from "@/lib/visit-utils";
 import { EMBEDDED_ENTITIES } from "@/data/embedded-entities";
+import { EMBEDDED_COORDINATES_MIGRATION_VERSION, mergeEmbeddedEntities } from "@/lib/entity-migration";
 
 const STORAGE_KEY = "medical-visit-manager-data-v1";
+const EMBEDDED_COORDINATES_MIGRATION_KEY = "medical-visit-manager-embedded-coordinates-version";
 const REPRESENTATIVE_NAMES: Record<string, string> = { "rep-1": "علي الشعيبي", "rep-2": "محمد الحداد", "rep-3": "محمود الرميمة" };
 const REPRESENTATIVE_REGIONS: Record<string, "north" | "south" | "sanaa"> = { "rep-1": "south", "rep-2": "north", "rep-3": "sanaa" };
 const LEGACY_REPRESENTATIVE_NAMES = new Set(["المندوب الأول", "المندوب الثاني", "المندوب الثالث"]);
@@ -57,24 +59,35 @@ export function VisitProvider({ children }: PropsWithChildren) {
   const networkState = useNetworkState();
 
   useEffect(() => {
-    AsyncStorage.getItem(STORAGE_KEY)
-      .then((saved) => {
+    const loadStoredData = async () => {
+      try {
+        const [saved, migrationVersionValue] = await Promise.all([
+          AsyncStorage.getItem(STORAGE_KEY),
+          AsyncStorage.getItem(EMBEDDED_COORDINATES_MIGRATION_KEY),
+        ]);
         if (saved) {
           const parsed = JSON.parse(saved) as Partial<AppData>;
+          const shouldApplyEmbeddedCoordinates = Number(migrationVersionValue) < EMBEDDED_COORDINATES_MIGRATION_VERSION;
           setData({
             ...INITIAL_DATA,
             ...parsed,
             representatives: parsed.representatives?.length ? parsed.representatives.map((item) => ({ ...item, ...(REPRESENTATIVE_NAMES[item.id] && LEGACY_REPRESENTATIVE_NAMES.has(item.name) ? { name: REPRESENTATIVE_NAMES[item.id] } : {}), ...(REPRESENTATIVE_REGIONS[item.id] ? { region: REPRESENTATIVE_REGIONS[item.id] } : {}), ...(!Array.isArray(item.assignedItems) && REPRESENTATIVE_ITEMS[item.id] ? { assignedItems: REPRESENTATIVE_ITEMS[item.id] } : {}) })) : INITIAL_DATA.representatives,
             representativeLocations: parsed.representativeLocations ?? {},
-            entities: parsed.entities?.length ? [...parsed.entities, ...EMBEDDED_ENTITIES.filter((embedded) => !parsed.entities?.some((saved) => saved.name.trim() === embedded.name.trim()))] : EMBEDDED_ENTITIES,
+            entities: mergeEmbeddedEntities(parsed.entities, EMBEDDED_ENTITIES, shouldApplyEmbeddedCoordinates),
             plannedVisits: parsed.plannedVisits ?? [],
             visits: parsed.visits ?? [],
             planApprovalHistory: parsed.planApprovalHistory ?? [],
             settings: { ...INITIAL_DATA.settings, ...(parsed.settings ?? {}), geofenceRadiusMeters: Number(parsed.settings?.geofenceRadiusMeters) || INITIAL_DATA.settings.geofenceRadiusMeters, managerPin: String(parsed.settings?.managerPin ?? INITIAL_DATA.settings.managerPin), visitedItems: Array.isArray(parsed.settings?.visitedItems) ? parsed.settings.visitedItems.filter((item): item is string => typeof item === "string") : [] },
           });
         }
-      })
-      .finally(() => setLoading(false));
+        await AsyncStorage.setItem(EMBEDDED_COORDINATES_MIGRATION_KEY, String(EMBEDDED_COORDINATES_MIGRATION_VERSION));
+      } catch {
+        // Keep the embedded data available if local storage is unavailable or corrupted.
+      } finally {
+        setLoading(false);
+      }
+    };
+    void loadStoredData();
   }, []);
 
   useEffect(() => {
