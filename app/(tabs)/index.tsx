@@ -135,6 +135,9 @@ export default function HomeScreen() {
     Alert.alert("تم التحديث", "تم تغيير رمز مرور الحساب النشط بنجاح.");
   };
   const todayVisits = visitsForDate(data.visits, new Date());
+  const recentVisits = session?.role === "manager"
+    ? todayVisits
+    : todayVisits.filter((visit) => visit.representativeId === session?.representativeId);
   const activeReps = data.representatives.filter((rep) => rep.active);
   const monthlyOverrides = monthlyOverrideCounts(
     data.visits,
@@ -512,13 +515,13 @@ export default function HomeScreen() {
           </Pressable>
         </View>
 
-        {todayVisits.length === 0 ? (
+        {recentVisits.length === 0 ? (
           <View className="rounded-2xl bg-surface border border-border p-5 items-center">
             <View className="w-11 h-11 rounded-2xl bg-primary/10 items-center justify-center mb-3">
               <MaterialIcons name="event-note" size={23} color="#1565C0" />
             </View>
             <Text className="font-bold text-foreground">
-              لا توجد زيارات مسجلة اليوم
+              {session?.role === "manager" ? "لا توجد زيارات مسجلة اليوم" : "لا توجد زيارات مسجلة لك اليوم"}
             </Text>
             <Text className="text-sm text-muted text-center mt-1">
               ابدأ بإضافة جهة ثم سجّل أول زيارة.
@@ -526,7 +529,7 @@ export default function HomeScreen() {
           </View>
         ) : (
           <View className="gap-3">
-            {todayVisits.slice(0, 3).map((visit) => (
+            {recentVisits.slice(0, 3).map((visit) => (
               <View
                 key={visit.id}
                 className="rounded-2xl bg-surface border border-border p-4 flex-row-reverse items-center gap-3"
