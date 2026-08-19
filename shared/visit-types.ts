@@ -111,4 +111,5 @@ export type AppData = {
   plannedVisits: PlannedVisit[];
   settings: AppSettings;
   planApprovalHistory?: PlanApprovalAudit[];
+  lastSuccessfulSyncAt?: string;
 };

@@ -1,7 +1,8 @@
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import * as FileSystem from "expo-file-system/legacy";
 import * as Sharing from "expo-sharing";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useNetworkState } from "expo-network";
 import { Alert, FlatList, Image, Pressable, Text, TextInput, View } from "react-native";
 
 import { buildVisitExportRows, buildVisitsCsv, buildVisitsExcelBase64 } from "@/lib/visit-export";
@@ -14,7 +15,8 @@ import { formatArabicDate, isSameLocalDay } from "@/lib/visit-utils";
 import { getVisitSyncLabel, getVisitSyncState } from "@/lib/visit-sync-status";
 
 export default function VisitsScreen() {
-  const { data, deleteVisit } = useVisitStore();
+  const { data, deleteVisit, syncPendingVisits } = useVisitStore();
+  const networkState = useNetworkState();
   const { session } = useAccountSession();
   const isManager = session?.role === "manager";
   const today = new Date();
@@ -30,6 +32,28 @@ export default function VisitsScreen() {
   const syncedCount = visibleVisits.filter((visit) => getVisitSyncState(visit) === "synced").length;
 
   const [exportBusy, setExportBusy] = useState(false);
+  const [syncBusy, setSyncBusy] = useState(false);
+  const lastSeenSyncRef = useRef<string | undefined>(data.lastSuccessfulSyncAt);
+  const hadPendingSyncRef = useRef(pendingSyncCount > 0);
+  useEffect(() => {
+    if (pendingSyncCount > 0) hadPendingSyncRef.current = true;
+    if (data.lastSuccessfulSyncAt && data.lastSuccessfulSyncAt !== lastSeenSyncRef.current && !isManager && (Boolean(lastSeenSyncRef.current) || hadPendingSyncRef.current)) {
+      Alert.alert("اكتملت المزامنة", "تم رفع الزيارات المحفوظة دون إنترنت ومراجعة مواقعها بنجاح.");
+    }
+    if (data.lastSuccessfulSyncAt) lastSeenSyncRef.current = data.lastSuccessfulSyncAt;
+    if (pendingSyncCount === 0) hadPendingSyncRef.current = false;
+  }, [data.lastSuccessfulSyncAt, isManager, pendingSyncCount]);
+  const handleManualSync = async () => {
+    if (networkState.isInternetReachable !== true) { Alert.alert("لا يوجد اتصال", "فعّل الإنترنت ثم اضغط «مزامنة الآن» مرة أخرى."); return; }
+    setSyncBusy(true);
+    try {
+      const result = await syncPendingVisits();
+      if (result.error) { Alert.alert("تعذر المزامنة", result.error); return; }
+      if (result.syncedAt) lastSeenSyncRef.current = result.syncedAt;
+      Alert.alert("اكتملت المزامنة", result.processed ? `تم رفع ومراجعة ${result.processed} زيارة محفوظة دون إنترنت.` : "لا توجد زيارات معلقة؛ تم تحديث وقت آخر فحص اتصال.");
+    } catch { Alert.alert("تعذر المزامنة", "حدث خطأ غير متوقع. حاول مرة أخرى عند توفر اتصال مستقر."); }
+    finally { setSyncBusy(false); }
+  };
   const exportVisits = async (kind: "excel" | "csv") => {
     if (!isManager) { Alert.alert("غير متاح", "تصدير سجل الزيارات متاح لمدير النظام فقط."); return; }
     if (!filtered.length) { Alert.alert("لا توجد بيانات", "لا توجد زيارات مطابقة للتصدير."); return; }
@@ -57,6 +81,10 @@ export default function VisitsScreen() {
               <Text className="font-bold text-foreground text-right">{pendingSyncCount ? "مزامنة الزيارات قيد الانتظار" : "حالة المزامنة مستقرة"}</Text>
               <Text className="text-xs text-muted text-right mt-1">{pendingSyncCount ? `${pendingSyncCount} زيارة محفوظة دون إنترنت بانتظار الرفع والتحقق عند عودة الاتصال.` : "لا توجد زيارات offline معلقة حالياً."}</Text>
             </View>
+          </View>
+          <View className="flex-row-reverse gap-2 mt-3">
+            <Pressable disabled={syncBusy || networkState.isInternetReachable !== true} onPress={() => void handleManualSync()} className={`flex-1 min-h-11 rounded-xl items-center justify-center flex-row-reverse gap-2 ${syncBusy || networkState.isInternetReachable !== true ? "bg-border" : "bg-primary"}`}><MaterialIcons name={syncBusy ? "sync" : "sync-alt"} size={17} color="#FFFFFF" /><Text className="text-white font-bold text-xs">{syncBusy ? "جاري المزامنة..." : "مزامنة الآن"}</Text></Pressable>
+            <View className="flex-1 rounded-xl bg-background/70 px-3 py-2"><Text className="text-[11px] text-muted text-right">آخر مزامنة ناجحة</Text><Text className="font-bold text-primary text-right mt-1 text-[11px]">{data.lastSuccessfulSyncAt ? formatArabicDate(data.lastSuccessfulSyncAt) : "لم تتم بعد"}</Text></View>
           </View>
           <View className="flex-row-reverse gap-2 mt-3">
             <View className="flex-1 rounded-xl bg-background/70 px-3 py-2"><Text className="text-[11px] text-muted text-right">بانتظار الرفع</Text><Text className="font-bold text-warning text-right mt-1">{pendingSyncCount}</Text></View>

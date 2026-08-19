@@ -3,7 +3,7 @@ import { PropsWithChildren, createContext, useContext, useEffect, useMemo, useSt
 import { useNetworkState } from "expo-network";
 
 import { AppData, AppSettings, MedicalEntity, Representative, Visit, PlanApprovalAudit } from "@/shared/visit-types";
-import { distanceBetweenMeters, isWithinGeofence } from "@/lib/visit-utils";
+import { synchronizePendingVisits } from "@/lib/visit-sync";
 import { EMBEDDED_ENTITIES } from "@/data/embedded-entities";
 import { EMBEDDED_COORDINATES_MIGRATION_VERSION, mergeEmbeddedEntities, preserveExistingCoordinates } from "@/lib/entity-migration";
 
@@ -50,6 +50,7 @@ type VisitStoreValue = {
   restoreData: (data: AppData) => void;
   updateRepresentativeLocation: (id: string, value: AppData["representativeLocations"][string]) => void;
   addPlanApprovalAudit: (audit: PlanApprovalAudit) => void;
+  syncPendingVisits: () => Promise<{ processed: number; syncedAt?: string; error?: string }>;
 };
 
 const VisitStore = createContext<VisitStoreValue | null>(null);
@@ -78,6 +79,7 @@ export function VisitProvider({ children }: PropsWithChildren) {
             plannedVisits: parsed.plannedVisits ?? [],
             visits: parsed.visits ?? [],
             planApprovalHistory: parsed.planApprovalHistory ?? [],
+            lastSuccessfulSyncAt: parsed.lastSuccessfulSyncAt,
             settings: { ...INITIAL_DATA.settings, ...(parsed.settings ?? {}), geofenceRadiusMeters: Number(parsed.settings?.geofenceRadiusMeters) || INITIAL_DATA.settings.geofenceRadiusMeters, managerPin: String(parsed.settings?.managerPin ?? INITIAL_DATA.settings.managerPin), visitedItems: Array.isArray(parsed.settings?.visitedItems) ? parsed.settings.visitedItems.filter((item): item is string => typeof item === "string") : [] },
           });
         }
@@ -91,32 +93,23 @@ export function VisitProvider({ children }: PropsWithChildren) {
     void loadStoredData();
   }, []);
 
-  useEffect(() => {
-    if (networkState.isInternetReachable !== true) return;
+  const syncPendingVisits = async () => {
+    if (networkState.isInternetReachable !== true) return { processed: 0, error: "لا يوجد اتصال بالإنترنت حالياً." };
+    const checkedAt = new Date().toISOString();
+    let processed = 0;
     setData((current) => {
-      let changed = false;
-      const checkedAt = new Date().toISOString();
-      const visits = current.visits.map((visit) => {
-        if (visit.verificationStatus !== "pending") return visit;
-        const entity = current.entities.find((item) => item.id === visit.entityId);
-        const expected = entity?.geographicCoordinates ?? visit.geographicCoordinates;
-        if (!visit.location || !expected) {
-          changed = true;
-          const result = "تعذر التحقق: لا توجد إحداثيات كافية للجهة أو الزيارة.";
-          return { ...visit, verificationStatus: "rejected" as const, verificationCheckedAt: checkedAt, verificationReason: result, verificationLog: [...(visit.verificationLog ?? []), { checkedAt, status: "rejected" as const, result }] };
-        }
-        const distanceMeters = distanceBetweenMeters(visit.location, expected);
-        const accepted = isWithinGeofence(distanceMeters, current.settings.geofenceRadiusMeters);
-        changed = true;
-        const result = accepted ? "تمت المطابقة تلقائياً عند عودة الاتصال." : `مرفوضة: موقع الزيارة يبعد ${Math.round(distanceMeters)} متراً عن موقع الجهة، والحد المسموح ${current.settings.geofenceRadiusMeters} متر.`;
-        const status = accepted ? "verified" as const : "rejected" as const;
-        return { ...visit, geographicCoordinates: expected, verificationStatus: status, verificationCheckedAt: checkedAt, verificationDistanceMeters: Math.round(distanceMeters), verificationReason: result, verificationLog: [...(visit.verificationLog ?? []), { checkedAt, status, distanceMeters: Math.round(distanceMeters), result }] };
-      });
-      if (!changed) return current;
-      const next = { ...current, visits };
-      AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next)).catch(() => undefined);
+      const result = synchronizePendingVisits(current, checkedAt);
+      processed = result.processed;
+      const next = { ...result.data, lastSuccessfulSyncAt: checkedAt };
+      void AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next));
       return next;
     });
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    return { processed, syncedAt: checkedAt };
+  };
+
+  useEffect(() => {
+    if (networkState.isInternetReachable === true) void syncPendingVisits();
   }, [networkState.isInternetReachable]);
 
   const save = (updater: (current: AppData) => AppData) => {
@@ -151,8 +144,9 @@ export function VisitProvider({ children }: PropsWithChildren) {
       restoreData: (restored) => save(() => ({ ...restored, entities: mergeEmbeddedEntities(restored.entities, EMBEDDED_ENTITIES, true) })),
       updateRepresentativeLocation: (id, value) => save((current) => ({ ...current, representativeLocations: { ...current.representativeLocations, [id]: value } })),
       addPlanApprovalAudit: (audit) => save((current) => ({ ...current, planApprovalHistory: [audit, ...(current.planApprovalHistory ?? [])] })),
+      syncPendingVisits,
     }),
-    [data, loading],
+    [data, loading, networkState.isInternetReachable],
   );
 
   return <VisitStore.Provider value={value}>{children}</VisitStore.Provider>;
