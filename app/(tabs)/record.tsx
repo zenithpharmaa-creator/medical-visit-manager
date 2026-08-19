@@ -14,6 +14,7 @@ import { notifyManagerOfOverride } from "@/lib/override-notification";
 import { useAccountSession } from "@/lib/account-session";
 import { useVisitStore } from "@/lib/visit-store";
 import { buildId, distanceBetweenMeters, formatArabicDate, isWithinGeofence } from "@/lib/visit-utils";
+import { findDailyVisitConflict } from "@/lib/visit-rules";
 import { isFiniteLocation, normalizeLocation } from "@/lib/location-capture";
 import { appendLocationDiagnostic, loadLocationDiagnostics, type LocationDiagnostic } from "@/lib/location-diagnostics";
 import { MedicalEntity, Representative, VisitLocation, VisitVerificationStatus } from "@/shared/visit-types";
@@ -156,6 +157,13 @@ export default function RecordVisitScreen() {
   };
   const saveVisit = async () => {
     if (!selectedEntity) { Alert.alert("اختر جهة الزيارة", "أضف جهة من شاشة الإدارة أو استوردها من Excel أولاً."); return; }
+    if (!representativeForVisit) { Alert.alert("الحساب غير متاح", "تعذر تحديد حساب المندوب الحالي."); return; }
+    const attemptedAt = new Date().toISOString();
+    const dailyConflict = findDailyVisitConflict(data.visits, data.plannedVisits, selectedEntity.id, representativeForVisit.id, attemptedAt);
+    if (dailyConflict) {
+      Alert.alert("الزيارة مسجلة اليوم", `سبق تسجيل زيارة لـ«${selectedEntity.name}» اليوم بواسطة مندوب آخر. لا يمكن تكرارها إلا إذا أسند مدير النظام زيارة مستقلة لهذا المندوب.`);
+      return;
+    }
     const freshLocation = await captureLocation();
     if (!freshLocation) return;
     const freshCapturedAt = new Date().toISOString();
