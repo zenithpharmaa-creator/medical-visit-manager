@@ -16,13 +16,13 @@ export function AccountSessionProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   useEffect(() => { AsyncStorage.getItem(SESSION_KEY).then((value) => { if (value) setSession(JSON.parse(value) as Session); }).finally(() => setLoading(false)); }, []);
-  const persist = async (next: Session | null, rememberMe = true) => { setSession(next); if (next && rememberMe) await AsyncStorage.setItem(SESSION_KEY, JSON.stringify(next)); else await AsyncStorage.removeItem(SESSION_KEY); };
+  const persist = async (next: Session | null, rememberMe = true) => { if (next && rememberMe) await AsyncStorage.setItem(SESSION_KEY, JSON.stringify(next)); else await AsyncStorage.removeItem(SESSION_KEY); setSession(next); };
   const value = useMemo<AccountSessionValue>(() => ({
     session,
     loading,
     loginManager: async (password, representativeId, rememberMe = false) => { if (!(await verifyManagerPassword(password))) return false; await persist(representativeId ? { role: "representative", representativeId, impersonatedByManager: true } : { role: "manager" }, rememberMe); return true; },
     loginRepresentative: async (id, password, rememberMe = false) => { const representative = data.representatives.find((item) => item.id === id); const saved = representative ? await getRepresentativePassword(id) : null; if (!representative || !saved || saved !== password) return false; await persist({ role: "representative", representativeId: id }, rememberMe); return true; },
-    logout: async () => persist(null),
+    logout: async () => { await AsyncStorage.removeItem(SESSION_KEY); setSession(null); },
   }), [data.representatives, loading, session]);
   return <AccountSessionContext.Provider value={value}>{children}</AccountSessionContext.Provider>;
 }
