@@ -45,3 +45,23 @@ describe("daily visit conflict rule", () => {
     expect(findDailyVisitConflict([existingVisit()], [{ ...assignedPlan, planStatus: "cancelled" }], "entity-1", "rep-2", "2026-08-19T15:00:00.000Z")?.representativeId).toBe("rep-1");
   });
 });
+
+
+describe("weekly plan duplicate rule", () => {
+  const plan = { id: "plan-1", representativeId: "rep-1", entityId: "entity-1", entityName: "عيادة الاختبار", entityKind: "عيادة" as const, scheduledDate: "2026-08-19", shift: "morning" as const };
+
+  it("يرفض إضافة الجهة نفسها في اليوم نفسه داخل خطة مندوب آخر", async () => {
+    const { findWeeklyPlanConflict } = await import("../lib/visit-rules");
+    expect(findWeeklyPlanConflict([plan], "entity-1", "rep-2", "2026-08-19")?.id).toBe("plan-1");
+  });
+
+  it("يسمح بإسناد المدير للجهة نفسها لمندوب مختلف", async () => {
+    const { findWeeklyPlanConflict } = await import("../lib/visit-rules");
+    expect(findWeeklyPlanConflict([plan], "entity-1", "rep-2", "2026-08-19", undefined, true)).toBeNull();
+  });
+
+  it("يمنع تكرار الإسناد لنفس المندوب حتى مع استثناء المدير", async () => {
+    const { findWeeklyPlanConflict } = await import("../lib/visit-rules");
+    expect(findWeeklyPlanConflict([plan], "entity-1", "rep-1", "2026-08-19", undefined, true)?.id).toBe("plan-1");
+  });
+});

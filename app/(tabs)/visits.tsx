@@ -21,11 +21,11 @@ export default function VisitsScreen() {
   const isManager = session?.role === "manager";
   const today = new Date();
   const [query, setQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<"all" | "verified" | "rejected" | "pending">("all");
+  const [statusFilter, setStatusFilter] = useState<"all" | "verified" | "rejected" | "pending" | "unsynced">("all");
   const visibleVisits = data.visits.filter((visit) => isManager || (visit.representativeId === session?.representativeId && isSameLocalDay(new Date(visit.recordedAt), today)));
   const filtered = visibleVisits.filter((visit) => {
     const matchesQuery = isManager ? `${visit.entityName} ${visit.entityKind} ${visit.specialty ?? ""} ${visit.category ?? ""} ${visit.nearestPharmacy ?? ""} ${visit.entityRegion ?? ""} ${visit.entityAddress ?? ""} ${visit.geographicLocation ?? ""}`.toLowerCase().includes(query.trim().toLowerCase()) : true;
-    const matchesStatus = statusFilter === "all" || visit.verificationStatus === statusFilter;
+    const matchesStatus = statusFilter === "all" || statusFilter === "unsynced" ? (statusFilter === "all" || (statusFilter === "unsynced" ? getVisitSyncState(visit) === "pending" : visit.verificationStatus === statusFilter)) : visit.verificationStatus === statusFilter;
     return matchesQuery && matchesStatus;
   });
   const pendingSyncCount = visibleVisits.filter((visit) => getVisitSyncState(visit) === "pending").length;
@@ -97,6 +97,7 @@ export default function VisitsScreen() {
         </View> : null}
         <View className="flex-row-reverse gap-2 mb-4">
           {([{ value: "all", label: "الكل" }, { value: "verified", label: "مقبولة" }, { value: "rejected", label: "مرفوضة" }, { value: "pending", label: "بانتظار التحقق" }] as const).map((option) => <Pressable key={option.value} onPress={() => setStatusFilter(option.value)} className={`flex-1 min-h-10 rounded-xl items-center justify-center px-1 ${statusFilter === option.value ? option.value === "rejected" ? "bg-error" : option.value === "pending" ? "bg-warning" : "bg-primary" : "bg-surface border border-border"}`}><Text className={`text-[11px] font-bold text-center ${statusFilter === option.value ? "text-white" : "text-foreground"}`}>{option.label}</Text></Pressable>)}
+          {!isManager ? <Pressable onPress={() => setStatusFilter("unsynced")} className={`flex-1 min-h-10 rounded-xl items-center justify-center px-1 ${statusFilter === "unsynced" ? "bg-warning" : "bg-surface border border-border"}`}><Text className={`text-[11px] font-bold text-center ${statusFilter === "unsynced" ? "text-white" : "text-foreground"}`}>غير متزامنة</Text></Pressable> : null}
         </View>
         {isManager ? <View className="rounded-2xl bg-surface border border-border p-3 mb-4"><View className="flex-row-reverse items-center gap-2 mb-2"><MaterialIcons name="file-download" size={20} color="#1565C0" /><Text className="font-bold text-foreground flex-1 text-right">تصدير السجل الحالي ({filtered.length})</Text></View><View className="flex-row-reverse gap-2"><Pressable disabled={exportBusy} onPress={() => void exportVisits("excel")} className="flex-1 h-11 rounded-xl bg-success items-center justify-center flex-row-reverse gap-2"><MaterialIcons name="table-view" size={18} color="#FFFFFF" /><Text className="text-white font-bold text-xs">Excel</Text></Pressable><Pressable disabled={exportBusy} onPress={() => void exportVisits("csv")} className="flex-1 h-11 rounded-xl bg-primary items-center justify-center flex-row-reverse gap-2"><MaterialIcons name="description" size={18} color="#FFFFFF" /><Text className="text-white font-bold text-xs">CSV</Text></Pressable></View><Text className="text-xs text-muted text-right mt-2">يشمل التصدير نتائج البحث وفلتر الحالة الحاليين.</Text></View> : null}
         <FlatList

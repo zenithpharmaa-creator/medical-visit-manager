@@ -1,6 +1,22 @@
 import type { PlannedVisit, Visit } from "@/shared/visit-types";
 import { isSameLocalDay } from "./visit-utils";
 
+export function findWeeklyPlanConflict(
+  plans: PlannedVisit[],
+  entityId: string,
+  representativeId: string,
+  scheduledDate: string,
+  excludedPlanId?: string,
+  allowManagerAssignment = false,
+) {
+  return plans.find((plan) =>
+    plan.id !== excludedPlanId &&
+    plan.entityId === entityId &&
+    plan.scheduledDate === scheduledDate &&
+    !(allowManagerAssignment && plan.representativeId !== representativeId),
+  ) ?? null;
+}
+
 export function findDailyVisitConflict(
   visits: Visit[],
   plannedVisits: PlannedVisit[],

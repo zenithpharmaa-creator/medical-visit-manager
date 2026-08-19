@@ -9,6 +9,7 @@ import { ScreenContainer } from "@/components/screen-container";
 import { SelectionModal } from "@/components/selection-modal";
 import { useVisitStore } from "@/lib/visit-store";
 import { buildId } from "@/lib/visit-utils";
+import { findWeeklyPlanConflict } from "@/lib/visit-rules";
 import { notifyRepresentativeOfAssignment } from "@/lib/assigned-task-notification";
 import type { VisitShift } from "@/shared/visit-types";
 
@@ -45,7 +46,10 @@ export default function ManagementScreen() {
     const entity = data.entities.find((item) => item.id === selectedEntity);
     if (!entity || !selectedRep) { Alert.alert("بيانات ناقصة", "اختر المندوب والطبيب."); return; }
     if (scheduledDateTime.getDay() === 5) { Alert.alert("يوم إجازة", "لا يمكن إسناد زيارة يوم الجمعة."); return; }
-    const task = { id: buildId("assigned"), representativeId: selectedRep, entityId: entity.id, entityName: entity.name, entityKind: entity.kind, scheduledDate: scheduledDateTime.toISOString().slice(0, 10), scheduledTime: scheduledDateTime.toISOString(), shift: selectedShift, assignmentType: "assigned" as const, taskStatus: "assigned" as const, assignedAt: new Date().toISOString(), notes: notes.trim() };
+    const scheduledDate = scheduledDateTime.toISOString().slice(0, 10);
+    const conflict = findWeeklyPlanConflict(data.plannedVisits, entity.id, selectedRep, scheduledDate, undefined, true);
+    if (conflict) { Alert.alert("المهمة موجودة مسبقاً", `لدى ${data.representatives.find((item) => item.id === selectedRep)?.name ?? "المندوب"} خطة أو مهمة لهذه الجهة في التاريخ نفسه.`); return; }
+    const task = { id: buildId("assigned"), representativeId: selectedRep, entityId: entity.id, entityName: entity.name, entityKind: entity.kind, scheduledDate, scheduledTime: scheduledDateTime.toISOString(), shift: selectedShift, assignmentType: "assigned" as const, taskStatus: "assigned" as const, assignedAt: new Date().toISOString(), notes: notes.trim() };
     addPlannedVisit(task);
     const representative = data.representatives.find((item) => item.id === selectedRep);
     if (representative) void notifyRepresentativeOfAssignment(task, representative);

@@ -22,6 +22,7 @@ import { SelectionModal } from "@/components/selection-modal";
 import { useAccountSession } from "@/lib/account-session";
 import { useVisitStore } from "@/lib/visit-store";
 import { buildId, visitsForDate } from "@/lib/visit-utils";
+import { findWeeklyPlanConflict } from "@/lib/visit-rules";
 import {
   buildWeeklyExcelRows,
   buildWeeklyReportHtml,
@@ -85,6 +86,7 @@ export default function WeeklyPlanScreen() {
   const [approvalModalVisible, setApprovalModalVisible] = useState(false);
   const [approvalReason, setApprovalReason] = useState("");
   const lastRepApprovalSnapshot = useRef<Record<string, string>>({});
+  const lastAssignmentSnapshot = useRef<Record<string, boolean>>({});
   const [statusModalVisible, setStatusModalVisible] = useState(false);
   const [cancellationReason, setCancellationReason] = useState("");
   const lastNotifiedPendingCount = useRef(0);
@@ -156,6 +158,13 @@ export default function WeeklyPlanScreen() {
     }
     representativeApprovalNotices.forEach((plan) => { lastRepApprovalSnapshot.current[plan.id] = plan.approvalStatus ?? "pending"; });
   }, [isManager, currentRepId, representativeApprovalNotices]);
+  const assignedNotices = data.plannedVisits.filter((plan) => !isManager && plan.representativeId === currentRepId && plan.assignmentType === "assigned" && plan.taskStatus !== "rejected" && plan.planStatus !== "cancelled");
+  useEffect(() => {
+    if (isManager || !currentRepId) return;
+    const newAssignments = assignedNotices.filter((plan) => !lastAssignmentSnapshot.current[plan.id]);
+    newAssignments.forEach((plan) => { lastAssignmentSnapshot.current[plan.id] = true; });
+    if (newAssignments.length) Alert.alert("زيارة جديدة مسندة", `أسند مدير النظام زيارة «${newAssignments[0].entityName}» إلى خطتك بتاريخ ${newAssignments[0].scheduledDate}. ستظهر مميزة بعلامة «مسندة من المدير».`);
+  }, [isManager, currentRepId, assignedNotices]);
   const savePlan = () => {
     const entity = data.entities.find((item) => item.id === selectedEntity);
     const representativeId = isManager ? selectedRep : currentRepId;
@@ -168,13 +177,19 @@ export default function WeeklyPlanScreen() {
       Alert.alert("يوم إجازة", "لا يمكن جدولة زيارة يوم الجمعة.");
       return;
     }
+    const scheduledDate = scheduledDateTime.toISOString().slice(0, 10);
+    const conflict = findWeeklyPlanConflict(data.plannedVisits, entity.id, representativeId, scheduledDate, editingPlan?.id, false);
+    if (conflict) {
+      Alert.alert("الزيارة موجودة في الخطة", `تمت إضافة «${entity.name}» مسبقاً في خطة ${repName(conflict.representativeId)} بتاريخ ${scheduledDate}. لا يمكن تكرار الجهة في اليوم نفسه.`);
+      return;
+    }
     const plan = {
       id: editingPlan?.id ?? buildId("planned"),
       representativeId,
       entityId: entity.id,
       entityName: entity.name,
       entityKind: entity.kind,
-      scheduledDate: scheduledDateTime.toISOString().slice(0, 10),
+      scheduledDate,
       scheduledTime: scheduledDateTime.toISOString(),
       shift: selectedShift,
       notes: notes.trim(),
@@ -276,10 +291,10 @@ export default function WeeklyPlanScreen() {
     return (
       <View className="gap-1">
         {plans.map((plan) => (
-          <View key={plan.id} className={`rounded-lg px-2 py-1 ${plan.planStatus === "cancelled" ? "bg-error/10" : plan.approvalStatus === "pending" ? "bg-warning/10" : plan.planStatus === "executed" ? "bg-success/10" : "bg-primary/10"}`}>
+          <View key={plan.id} className={`rounded-lg px-2 py-1 border ${plan.assignmentType === "assigned" ? "bg-[#FFF4D6] border-[#F59E0B]" : plan.planStatus === "cancelled" ? "bg-error/10 border-error/20" : plan.approvalStatus === "pending" ? "bg-warning/10 border-warning/20" : plan.planStatus === "executed" ? "bg-success/10 border-success/20" : "bg-primary/10 border-primary/20"}`}>
             <Pressable onPress={() => (isManager || plan.representativeId === currentRepId) && openEditPlan(plan)}>
               <Text className={`font-bold text-xs text-right ${plan.planStatus === "cancelled" ? "text-error" : plan.planStatus === "executed" ? "text-success" : "text-primary"}`}>{plan.entityName}</Text>
-              <Text className="text-primary/80 text-[10px] text-right">{plan.planStatus === "cancelled" ? "ملغاة" : plan.planStatus === "executed" ? "منفذة" : plan.approvalStatus === "pending" ? "بانتظار اعتماد المدير" : "معتمدة"} · {repName(plan.representativeId)}</Text>
+              <Text className={`text-[10px] text-right ${plan.assignmentType === "assigned" ? "text-amber-700 font-bold" : "text-primary/80"}`}>{plan.assignmentType === "assigned" ? "مسندة من المدير" : plan.planStatus === "cancelled" ? "ملغاة" : plan.planStatus === "executed" ? "منفذة" : plan.approvalStatus === "pending" ? "بانتظار اعتماد المدير" : "معتمدة"} · {repName(plan.representativeId)}</Text>
               {plan.planStatus === "cancelled" && plan.cancellationReason ? <Text className="text-error/80 text-[10px] text-right">سبب الإلغاء: {plan.cancellationReason}</Text> : null}
             </Pressable>
             {isManager && plan.approvalStatus === "pending" ? <View className="flex-row-reverse gap-1 mt-1"><Pressable onPress={() => approvePlan(plan)} className="rounded-md bg-primary px-2 py-1"><Text className="text-white text-[10px] font-bold">اعتماد</Text></Pressable><Pressable onPress={() => openRejectPlan(plan)} className="rounded-md bg-error px-2 py-1"><Text className="text-white text-[10px] font-bold">رفض</Text></Pressable></View> : null}
