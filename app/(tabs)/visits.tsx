@@ -3,7 +3,7 @@ import * as FileSystem from "expo-file-system/legacy";
 import * as Sharing from "expo-sharing";
 import { useEffect, useRef, useState } from "react";
 import { useNetworkState } from "expo-network";
-import { Alert, FlatList, Image, Pressable, Text, TextInput, View } from "react-native";
+import { Alert, FlatList, Image, Modal, Pressable, Text, TextInput, View } from "react-native";
 
 import { buildVisitExportRows, buildVisitsCsv, buildVisitsExcelBase64 } from "@/lib/visit-export";
 
@@ -13,9 +13,10 @@ import { useAccountSession } from "@/lib/account-session";
 import { useVisitStore } from "@/lib/visit-store";
 import { formatArabicDate, isSameLocalDay } from "@/lib/visit-utils";
 import { getVisitSyncLabel, getVisitSyncState } from "@/lib/visit-sync-status";
+import { canManageVisit } from "@/lib/visit-permissions";
 
 export default function VisitsScreen() {
-  const { data, deleteVisit, syncPendingVisits } = useVisitStore();
+  const { data, deleteVisit, updateVisit, syncPendingVisits } = useVisitStore();
   const networkState = useNetworkState();
   const { session } = useAccountSession();
   const isManager = session?.role === "manager";
@@ -32,6 +33,11 @@ export default function VisitsScreen() {
   const syncedCount = visibleVisits.filter((visit) => getVisitSyncState(visit) === "synced").length;
 
   const [exportBusy, setExportBusy] = useState(false);
+  const [editVisit, setEditVisit] = useState<typeof data.visits[number] | null>(null);
+  const [editNotes, setEditNotes] = useState("");
+  const openEdit = (visit: typeof data.visits[number]) => { if (!session || !canManageVisit(visit, session.role, session.representativeId)) { Alert.alert("انتهت فترة التعديل", "يمكن للمندوب تعديل أو حذف الزيارة خلال 24 ساعة من تسجيلها فقط."); return; } setEditVisit(visit); setEditNotes(visit.notes ?? ""); };
+  const saveEdit = () => { if (!editVisit) return; updateVisit({ ...editVisit, notes: editNotes.trim() }); setEditVisit(null); Alert.alert("تم التعديل", "تم تحديث ملاحظات الزيارة."); };
+  const confirmDelete = (visit: typeof data.visits[number]) => { if (!session || !canManageVisit(visit, session.role, session.representativeId)) { Alert.alert("انتهت فترة الحذف", "يمكن للمندوب تعديل أو حذف الزيارة خلال 24 ساعة من تسجيلها فقط."); return; } Alert.alert("حذف الزيارة", "هل تريد حذف هذه الزيارة نهائياً؟", [{ text: "إلغاء", style: "cancel" }, { text: "حذف", style: "destructive", onPress: () => deleteVisit(visit.id) }]); };
   const [syncBusy, setSyncBusy] = useState(false);
   const lastSeenSyncRef = useRef<string | undefined>(data.lastSuccessfulSyncAt);
   const hadPendingSyncRef = useRef(pendingSyncCount > 0);
@@ -100,6 +106,7 @@ export default function VisitsScreen() {
           {!isManager ? <Pressable onPress={() => setStatusFilter("unsynced")} className={`flex-1 min-h-10 rounded-xl items-center justify-center px-1 ${statusFilter === "unsynced" ? "bg-warning" : "bg-surface border border-border"}`}><Text className={`text-[11px] font-bold text-center ${statusFilter === "unsynced" ? "text-white" : "text-foreground"}`}>غير متزامنة</Text></Pressable> : null}
         </View>
         {isManager ? <View className="rounded-2xl bg-surface border border-border p-3 mb-4"><View className="flex-row-reverse items-center gap-2 mb-2"><MaterialIcons name="file-download" size={20} color="#1565C0" /><Text className="font-bold text-foreground flex-1 text-right">تصدير السجل الحالي ({filtered.length})</Text></View><View className="flex-row-reverse gap-2"><Pressable disabled={exportBusy} onPress={() => void exportVisits("excel")} className="flex-1 h-11 rounded-xl bg-success items-center justify-center flex-row-reverse gap-2"><MaterialIcons name="table-view" size={18} color="#FFFFFF" /><Text className="text-white font-bold text-xs">Excel</Text></Pressable><Pressable disabled={exportBusy} onPress={() => void exportVisits("csv")} className="flex-1 h-11 rounded-xl bg-primary items-center justify-center flex-row-reverse gap-2"><MaterialIcons name="description" size={18} color="#FFFFFF" /><Text className="text-white font-bold text-xs">CSV</Text></Pressable></View><Text className="text-xs text-muted text-right mt-2">يشمل التصدير نتائج البحث وفلتر الحالة الحاليين.</Text></View> : null}
+        <Modal visible={Boolean(editVisit)} transparent animationType="slide" onRequestClose={() => setEditVisit(null)}><View className="flex-1 justify-end bg-black/35"><View className="bg-background rounded-t-[28px] p-5"><View className="flex-row-reverse items-center justify-between mb-4"><Pressable onPress={() => setEditVisit(null)} className="w-10 h-10 rounded-xl bg-surface items-center justify-center"><MaterialIcons name="close" size={22} color="#102A43" /></Pressable><Text className="text-xl font-bold text-foreground">تعديل الزيارة</Text><MaterialIcons name="edit" size={23} color="#1565C0" /></View><Text className="text-sm text-muted text-right mb-2">{editVisit?.entityName ?? "الزيارة"}</Text><TextInput value={editNotes} onChangeText={setEditNotes} placeholder="ملاحظات الزيارة" placeholderTextColor="#7C8798" textAlign="right" multiline className="min-h-28 rounded-2xl border border-border bg-surface p-4 text-foreground" /><Pressable onPress={saveEdit} className="h-14 rounded-2xl bg-success items-center justify-center mt-4"><Text className="text-white font-bold">حفظ التعديل</Text></Pressable></View></View></Modal>
         <FlatList
           data={filtered}
           keyExtractor={(item) => item.id}
@@ -126,7 +133,7 @@ export default function VisitsScreen() {
                 {item.photoUri ? <Image source={{ uri: item.photoUri }} className="w-full h-40 rounded-xl border border-border mt-3" resizeMode="cover" /> : null}
                 {item.visitedItems?.length ? <Text className="text-xs text-primary mt-3 text-right">الأصناف المزارة: {item.visitedItems.join("، ")}</Text> : null}
                 {item.notes ? <Text className="text-sm text-muted border-t border-border pt-3 mt-3 text-right leading-5">{item.notes}</Text> : null}
-                {isManager ? <Pressable onPress={() => Alert.alert("حذف الزيارة", "هل تريد حذف هذه الزيارة نهائياً؟", [{ text: "إلغاء", style: "cancel" }, { text: "حذف", style: "destructive", onPress: () => deleteVisit(item.id) }])} className="self-start mt-3 px-2 py-1" style={({ pressed }) => [{ opacity: pressed ? 0.6 : 1 }]}><Text className="text-error font-bold text-xs">حذف</Text></Pressable> : null}
+                {session && canManageVisit(item, session.role, session.representativeId) ? <View className="flex-row-reverse gap-2 mt-3"><Pressable onPress={() => openEdit(item)} className="flex-1 h-10 rounded-xl bg-primary/10 border border-primary/20 items-center justify-center flex-row-reverse gap-1"><MaterialIcons name="edit" size={16} color="#1565C0" /><Text className="text-primary font-bold text-xs">تعديل</Text></Pressable><Pressable onPress={() => confirmDelete(item)} className="flex-1 h-10 rounded-xl bg-error/10 border border-error/20 items-center justify-center flex-row-reverse gap-1"><MaterialIcons name="delete-outline" size={16} color="#C0392B" /><Text className="text-error font-bold text-xs">حذف</Text></Pressable></View> : !isManager ? <Text className="text-[11px] text-muted text-right mt-3">انتهت فترة تعديل هذه الزيارة للمندوب.</Text> : null}
               </View>
             );
           }}
