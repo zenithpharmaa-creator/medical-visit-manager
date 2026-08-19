@@ -1,5 +1,5 @@
 import { Representative, Visit } from "../shared/visit-types";
-import { formatArabicDate } from "./visit-utils";
+import { formatArabicDate, localDateKey } from "./visit-utils";
 
 export type ReportPeriod = "daily" | "monthly";
 
@@ -8,10 +8,15 @@ function pad(value: number) {
 }
 
 export function getPeriodVisits(visits: Visit[], period: ReportPeriod, date = new Date()) {
-  const key = period === "daily"
-    ? `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
-    : `${date.getFullYear()}-${pad(date.getMonth() + 1)}`;
-  return visits.filter((visit) => visit.recordedAt.startsWith(key));
+  const targetDay = localDateKey(date);
+  const targetYear = date.getFullYear();
+  const targetMonth = date.getMonth();
+  return visits.filter((visit) => {
+    const recordedDate = new Date(visit.recordedAt);
+    if (Number.isNaN(recordedDate.getTime())) return false;
+    if (period === "daily") return localDateKey(recordedDate) === targetDay;
+    return recordedDate.getFullYear() === targetYear && recordedDate.getMonth() === targetMonth;
+  });
 }
 
 export function sortVisitsByRecordedAt(visits: Visit[]) {

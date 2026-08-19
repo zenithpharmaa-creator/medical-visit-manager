@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import type { Visit } from "../shared/visit-types";
 
 import { formatArabicDate, isSameLocalDay, localDateKey } from "../lib/visit-utils";
 
@@ -17,3 +18,10 @@ describe("representative daily visit window", () => {
     expect(formatted).not.toMatch(/ص|م/);
   });
 });
+
+  it("matches report visits by the device local day", async () => {
+    const { getPeriodVisits } = await import("../lib/reporting");
+    const visit = { recordedAt: "2026-08-19T23:30:00.000Z" } as Visit;
+    const selectedDate = new Date("2026-08-19T12:00:00");
+    expect(getPeriodVisits([visit], "daily", selectedDate)).toHaveLength(1);
+  });
