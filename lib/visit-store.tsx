@@ -5,7 +5,7 @@ import { useNetworkState } from "expo-network";
 import { AppData, AppSettings, MedicalEntity, Representative, Visit, PlanApprovalAudit } from "@/shared/visit-types";
 import { distanceBetweenMeters, isWithinGeofence } from "@/lib/visit-utils";
 import { EMBEDDED_ENTITIES } from "@/data/embedded-entities";
-import { EMBEDDED_COORDINATES_MIGRATION_VERSION, mergeEmbeddedEntities } from "@/lib/entity-migration";
+import { EMBEDDED_COORDINATES_MIGRATION_VERSION, mergeEmbeddedEntities, preserveExistingCoordinates } from "@/lib/entity-migration";
 
 const STORAGE_KEY = "medical-visit-manager-data-v1";
 const EMBEDDED_COORDINATES_MIGRATION_KEY = "medical-visit-manager-embedded-coordinates-version";
@@ -135,7 +135,7 @@ export function VisitProvider({ children }: PropsWithChildren) {
       addPlannedVisit: (visit) => save((current) => ({ ...current, plannedVisits: [visit, ...current.plannedVisits] })),
       updatePlannedVisit: (visit) => save((current) => ({ ...current, plannedVisits: current.plannedVisits.map((item) => item.id === visit.id ? visit : item) })),
       addEntity: (entity) => save((current) => ({ ...current, entities: [entity, ...current.entities] })),
-      updateEntity: (entity) => save((current) => ({ ...current, entities: current.entities.map((item) => item.id === entity.id ? { ...entity, geographicCoordinates: entity.geographicCoordinates ?? item.geographicCoordinates } : item) })),
+      updateEntity: (entity) => save((current) => ({ ...current, entities: current.entities.map((item) => item.id === entity.id ? preserveExistingCoordinates(item, entity) : item) })),
       deleteVisit: (id) => save((current) => ({ ...current, visits: current.visits.filter((visit) => visit.id !== id) })),
       updateRepresentative: (representative) =>
         save((current) => ({
@@ -145,7 +145,7 @@ export function VisitProvider({ children }: PropsWithChildren) {
       addRepresentative: (representative) => save((current) => ({ ...current, representatives: [...current.representatives, representative] })),
       deleteRepresentative: (id) => save((current) => ({ ...current, representatives: current.representatives.filter((item) => item.id !== id), plannedVisits: current.plannedVisits.filter((item) => item.representativeId !== id), representativeLocations: Object.fromEntries(Object.entries(current.representativeLocations).filter(([key]) => key !== id)) })),
       updateSettings: (settings) => save((current) => ({ ...current, settings })),
-      replaceEntities: (entities) => save((current) => ({ ...current, entities: entities.map((entity) => { const previous = current.entities.find((item) => item.id === entity.id); return { ...entity, geographicCoordinates: entity.geographicCoordinates ?? previous?.geographicCoordinates }; }) })),
+      replaceEntities: (entities) => save((current) => ({ ...current, entities: entities.map((entity) => { const previous = current.entities.find((item) => item.id === entity.id); return previous ? preserveExistingCoordinates(previous, entity) : entity; }) })),
       restoreData: (restored) => save(() => ({ ...restored, entities: mergeEmbeddedEntities(restored.entities, EMBEDDED_ENTITIES, true) })),
       updateRepresentativeLocation: (id, value) => save((current) => ({ ...current, representativeLocations: { ...current.representativeLocations, [id]: value } })),
       addPlanApprovalAudit: (audit) => save((current) => ({ ...current, planApprovalHistory: [audit, ...(current.planApprovalHistory ?? [])] })),

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { mergeEmbeddedEntities } from "../lib/entity-migration";
+import { mergeEmbeddedEntities, preserveExistingCoordinates } from "../lib/entity-migration";
 import type { MedicalEntity } from "../shared/visit-types";
 
 const entity = (id: string, name: string, coordinates?: MedicalEntity["geographicCoordinates"]): MedicalEntity => ({ id, name, kind: "عيادة", geographicCoordinates: coordinates, createdAt: "2026-08-19T00:00:00.000Z" });
@@ -22,6 +22,13 @@ describe("embedded entity migration", () => {
     const merged = mergeEmbeddedEntities(saved, embedded, true);
     expect(merged[0].geographicCoordinates?.latitude).toBe(15.4);
     expect(merged[0].geographicCoordinates?.longitude).toBe(44.2);
+  });
+
+  it("preserves existing coordinates when an update omits them", () => {
+    const existing = entity("saved-1", "طبيب موجود", { latitude: 15.9, longitude: 44.9, accuracy: 8 });
+    const incoming = entity("saved-1", "طبيب موجود");
+    const merged = preserveExistingCoordinates(existing, incoming);
+    expect(merged.geographicCoordinates).toEqual(existing.geographicCoordinates);
   });
 
   it("does not overwrite later manual coordinates after migration is complete", () => {

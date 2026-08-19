@@ -4,6 +4,10 @@ export const EMBEDDED_COORDINATES_MIGRATION_VERSION = 2;
 
 const normalizeName = (value: string) => value.trim().toLocaleLowerCase();
 
+export function preserveExistingCoordinates(existing: MedicalEntity, incoming: MedicalEntity): MedicalEntity {
+  return { ...incoming, geographicCoordinates: incoming.geographicCoordinates ?? existing.geographicCoordinates };
+}
+
 export function mergeEmbeddedEntities(
   savedEntities: MedicalEntity[] | undefined,
   embeddedEntities: MedicalEntity[],
