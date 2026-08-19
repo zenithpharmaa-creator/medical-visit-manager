@@ -6,14 +6,14 @@ import type { MedicalEntity } from "../shared/visit-types";
 const entity = (id: string, name: string, coordinates?: MedicalEntity["geographicCoordinates"]): MedicalEntity => ({ id, name, kind: "عيادة", geographicCoordinates: coordinates, createdAt: "2026-08-19T00:00:00.000Z" });
 
 describe("embedded entity migration", () => {
-  it("updates coordinates once while preserving the saved entity and adding missing entities", () => {
-    const saved = [entity("saved-1", "طبيب موجود", { latitude: 15, longitude: 44, accuracy: 50 })];
-    const embedded = [entity("embedded-1", "طبيب موجود", { latitude: 15.4, longitude: 44.2, accuracy: null }), entity("embedded-2", "طبيب جديد", { latitude: 15.5, longitude: 44.3, accuracy: null })];
+  it("fills missing coordinates and adds missing entities without replacing existing coordinates", () => {
+    const saved = [entity("saved-1", "طبيب موجود", { latitude: 15, longitude: 44, accuracy: 50 }), entity("saved-2", "طبيب بلا إحداثيات")];
+    const embedded = [entity("embedded-1", "طبيب موجود", { latitude: 15.4, longitude: 44.2, accuracy: null }), entity("embedded-2", "طبيب بلا إحداثيات", { latitude: 15.5, longitude: 44.3, accuracy: null }), entity("embedded-3", "طبيب جديد", { latitude: 15.6, longitude: 44.4, accuracy: null })];
     const merged = mergeEmbeddedEntities(saved, embedded, true);
-    expect(merged).toHaveLength(2);
-    expect(merged[0].id).toBe("saved-1");
-    expect(merged[0].geographicCoordinates?.latitude).toBe(15.4);
-    expect(merged[1].id).toBe("embedded-2");
+    expect(merged).toHaveLength(3);
+    expect(merged[0].geographicCoordinates?.latitude).toBe(15);
+    expect(merged[1].geographicCoordinates?.latitude).toBe(15.5);
+    expect(merged[2].id).toBe("embedded-3");
   });
 
   it("restores embedded coordinates when the saved record is missing them", () => {
