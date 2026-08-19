@@ -16,6 +16,14 @@ describe("embedded entity migration", () => {
     expect(merged[1].id).toBe("embedded-2");
   });
 
+  it("restores embedded coordinates when the saved record is missing them", () => {
+    const saved = [entity("saved-1", "طبيب موجود")];
+    const embedded = [entity("embedded-1", "طبيب موجود", { latitude: 15.4, longitude: 44.2, accuracy: null })];
+    const merged = mergeEmbeddedEntities(saved, embedded, true);
+    expect(merged[0].geographicCoordinates?.latitude).toBe(15.4);
+    expect(merged[0].geographicCoordinates?.longitude).toBe(44.2);
+  });
+
   it("does not overwrite later manual coordinates after migration is complete", () => {
     const saved = [entity("saved-1", "طبيب موجود", { latitude: 15.9, longitude: 44.9, accuracy: 8 })];
     const embedded = [entity("embedded-1", "طبيب موجود", { latitude: 15.4, longitude: 44.2, accuracy: null })];
