@@ -18,6 +18,7 @@ import { findDailyVisitConflict } from "@/lib/visit-rules";
 import { isFiniteLocation, normalizeLocation } from "@/lib/location-capture";
 import { appendLocationDiagnostic, type LocationDiagnostic } from "@/lib/location-diagnostics";
 import { MedicalEntity, Representative, VisitLocation, VisitVerificationStatus } from "@/shared/visit-types";
+import { hasRequiredVisitedItems } from "@/lib/visit-form-rules";
 
 type PickerTarget = "representative" | "entity" | null;
 
@@ -81,7 +82,7 @@ export default function RecordVisitScreen() {
   const entityPickerOptions = useMemo(() => {
     const query = entitySearch.trim().toLocaleLowerCase();
     return data.entities
-      .map((item) => ({ label: item.name, value: item.id, helper: [item.kind, item.specialty, item.category, item.nearestPharmacy ? `أقرب صيدلية: ${item.nearestPharmacy}` : "", item.geographicLocation].filter(Boolean).join(" · ") }))
+      .map((item) => ({ label: item.name, value: item.id, helper: [item.address?.trim() ? `العنوان: ${item.address.trim()}` : "العنوان: غير مسجل", [item.kind, item.category ? `الفئة: ${item.category}` : "", item.specialty ? `التخصص: ${item.specialty}` : ""].filter(Boolean).join(" · "), item.nearestPharmacy ? `أقرب صيدلية: ${item.nearestPharmacy}` : "أقرب صيدلية: غير محددة", item.geographicLocation ? `الموقع: ${item.geographicLocation}` : ""].filter(Boolean).join("\n") }))
       .filter((item) => !query || `${item.label} ${item.helper}`.toLocaleLowerCase().includes(query))
       .sort((a, b) => entityMatchScore(a.label, a.helper, query) - entityMatchScore(b.label, b.helper, query) || a.label.localeCompare(b.label, "ar"));
   }, [data.entities, entitySearch]);
@@ -171,6 +172,7 @@ export default function RecordVisitScreen() {
   };
   const saveVisit = async () => {
     if (!selectedEntity) { Alert.alert("اختر جهة الزيارة", "أضف جهة من شاشة الإدارة أو استوردها من Excel أولاً."); return; }
+    if (!hasRequiredVisitedItems(selectedVisitedItems)) { Alert.alert("الأصناف المزارة مطلوبة", "اختر صنفاً مزوراً واحداً على الأقل من قائمة الأصناف قبل إتمام الزيارة."); return; }
     if (!representativeForVisit) { Alert.alert("الحساب غير متاح", "تعذر تحديد حساب المندوب الحالي."); return; }
     const attemptedAt = new Date().toISOString();
     const dailyConflict = findDailyVisitConflict(data.visits, data.plannedVisits, selectedEntity.id, representativeForVisit.id, attemptedAt);
@@ -218,7 +220,7 @@ export default function RecordVisitScreen() {
         {isManager ? <FormField label="المندوب" icon="person"><SelectBox value={selectedRepresentative?.name} placeholder="اختر المندوب" onPress={() => setPicker("representative")} /></FormField> : <View className="rounded-2xl bg-primary/10 border border-primary/20 px-4 py-3 mb-4 flex-row-reverse items-center justify-between"><Text className="font-bold text-primary">{representativeForVisit?.name ?? "الحساب الحالي"}</Text><Text className="text-xs text-muted">الحساب النشط</Text></View>}
         <FormField label="اسم الطبيب أو الجهة" icon="person">
           <View className="h-14 rounded-2xl border border-border bg-surface px-4 flex-row-reverse items-center gap-2"><MaterialIcons name="search" size={20} color="#1565C0" /><TextInput ref={entitySearchRef} value={entitySearch} onChangeText={setEntitySearch} placeholder="اكتب اسم الطبيب للبحث" placeholderTextColor="#7C8798" textAlign="right" className="flex-1 h-full text-foreground font-semibold" /></View>
-          <Pressable onPress={() => data.entities.length ? setPicker("entity") : Alert.alert("لا توجد جهات", "انتقل إلى شاشة الإدارة لإضافة جهة يدوياً أو استيراد ملف Excel.")} className="min-h-14 rounded-2xl border border-border bg-surface px-4 py-3 flex-row-reverse items-center justify-between"><View className="flex-row-reverse items-center gap-2"><MaterialIcons name="keyboard-arrow-down" size={24} color="#102A43" /><Text className="text-primary font-bold text-xs">فتح القائمة</Text></View><View className="items-end flex-1"><Text className={`font-bold text-right ${selectedEntity ? "text-foreground" : "text-muted"}`}>{selectedEntity?.name || (data.entities.length ? "ابحث واختر الطبيب أو الجهة" : "لا توجد جهات مسجلة")}</Text>{selectedEntity ? <Text className="text-xs text-muted text-right mt-1">{selectedEntity.kind} · {selectedEntity.region === "south" ? "جنوب صنعاء" : "شمال صنعاء"}</Text> : <Text className="text-[11px] text-muted text-right mt-1">قائمة منسدلة مع بحث سريع</Text>}</View></Pressable>
+          <Pressable onPress={() => data.entities.length ? setPicker("entity") : Alert.alert("لا توجد جهات", "انتقل إلى شاشة الإدارة لإضافة جهة يدوياً أو استيراد ملف Excel.")} className="min-h-14 rounded-2xl border border-border bg-surface px-4 py-3 flex-row-reverse items-center justify-between"><View className="flex-row-reverse items-center gap-2"><MaterialIcons name="keyboard-arrow-down" size={24} color="#102A43" /><Text className="text-primary font-bold text-xs">فتح القائمة</Text></View><View className="items-end flex-1"><Text className={`font-bold text-right ${selectedEntity ? "text-foreground" : "text-muted"}`}>{selectedEntity?.name || (data.entities.length ? "ابحث واختر الطبيب أو الجهة" : "لا توجد جهات مسجلة")}</Text>{selectedEntity ? <View className="items-end"><Text className="text-xs text-muted text-right mt-1">{selectedEntity.address?.trim() ? `العنوان: ${selectedEntity.address.trim()}` : "العنوان: غير مسجل"}</Text><Text className="text-[11px] text-muted text-right mt-1">{[selectedEntity.kind, selectedEntity.category ? `الفئة: ${selectedEntity.category}` : "", selectedEntity.specialty ? `التخصص: ${selectedEntity.specialty}` : "", selectedEntity.nearestPharmacy ? `أقرب صيدلية: ${selectedEntity.nearestPharmacy}` : ""].filter(Boolean).join(" · ")}</Text></View> : <Text className="text-[11px] text-muted text-right mt-1">قائمة منسدلة مع بحث سريع</Text>}</View></Pressable>
         </FormField>
 
 
