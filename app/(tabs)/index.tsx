@@ -5,7 +5,6 @@ import { router } from "expo-router";
 import {
   ActivityIndicator,
   Alert,
-  Image,
   Modal,
   Pressable,
   ScrollView,
@@ -16,6 +15,7 @@ import {
 import { useEffect, useState } from "react";
 
 import { MetricCard } from "@/components/metric-card";
+import { RepresentativeAvatar } from "@/components/representative-avatar";
 import { AssignedVisitsWindow } from "@/components/assigned-visits-window";
 import { ScreenHeader } from "@/components/screen-header";
 import { ScreenContainer } from "@/components/screen-container";
@@ -193,16 +193,7 @@ export default function HomeScreen() {
           onPress={() => setAccountMenuVisible(true)}
           className="rounded-2xl bg-surface border border-border px-4 py-3 mb-5 flex-row-reverse items-center gap-3"
         >
-          <View className="w-10 h-10 rounded-full bg-primary/15 items-center justify-center overflow-hidden">
-            {activeRepresentative?.photoUri ? (
-              <Image
-                source={{ uri: activeRepresentative.photoUri }}
-                className="w-10 h-10"
-              />
-            ) : (
-              <MaterialIcons name="account-circle" size={25} color="#1565C0" />
-            )}
-          </View>
+          {session?.role === "manager" ? <View className="w-10 h-10 rounded-full bg-primary/15 items-center justify-center overflow-hidden"><MaterialIcons name="admin-panel-settings" size={25} color="#1257A6" /></View> : <RepresentativeAvatar representativeId={activeRepresentative?.id} photoUri={activeRepresentative?.photoUri} size={40} />}
           <View className="flex-1 items-end">
             <Text className="font-bold text-foreground">
               {activeAccountName}
@@ -231,20 +222,7 @@ export default function HomeScreen() {
               className="bg-background rounded-t-[28px] p-5"
             >
               <View className="flex-row-reverse items-center gap-3 mb-4">
-                <View className="w-12 h-12 rounded-full bg-primary/15 items-center justify-center overflow-hidden">
-                  {activeRepresentative?.photoUri ? (
-                    <Image
-                      source={{ uri: activeRepresentative.photoUri }}
-                      className="w-12 h-12"
-                    />
-                  ) : (
-                    <MaterialIcons
-                      name="account-circle"
-                      size={28}
-                      color="#1565C0"
-                    />
-                  )}
-                </View>
+                {session?.role === "manager" ? <View className="w-12 h-12 rounded-full bg-primary/15 items-center justify-center overflow-hidden"><MaterialIcons name="admin-panel-settings" size={28} color="#1257A6" /></View> : <RepresentativeAvatar representativeId={activeRepresentative?.id} photoUri={activeRepresentative?.photoUri} size={48} />}
                 <View className="flex-1 items-end">
                   <Text className="text-lg font-bold text-foreground text-right">
                     {activeAccountName}
@@ -443,9 +421,7 @@ export default function HomeScreen() {
                   className="rounded-xl bg-background border border-border p-3"
                 >
                   <View className="flex-row-reverse items-center justify-between">
-                    <Text className="font-bold text-foreground">
-                      {rep.name}
-                    </Text>
+                    <View className="flex-row-reverse items-center gap-2"><RepresentativeAvatar representativeId={rep.id} photoUri={rep.photoUri} size={38} /><Text className="font-bold text-foreground">{rep.name}</Text></View>
                     <View className="flex-row-reverse gap-2">
                       <Text className="text-xs text-success font-bold">
                         منفذة: {visits}
