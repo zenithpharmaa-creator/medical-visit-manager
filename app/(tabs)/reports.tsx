@@ -15,6 +15,7 @@ import { ScreenHeader } from "@/components/screen-header";
 import { ScreenContainer } from "@/components/screen-container";
 import { NativeDateTimePicker } from "@/components/native-date-time-picker";
 import { buildReportHtml, formatVisitTime, getPeriodVisits, ReportPeriod, reportTitle, sortVisitsByRecordedAt } from "@/lib/reporting";
+import { localDateKey } from "@/lib/visit-utils";
 
 const REPORT_FILTERS_KEY = "medical-visit-manager:report-filters";
 const pad2 = (value: number) => String(value).padStart(2, "0");
@@ -48,8 +49,25 @@ export default function ReportsScreen() {
   const [editLatitude, setEditLatitude] = useState("");
   const [editLongitude, setEditLongitude] = useState("");
   const [editAccuracy, setEditAccuracy] = useState("");
-  const basePeriodVisits = useMemo(() => period === "daily" && dailyDate ? getPeriodVisits(data.visits, "daily", new Date(`${dailyDate}T12:00:00`)) : getPeriodVisits(data.visits, period), [data.visits, period, dailyDate]);
-  const currentVisits = useMemo(() => sortVisitsByRecordedAt(basePeriodVisits.filter((visit) => { const day = visit.recordedAt.slice(0, 10); const inRange = period !== "monthly" || ((!fromDate || day >= fromDate) && (!toDate || day <= toDate)); const byRep = representativeFilter === "all" || visit.representativeId === representativeFilter; return inRange && byRep; })), [basePeriodVisits, fromDate, toDate, representativeFilter]);
+  const basePeriodVisits = useMemo(() => {
+    if (period === "daily" && dailyDate) {
+      const selectedDay = dailyDate.trim();
+      return data.visits.filter((visit) => {
+        const parsed = new Date(visit.recordedAt);
+        const localMatch = !Number.isNaN(parsed.getTime()) && localDateKey(parsed) === selectedDay;
+        const rawMatch = typeof visit.recordedAt === "string" && visit.recordedAt.startsWith(selectedDay);
+        return localMatch || rawMatch;
+      });
+    }
+    return getPeriodVisits(data.visits, period);
+  }, [data.visits, period, dailyDate]);
+  const currentVisits = useMemo(() => sortVisitsByRecordedAt(basePeriodVisits.filter((visit) => {
+    const parsed = new Date(visit.recordedAt);
+    const day = !Number.isNaN(parsed.getTime()) ? localDateKey(parsed) : visit.recordedAt.slice(0, 10);
+    const inRange = period !== "monthly" || ((!fromDate || day >= fromDate) && (!toDate || day <= toDate));
+    const byRep = representativeFilter === "all" || visit.representativeId === representativeFilter;
+    return inRange && byRep;
+  })), [basePeriodVisits, fromDate, toDate, representativeFilter, period]);
   const selectedRepName = data.representatives.find((item) => item.id === representativeFilter)?.name ?? "كل المندوبين";
   const title = period === "daily" && dailyDate ? `تقرير الزيارات اليومي — ${dailyDate}` : period === "monthly" && (fromDate || toDate) ? `تقرير شهري من ${fromDate || "البداية"} إلى ${toDate || "النهاية"}` : reportTitle(period);
   useEffect(() => { if (routePeriod === "daily" || routePeriod === "monthly") setPeriod(routePeriod); }, [routePeriod]);
