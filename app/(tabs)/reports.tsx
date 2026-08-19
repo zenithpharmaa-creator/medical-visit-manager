@@ -19,8 +19,10 @@ const REPORT_FILTERS_KEY = "medical-visit-manager:report-filters";
 const pad2 = (value: number) => String(value).padStart(2, "0");
 const dateKey = (date: Date) => `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
 import { useVisitStore } from "@/lib/visit-store";
+import { useAccountSession } from "@/lib/account-session";
 
 export default function ReportsScreen() {
+  const { session } = useAccountSession();
   const { data } = useVisitStore();
   const [period, setPeriod] = useState<ReportPeriod>("daily");
   const [isWorking, setIsWorking] = useState(false);
@@ -40,6 +42,10 @@ export default function ReportsScreen() {
   const logoUri = Asset.fromModule(require("../../assets/images/icon.png")).uri;
   const html = useMemo(() => buildReportHtml({ visits: currentVisits, representatives: data.representatives, title, managerName: data.settings.managerName, logoUri }), [currentVisits, data.representatives, data.settings.managerName, title, logoUri]);
   const byRepresentative = data.representatives.map((representative) => ({ representative, count: currentVisits.filter((visit) => visit.representativeId === representative.id).length }));
+
+  if (session?.role !== "manager") {
+    return <ScreenContainer className="px-5" containerClassName="bg-background"><View className="flex-1 items-center justify-center"><MaterialIcons name="lock" size={42} color="#B42318" /><Text className="text-xl font-bold text-foreground text-center mt-4">التقارير متاحة لمدير النظام فقط</Text><Text className="text-sm text-muted text-center mt-2 leading-5">لا يملك حساب المندوب صلاحية عرض التقارير أو فلاترها.</Text></View></ScreenContainer>;
+  }
 
   const run = async (action: "print" | "share" | "email" | "excel") => {
     setIsWorking(true);
