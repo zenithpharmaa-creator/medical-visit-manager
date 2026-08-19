@@ -38,6 +38,7 @@ export default function ReportsScreen() {
   const [reportMenuVisible, setReportMenuVisible] = useState(false);
   const [monthlyLoading, setMonthlyLoading] = useState(false);
   const [dailyPrintPreviewVisible, setDailyPrintPreviewVisible] = useState(false);
+  const [dailyPrintLoading, setDailyPrintLoading] = useState(false);
   const reportScrollRef = useRef<ScrollView>(null);
   const [editVisit, setEditVisit] = useState<typeof data.visits[number] | null>(null);
   const [editNotes, setEditNotes] = useState("");
@@ -111,10 +112,14 @@ export default function ReportsScreen() {
     } finally { setIsWorking(false); }
   };
 
-  const handleDailyPrint = () => {
+  const handleDailyPrint = async () => {
+    setDailyPrintLoading(true);
     setDailyPrintPreviewVisible(true);
-    setTimeout(() => reportScrollRef.current?.scrollToEnd({ animated: true }), 120);
-    setTimeout(() => { void run("print"); }, 300);
+    await new Promise((resolve) => setTimeout(resolve, 250));
+    reportScrollRef.current?.scrollToEnd({ animated: true });
+    await new Promise((resolve) => setTimeout(resolve, 450));
+    await run("print");
+    setDailyPrintLoading(false);
   };
 
   const saveVisitEdit = () => {
@@ -165,7 +170,7 @@ export default function ReportsScreen() {
           <Pressable onPress={() => run("email")} disabled={isWorking} className="h-14 rounded-2xl bg-success items-center justify-center flex-row-reverse gap-2" style={({ pressed }) => [{ opacity: pressed || isWorking ? 0.75 : 1 }]}><MaterialIcons name="email" size={21} color="#FFFFFF" /><Text className="text-white font-bold">إرسال التقرير بالبريد</Text></Pressable>
           <Pressable onPress={() => run("excel")} disabled={isWorking} className="h-14 rounded-2xl bg-[#217346] items-center justify-center flex-row-reverse gap-2" style={({ pressed }) => [{ opacity: pressed || isWorking ? 0.75 : 1 }]}><MaterialIcons name="table-chart" size={21} color="#FFFFFF" /><Text className="text-white font-bold">تصدير Excel</Text></Pressable>
         </View> : null}
-        {period === "daily" && dailyPrintPreviewVisible ? <View className="rounded-2xl bg-surface border border-border p-4 mt-5"><View className="flex-row-reverse items-center justify-between mb-3"><Text className="font-bold text-foreground text-right">بيانات التقرير للطباعة</Text><ActivityIndicator size="small" color="#1257A6" /></View>{reportPreview()}</View> : null}
+        {period === "daily" && dailyPrintPreviewVisible ? <View className="rounded-2xl bg-surface border border-border p-4 mt-5"><View className="flex-row-reverse items-center justify-between mb-3">{dailyPrintLoading ? <View className="flex-row-reverse items-center gap-2"><ActivityIndicator size="small" color="#1257A6" /><Text className="text-xs font-bold text-primary">جاري جلب البيانات وتجهيزها للطباعة...</Text></View> : <View className="flex-row-reverse items-center gap-2"><MaterialIcons name="check-circle" size={18} color="#16A34A" /><Text className="text-xs font-bold text-success">تم تجهيز البيانات</Text></View>}<Text className="font-bold text-foreground text-right">بيانات التقرير للطباعة</Text></View>{reportPreview()}</View> : null}
         <Modal visible={representativeMenuVisible} transparent animationType="slide" onRequestClose={() => setRepresentativeMenuVisible(false)}><View className="flex-1 justify-end bg-black/35"><View className="bg-background rounded-t-[28px] px-5 pt-5 pb-8 max-h-[70%]"><View className="flex-row-reverse items-center justify-between mb-4"><Pressable onPress={() => setRepresentativeMenuVisible(false)} className="w-10 h-10 rounded-xl bg-surface items-center justify-center"><MaterialIcons name="close" size={22} color="#102A43" /></Pressable><Text className="text-xl font-bold text-foreground">اختر مندوب التقرير</Text></View><ScrollView showsVerticalScrollIndicator={false}><Pressable onPress={() => { setRepresentativeFilter("all"); setRepresentativeMenuVisible(false); }} className={`h-12 rounded-xl border px-4 mb-2 flex-row-reverse items-center justify-between ${representativeFilter === "all" ? "bg-primary/10 border-primary" : "bg-surface border-border"}`}><Text className="font-bold text-foreground">كل المندوبين</Text>{representativeFilter === "all" ? <MaterialIcons name="check" size={20} color="#1565C0" /> : null}</Pressable>{data.representatives.filter((item) => item.active).map((rep) => <Pressable key={rep.id} onPress={() => { setRepresentativeFilter(rep.id); setRepresentativeMenuVisible(false); }} className={`h-12 rounded-xl border px-4 mb-2 flex-row-reverse items-center justify-between ${representativeFilter === rep.id ? "bg-primary/10 border-primary" : "bg-surface border-border"}`}><Text className="font-bold text-foreground">{rep.name}</Text>{representativeFilter === rep.id ? <MaterialIcons name="check" size={20} color="#1565C0" /> : null}</Pressable>)}</ScrollView></View></View></Modal>        <Modal visible={calendarTarget !== null} transparent animationType="slide" onRequestClose={() => setCalendarTarget(null)}><View className="flex-1 justify-end bg-black/35"><View className="bg-background rounded-t-[28px] px-5 pt-5 pb-8"><View className="flex-row-reverse items-center justify-between mb-4"><Pressable onPress={() => setCalendarTarget(null)} className="w-10 h-10 rounded-xl bg-surface items-center justify-center"><MaterialIcons name="close" size={22} color="#102A43" /></Pressable><Text className="text-xl font-bold text-foreground">اختر {calendarTarget === "day" ? "يوم التقرير" : calendarTarget === "from" ? "تاريخ البداية" : "تاريخ النهاية"}</Text></View><NativeDateTimePicker mode="date" minimumDate={calendarTarget === "day" ? new Date(1970, 0, 1) : undefined} maximumDate={calendarTarget === "day" ? new Date() : undefined} value={new Date((calendarTarget === "day" ? dailyDate : calendarTarget === "from" ? fromDate : toDate) ? `${calendarTarget === "day" ? dailyDate : calendarTarget === "from" ? fromDate : toDate}T12:00:00` : Date.now())} onChange={(date) => { const key = dateKey(date); if (calendarTarget === "day") setDailyDate(key); else if (calendarTarget === "from") setFromDate(key); else setToDate(key); setCalendarTarget(null); }} /></View></View></Modal>
         {period === "monthly" ? <View className="rounded-2xl bg-surface border border-border p-4 mt-5 flex-row-reverse gap-3"><MaterialIcons name="info-outline" size={21} color="#1565C0" /><Text className="flex-1 text-right text-sm text-muted leading-5">يُنشأ ملف PDF من التقرير داخل الهاتف؛ ويمكن طباعته أو مشاركته أو فتح البريد مع التقرير كمرفق.</Text></View> : null}
       </ScrollView>
