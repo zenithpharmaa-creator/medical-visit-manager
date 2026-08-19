@@ -11,6 +11,7 @@ import { ScreenContainer } from "@/components/screen-container";
 import { useAccountSession } from "@/lib/account-session";
 import { useVisitStore } from "@/lib/visit-store";
 import { formatArabicDate, isSameLocalDay } from "@/lib/visit-utils";
+import { getVisitSyncLabel, getVisitSyncState } from "@/lib/visit-sync-status";
 
 export default function VisitsScreen() {
   const { data, deleteVisit } = useVisitStore();
@@ -25,6 +26,8 @@ export default function VisitsScreen() {
     const matchesStatus = statusFilter === "all" || visit.verificationStatus === statusFilter;
     return matchesQuery && matchesStatus;
   });
+  const pendingSyncCount = visibleVisits.filter((visit) => getVisitSyncState(visit) === "pending").length;
+  const syncedCount = visibleVisits.filter((visit) => getVisitSyncState(visit) === "synced").length;
 
   const [exportBusy, setExportBusy] = useState(false);
   const exportVisits = async (kind: "excel" | "csv") => {
@@ -47,6 +50,19 @@ export default function VisitsScreen() {
     <ScreenContainer className="px-5" containerClassName="bg-background">
       <View className="pt-[18px] flex-1">
         <ScreenHeader title="الزيارات" subtitle={isManager ? `${filtered.length} زيارة محفوظة` : `${filtered.length} زيارة لك اليوم`} icon="event-note" />
+        <View className={`rounded-2xl border p-4 mb-3 ${pendingSyncCount ? "bg-warning/10 border-warning/30" : "bg-success/10 border-success/30"}`}>
+          <View className="flex-row-reverse items-center gap-3">
+            <View className={`w-10 h-10 rounded-xl items-center justify-center ${pendingSyncCount ? "bg-warning" : "bg-success"}`}><MaterialIcons name={pendingSyncCount ? "cloud-upload" : "cloud-done"} size={21} color="#FFFFFF" /></View>
+            <View className="flex-1 items-end">
+              <Text className="font-bold text-foreground text-right">{pendingSyncCount ? "مزامنة الزيارات قيد الانتظار" : "حالة المزامنة مستقرة"}</Text>
+              <Text className="text-xs text-muted text-right mt-1">{pendingSyncCount ? `${pendingSyncCount} زيارة محفوظة دون إنترنت بانتظار الرفع والتحقق عند عودة الاتصال.` : "لا توجد زيارات offline معلقة حالياً."}</Text>
+            </View>
+          </View>
+          <View className="flex-row-reverse gap-2 mt-3">
+            <View className="flex-1 rounded-xl bg-background/70 px-3 py-2"><Text className="text-[11px] text-muted text-right">بانتظار الرفع</Text><Text className="font-bold text-warning text-right mt-1">{pendingSyncCount}</Text></View>
+            <View className="flex-1 rounded-xl bg-background/70 px-3 py-2"><Text className="text-[11px] text-muted text-right">تمت المزامنة</Text><Text className="font-bold text-success text-right mt-1">{syncedCount}</Text></View>
+          </View>
+        </View>
         {isManager ? <View className="h-13 rounded-2xl border border-border bg-surface px-4 flex-row-reverse items-center gap-2 mb-3">
           <MaterialIcons name="search" size={21} color="#102A43" />
           <TextInput value={query} onChangeText={setQuery} placeholder="ابحث بالطبيب أو الصيدلية أو المنطقة أو العنوان أو الموقع" placeholderTextColor="#7C8798" textAlign="right" className="flex-1 h-full text-foreground font-semibold" />
@@ -71,6 +87,7 @@ export default function VisitsScreen() {
                     <Text className="text-sm text-primary font-semibold mt-1 text-right">{item.entityKind} · {representative}</Text>{item.specialty || item.category ? <Text className="text-xs text-muted mt-1 text-right">{[item.specialty, item.category].filter(Boolean).join(" · ")}</Text> : null}{item.entityRegion || item.geographicLocation ? <Text className="text-xs text-muted mt-1 text-right">المنطقة: {item.entityRegion === "north" ? "شمال صنعاء" : item.entityRegion === "south" ? "جنوب صنعاء" : item.geographicLocation ?? "صنعاء"}</Text> : null}{item.entityAddress ? <Text className="text-xs text-muted mt-1 text-right">العنوان: {item.entityAddress}</Text> : null}{item.nearestPharmacy ? <Text className="text-xs text-muted mt-1 text-right">أقرب صيدلية: {item.nearestPharmacy}</Text> : null}{item.geographicLocation && item.entityRegion ? <Text className="text-xs text-muted mt-1 text-right">الموقع الجغرافي: {item.geographicLocation}</Text> : null}
                     <Text className="text-xs text-muted mt-1 text-right">{formatArabicDate(item.recordedAt)}</Text>
                     {item.location ? <Text className="text-xs text-success mt-1 text-right">تم توثيق الموقع</Text> : <Text className="text-xs text-warning mt-1 text-right">لم يتوفر الموقع</Text>}
+                    {(() => { const syncState = getVisitSyncState(item); return <View className={`mt-2 rounded-xl px-3 py-2 flex-row-reverse items-center gap-2 ${syncState === "pending" ? "bg-warning/10" : syncState === "synced" ? "bg-success/10" : "bg-background"}`}><MaterialIcons name={syncState === "pending" ? "cloud-upload" : syncState === "synced" ? "cloud-done" : "save"} size={16} color={syncState === "pending" ? "#D97706" : syncState === "synced" ? "#16835B" : "#64748B"} /><Text className={`text-xs font-bold flex-1 text-right ${syncState === "pending" ? "text-warning" : syncState === "synced" ? "text-success" : "text-muted"}`}>{getVisitSyncLabel(syncState)}</Text></View>; })()}
                     {item.verificationStatus === "pending" ? <Text className="text-xs text-warning font-bold mt-1 text-right">بانتظار التحقق عند عودة الاتصال</Text> : null}
                     {item.verificationStatus === "verified" ? <Text className="text-xs text-success font-bold mt-1 text-right">تمت مطابقة الموقع وقبول الزيارة</Text> : null}
                     {item.verificationStatus === "rejected" ? <Text className="text-xs text-error font-bold mt-1 text-right">مرفوضة بعد التحقق: {item.verificationReason ?? "الموقع غير مطابق"}</Text> : null}
