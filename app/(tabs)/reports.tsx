@@ -154,6 +154,8 @@ export default function ReportsScreen() {
         title,
         managerName: data.settings.managerName,
         logoUri,
+        appName: "مدير الزيارات الطبية",
+        printedAt: new Date().toISOString(),
       }),
     [
       currentVisits,
@@ -161,6 +163,7 @@ export default function ReportsScreen() {
       data.settings.managerName,
       title,
       logoUri,
+      period,
     ],
   );
   const byRepresentative = data.representatives.map((representative) => ({

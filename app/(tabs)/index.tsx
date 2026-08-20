@@ -311,7 +311,7 @@ export default function HomeScreen() {
           </View>
         </Modal>
 
-        <View className="rounded-3xl bg-primary p-5 mb-5 overflow-hidden">
+        {session?.role === "manager" ? <View className="rounded-3xl bg-primary p-5 mb-5 overflow-hidden">
           <View className="flex-row-reverse items-start justify-between">
             <View className="items-end flex-1">
               <Text className="text-white/75 font-semibold text-right">
@@ -332,7 +332,7 @@ export default function HomeScreen() {
               <MaterialIcons name="insights" size={26} color="#FFFFFF" />
             </View>
           </View>
-        </View>
+        </View> : null}
 
         <View className="flex-row-reverse gap-3 mb-3">
           <MetricCard
