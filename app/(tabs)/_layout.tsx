@@ -17,7 +17,7 @@ function ReportsTabButton() {
     router.push(`/(tabs)/reports?period=${period}` as never);
   };
   return <>
-    <Pressable onPress={() => setVisible(true)} style={({ pressed }) => [{ flex: 1, alignItems: "center", justifyContent: "center", borderRadius: 14, backgroundColor: pressed ? "rgba(21,101,192,0.18)" : "transparent" }]}>
+    <Pressable onPress={() => setVisible(true)} style={({ pressed }) => [{ flex: 1, height: "100%", minWidth: 0, paddingTop: 6, paddingBottom: 2, alignItems: "center", justifyContent: "center", borderRadius: 14, backgroundColor: pressed ? "rgba(21,101,192,0.18)" : "transparent" }]}>
       <MaterialIcons name="assessment" size={23} color="#1257A6" />
       <Text style={{ fontSize: 10, fontWeight: "700", color: "#1257A6", marginTop: 2 }}>التقارير</Text>
     </Pressable>
