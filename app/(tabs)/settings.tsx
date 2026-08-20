@@ -3,7 +3,7 @@ import * as ImagePicker from "expo-image-picker";
 import { File, Paths } from "expo-file-system";
 import * as Sharing from "expo-sharing";
 import { useEffect, useState } from "react";
-import { Alert, Image, Modal, Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { Alert, Image, Modal, Pressable, ScrollView, Switch, Text, TextInput, View } from "react-native";
 
 import { FormField } from "@/components/form-field";
 import { ScreenHeader } from "@/components/screen-header";
@@ -13,6 +13,7 @@ import { scheduleReportReminder } from "@/lib/report-reminder";
 import { deleteRepresentativePassword, saveRepresentativePassword } from "@/lib/representative-auth";
 import { saveManagerPassword } from "@/lib/manager-auth";
 import { validateRepresentativePassword } from "@/lib/representative-auth-validation";
+import { useAccountSession } from "@/lib/account-session";
 import { useVisitStore } from "@/lib/visit-store";
 import type { Representative } from "@/shared/visit-types";
 
@@ -23,6 +24,7 @@ const normalizeAssignedItems = (value: string) => Array.from(new Map(value.split
 
 export default function SettingsScreen() {
   const { data, addRepresentative, updateRepresentative, updateSettings, deleteRepresentative } = useVisitStore();
+  const { biometricEnabled, enableBiometric, disableBiometric } = useAccountSession();
   const [managerName, setManagerName] = useState(data.settings.managerName);
   const [reportEmail, setReportEmail] = useState(data.settings.reportEmail);
   const [reminderTime, setReminderTime] = useState(data.settings.reminderTime);
@@ -117,6 +119,7 @@ export default function SettingsScreen() {
       <ScrollView contentContainerStyle={{ paddingTop: 18, paddingBottom: 36 }} showsVerticalScrollIndicator={false}>
         <ScreenHeader title="الإعدادات" subtitle="بيانات الفريق والتقارير والنسخ الاحتياطي" icon="settings" />
         <View className="rounded-2xl bg-primary/10 border border-primary/20 p-4 mb-5 flex-row-reverse gap-3"><MaterialIcons name="security" size={21} color="#1565C0" /><Text className="flex-1 text-right text-primary text-sm leading-5">تُحفظ الزيارات والإعدادات على هذا الجهاز. كلمات مرور المندوبين تُحفظ في التخزين الآمن ولا تظهر في النسخة الاحتياطية العامة.</Text></View>
+        <View className="rounded-2xl bg-surface border border-border p-4 mb-5 flex-row-reverse items-center gap-3"><MaterialIcons name="fingerprint" size={25} color="#1565C0" /><View className="flex-1"><Text className="font-bold text-foreground text-right">الدخول بالبصمة أو الوجه</Text><Text className="text-xs text-muted text-right mt-1">يتطلب تفعيل البصمة أو التعرف على الوجه في إعدادات الهاتف. يبقى رمز المرور متاحاً كخيار بديل.</Text></View><Switch value={biometricEnabled} onValueChange={async (enabled) => { if (enabled) { const ok = await enableBiometric(); if (!ok) Alert.alert("تعذر التفعيل", "أكمل تسجيل بصمة أو وجه على الجهاز ثم حاول مرة أخرى."); } else await disableBiometric(); }} trackColor={{ false: "#CBD5E1", true: "#90CAF9" }} thumbColor={biometricEnabled ? "#1565C0" : "#F8FAFC"} accessibilityLabel="تفعيل الدخول بالبصمة أو الوجه" /></View>
         <Text className="font-bold text-foreground text-right mb-3">إدارة النظام</Text>
         <View className="rounded-2xl bg-surface border border-border p-4 mb-5">
           <Text className="font-bold text-foreground text-right">الأصناف المزارة</Text>

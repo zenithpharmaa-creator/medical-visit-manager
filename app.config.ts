@@ -86,6 +86,12 @@ const config: ExpoConfig = {
   },
   plugins: [
     "expo-router",
+    [
+      "expo-local-authentication",
+      {
+        faceIDPermission: "السماح لتطبيق مدير الزيارات الطبية باستخدام التعرف على الوجه.",
+      },
+    ],
     "expo-mail-composer",
     [
       "expo-notifications",
