@@ -6,12 +6,22 @@ import type { Session } from "@/lib/account-session";
 const BIOMETRIC_KEY = "medical_visit_biometric_session";
 
 export type BiometricKind = "face" | "fingerprint" | "none";
+export type BiometricStatus = { kind: BiometricKind; hasHardware: boolean; isEnrolled: boolean; available: boolean };
 
 export async function getBiometricKind(): Promise<BiometricKind> {
   const types = await LocalAuthentication.supportedAuthenticationTypesAsync();
   if (types.includes(LocalAuthentication.AuthenticationType.FACIAL_RECOGNITION)) return "face";
   if (types.includes(LocalAuthentication.AuthenticationType.FINGERPRINT)) return "fingerprint";
   return "none";
+}
+
+export async function getBiometricStatus(): Promise<BiometricStatus> {
+  const [kind, hasHardware, isEnrolled] = await Promise.all([
+    getBiometricKind(),
+    LocalAuthentication.hasHardwareAsync(),
+    LocalAuthentication.isEnrolledAsync(),
+  ]);
+  return { kind, hasHardware, isEnrolled, available: hasHardware && isEnrolled && kind !== "none" };
 }
 
 export async function canUseBiometrics() {

@@ -1,8 +1,9 @@
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import { useState } from "react";
-import { Alert, Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { useEffect, useState } from "react";
+import { ActivityIndicator, Alert, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 
 import { SelectionModal } from "@/components/selection-modal";
+import { getBiometricStatus, type BiometricStatus } from "@/lib/biometric-auth";
 import { useAccountSession } from "@/lib/account-session";
 import { useVisitStore } from "@/lib/visit-store";
 
@@ -17,6 +18,11 @@ export function LocalLoginScreen() {
   const [visible, setVisible] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [biometricStatus, setBiometricStatus] = useState<BiometricStatus | null>(null);
+
+  useEffect(() => {
+    getBiometricStatus().then(setBiometricStatus).catch(() => setBiometricStatus({ kind: "none", hasHardware: false, isEnrolled: false, available: false }));
+  }, []);
 
   const submit = async () => {
     setBusy(true);
@@ -26,6 +32,10 @@ export function LocalLoginScreen() {
     setBusy(false);
     if (!ok) Alert.alert("رمز مرور غير صحيح", "تعذر الدخول. تحقق من الحساب ورمز المرور ثم حاول مرة أخرى.");
   };
+
+  const biometricLabel = biometricStatus?.kind === "face" ? "التعرف على الوجه" : biometricStatus?.kind === "fingerprint" ? "بصمة الإصبع" : "المصادقة الحيوية";
+  const biometricIcon = biometricStatus?.kind === "face" ? "face" : "fingerprint";
+  const biometricHint = biometricStatus?.kind === "face" ? "استخدم التعرف على الوجه المسجل في جهازك" : biometricStatus?.kind === "fingerprint" ? "استخدم بصمة الإصبع المسجلة في جهازك" : "استخدم المصادقة الحيوية المسجلة في جهازك";
 
   const biometricSubmit = async () => {
     setBusy(true);
@@ -53,8 +63,9 @@ export function LocalLoginScreen() {
           <Text className="font-bold text-foreground text-right mb-2">كلمة المرور</Text>
           <View className="flex-row-reverse items-center gap-2 mb-5"><TextInput value={password} onChangeText={setPassword} secureTextEntry={!visible} autoCapitalize="none" placeholder="أدخل كلمة المرور" placeholderTextColor="#7C8798" textAlign="right" className="h-14 rounded-2xl border border-border bg-background px-4 text-foreground flex-1" /><Pressable onPress={() => setVisible((value) => !value)} className="w-14 h-14 rounded-2xl bg-foreground items-center justify-center"><MaterialIcons name={visible ? "visibility-off" : "visibility"} size={21} color="#FFFFFF" /></Pressable></View>
           <Pressable disabled={busy} onPress={submit} className="h-14 rounded-2xl bg-success items-center justify-center flex-row-reverse gap-2" style={({ pressed }) => [{ opacity: busy ? 0.55 : pressed ? 0.8 : 1 }]}><MaterialIcons name="login" size={21} color="#FFFFFF" /><Text className="text-white font-bold text-base">{busy ? "جارٍ التحقق..." : "دخول برمز المرور"}</Text></Pressable>
-          {biometricEnabled ? <Pressable disabled={busy} onPress={biometricSubmit} className="h-14 rounded-2xl bg-primary items-center justify-center flex-row-reverse gap-2 mt-3" style={({ pressed }) => [{ opacity: busy ? 0.55 : pressed ? 0.8 : 1 }]}><MaterialIcons name="fingerprint" size={24} color="#FFFFFF" /><Text className="text-white font-bold text-base">دخول بالبصمة أو الوجه</Text></Pressable> : null}
-          {biometricEnabled ? <Text className="text-xs text-muted text-right mt-2">يمكنك إلغاء المصادقة الحيوية من إعدادات الحساب، ويظل رمز المرور متاحاً دائماً.</Text> : null}
+          {biometricEnabled ? <Pressable disabled={busy} onPress={biometricSubmit} accessibilityRole="button" accessibilityLabel={`الدخول باستخدام ${biometricLabel}`} className="mt-3 min-h-[72px] rounded-2xl bg-primary border-2 border-[#0D4F8B] px-4 py-3 flex-row-reverse items-center gap-3" style={({ pressed }) => [{ opacity: busy ? 0.65 : pressed ? 0.82 : 1, transform: [{ scale: pressed && !busy ? 0.98 : 1 }] }]}><View className="w-11 h-11 rounded-full bg-white/20 items-center justify-center"><MaterialIcons name={biometricIcon} size={28} color="#FFFFFF" /></View><View className="flex-1 items-end"><Text className="text-white font-bold text-base">{busy ? "جارٍ التحقق..." : `دخول باستخدام ${biometricLabel}`}</Text><Text className="text-white/85 text-xs mt-1">{busy ? "انتظر لحظة وأكمل التحقق على جهازك" : biometricHint}</Text></View>{busy ? <ActivityIndicator size="small" color="#FFFFFF" /> : <MaterialIcons name="chevron-left" size={25} color="#FFFFFF" />}</Pressable> : null}
+          {biometricEnabled && biometricStatus && !biometricStatus.available ? <Text className="text-xs text-warning text-right mt-2">المصادقة الحيوية مفعلة للحساب، لكنها غير جاهزة حالياً على هذا الجهاز. فعّل بصمة أو وجهاً من إعدادات الهاتف أو استخدم رمز المرور.</Text> : null}
+          {biometricEnabled ? <Text className="text-xs text-muted text-right mt-2">إذا لم تنجح المصادقة، استخدم زر الدخول برمز المرور. يمكنك إيقافها من إعدادات الحساب.</Text> : null}
           {mode === "manager" && managerTarget !== "manager" ? <Text className="text-xs text-primary text-right mt-3">سيتم فتح التطبيق بصلاحيات المندوب المحدد من قبل المدير.</Text> : null}
         </View>
       </ScrollView>
