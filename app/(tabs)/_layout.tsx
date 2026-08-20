@@ -23,10 +23,10 @@ function ReportsTabButton() {
     </Pressable>
     <Modal visible={visible} transparent animationType="fade" onRequestClose={() => setVisible(false)}>
       <Pressable onPress={() => setVisible(false)} style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.28)", justifyContent: "flex-end" }}>
-        <Pressable onPress={(event) => event.stopPropagation()} style={{ margin: 16, borderRadius: 18, overflow: "hidden", backgroundColor: "#FFFFFF", borderWidth: 1, borderColor: "#D8E0EA" }}>
+        <Pressable onPress={(event) => event.stopPropagation()} style={{ margin: 16, width: "52%", alignSelf: "flex-end", borderRadius: 18, overflow: "hidden", backgroundColor: "#FFFFFF", borderWidth: 1, borderColor: "#D8E0EA" }}>
           <Text style={{ padding: 14, textAlign: "right", fontWeight: "700", color: "#64748B", backgroundColor: "#F1F5F9" }}>التقارير</Text>
-          <Pressable onPress={() => open("daily")} style={{ padding: 16, flexDirection: "row-reverse", alignItems: "center", justifyContent: "space-between", borderBottomWidth: 1, borderBottomColor: "#E2E8F0" }}><Text style={{ fontWeight: "700", color: "#102A43" }}>تقرير الزيارات اليومية</Text><MaterialIcons name="today" size={21} color="#1257A6" /></Pressable>
-          <Pressable onPress={() => open("monthly")} style={{ padding: 16, flexDirection: "row-reverse", alignItems: "center", justifyContent: "space-between" }}><Text style={{ fontWeight: "700", color: "#102A43" }}>تقرير الزيارات الشهرية</Text><MaterialIcons name="date-range" size={21} color="#1257A6" /></Pressable>
+          <Pressable onPress={() => open("daily")} style={{ padding: 12, flexDirection: "row-reverse", alignItems: "center", justifyContent: "space-between", borderBottomWidth: 1, borderBottomColor: "#E2E8F0" }}><Text style={{ fontWeight: "700", color: "#102A43" }}>تقرير الزيارات اليومية</Text><MaterialIcons name="today" size={21} color="#1257A6" /></Pressable>
+          <Pressable onPress={() => open("monthly")} style={{ padding: 12, flexDirection: "row-reverse", alignItems: "center", justifyContent: "space-between" }}><Text style={{ fontWeight: "700", color: "#102A43" }}>تقرير الزيارات الشهرية</Text><MaterialIcons name="date-range" size={21} color="#1257A6" /></Pressable>
         </Pressable>
       </Pressable>
     </Modal>
