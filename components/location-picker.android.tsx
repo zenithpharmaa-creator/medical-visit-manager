@@ -2,7 +2,7 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import * as Linking from "expo-linking";
 import * as Location from "expo-location";
 import { useEffect, useState } from "react";
-import { Alert, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { Alert, Keyboard, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 
 import { SANAA_NEIGHBORHOODS } from "@/data/sanaa-neighborhoods";
 import type { MapRegion } from "@/shared/map-types";
@@ -31,6 +31,7 @@ export function LocationPicker({ visible, value, onClose, onConfirm }: Props) {
   }, [value, visible]);
 
   const selectCoordinate = (latitude: number, longitude: number, label: string, accuracy: number | null = null) => {
+    Keyboard.dismiss();
     setSelected({ label, coordinates: { latitude, longitude, accuracy } });
     setRegion({ latitude, longitude, latitudeDelta: 0.04, longitudeDelta: 0.04 });
   };

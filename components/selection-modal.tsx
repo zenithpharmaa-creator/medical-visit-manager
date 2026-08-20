@@ -1,5 +1,5 @@
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import { FlatList, KeyboardAvoidingView, Modal, Platform, Pressable, Text, TextInput, View } from "react-native";
+import { FlatList, Keyboard, KeyboardAvoidingView, Modal, Platform, Pressable, Text, TextInput, View } from "react-native";
 
 type Option = { label: string; value: string; helper?: string };
 
@@ -41,6 +41,7 @@ export function SelectionModal({ visible, title, options, selected, onClose, onS
                 return (
                   <Pressable
                     onPress={() => {
+                      Keyboard.dismiss();
                       onSelect(item);
                       onClose();
                     }}
