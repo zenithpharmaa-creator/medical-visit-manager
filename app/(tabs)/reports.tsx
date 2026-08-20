@@ -322,12 +322,14 @@ export default function ReportsScreen() {
   };
 
   const handleDailyPrint = async () => {
+    if (isWorking || dailyPrintLoading) return;
     setDailyPrintLoading(true);
     setDailyPrintPreviewVisible(true);
     await new Promise((resolve) => setTimeout(resolve, 250));
     reportScrollRef.current?.scrollToEnd({ animated: true });
     await new Promise((resolve) => setTimeout(resolve, 450));
     setDailyPrintLoading(false);
+    await run("print");
   };
 
   const saveVisitEdit = () => {
@@ -392,16 +394,19 @@ export default function ReportsScreen() {
     );
   };
 
-  const reportPreview = (expanded = false) => (
-    <ScrollView
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      contentContainerStyle={{ minWidth: expanded ? 1040 : 720 }}
-    >
-      <View
-        className="border border-border rounded-xl overflow-hidden"
-        style={{ minWidth: expanded ? 1040 : 720 }}
+  const reportPreview = (expanded = false) => {
+    const paperWidth = expanded ? 1040 : 720;
+    const paperHeight = Math.round((paperWidth * 210) / 297);
+    return (
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{ minWidth: paperWidth }}
       >
+        <View
+          className="border border-border rounded-xl overflow-hidden bg-background"
+          style={{ width: paperWidth, minHeight: paperHeight }}
+        >
         <View className="flex-row-reverse bg-foreground">
           <Text className="w-10 px-2 py-2 text-white text-[10px] font-bold text-center">
             #
@@ -505,9 +510,10 @@ export default function ReportsScreen() {
             لا توجد زيارات لهذا اليوم.
           </Text>
         )}
-      </View>
-    </ScrollView>
-  );
+        </View>
+      </ScrollView>
+    );
+  };
 
   return (
     <ScreenContainer className="px-5" containerClassName="bg-background">
@@ -564,6 +570,8 @@ export default function ReportsScreen() {
               <Pressable
                 onPress={() => void handleDailyPrint()}
                 disabled={isWorking || dailyPrintLoading}
+                accessibilityRole="button"
+                accessibilityLabel="طباعة التقرير اليومي"
                 className="flex-1 h-10 rounded-xl bg-foreground items-center justify-center flex-row-reverse gap-1"
               >
                 <MaterialIcons name="print" size={16} color="#FFFFFF" />
