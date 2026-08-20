@@ -57,6 +57,11 @@ export default function ReportsScreen() {
     useState(false);
   const [previewFullscreen, setPreviewFullscreen] = useState(false);
   const [reportMenuVisible, setReportMenuVisible] = useState(false);
+  const [actionMenuVisible, setActionMenuVisible] = useState(false);
+  const [downloadMenuVisible, setDownloadMenuVisible] = useState(false);
+  const [emailModalVisible, setEmailModalVisible] = useState(false);
+  const [emailRecipient, setEmailRecipient] = useState(data.settings.reportEmail || "");
+  const [emailFrequency, setEmailFrequency] = useState<"manual" | "daily" | "weekly" | "monthly">("manual");
   const [monthlyLoading, setMonthlyLoading] = useState(false);
   const [dailyPrintPreviewVisible, setDailyPrintPreviewVisible] =
     useState(false);
@@ -121,7 +126,20 @@ export default function ReportsScreen() {
       setPeriod(routePeriod);
   }, [routePeriod]);
   useEffect(() => {
-    void AsyncStorage.getItem(REPORT_FILTERS_KEY).then((raw) => {
+    void AsyncStorage.multiGet([REPORT_FILTERS_KEY, "medical-visit-manager:report-email-settings"]).then((entries) => {
+      const raw = entries[0]?.[1];
+      const emailSettings = entries[1]?.[1];
+      if (emailSettings) {
+        try {
+          const parsed = JSON.parse(emailSettings) as { recipient?: string; frequency?: "manual" | "daily" | "weekly" | "monthly" };
+          setEmailRecipient(parsed.recipient || data.settings.reportEmail || "");
+          setEmailFrequency(parsed.frequency || "manual");
+        } catch {
+          setEmailRecipient(data.settings.reportEmail || "");
+        }
+      } else {
+        setEmailRecipient(data.settings.reportEmail || "");
+      }
       if (!raw) return;
       try {
         const saved = JSON.parse(raw) as {
@@ -138,7 +156,7 @@ export default function ReportsScreen() {
         /* ignore malformed preferences */
       }
     });
-  }, []);
+  }, [data.settings.reportEmail]);
   useEffect(() => {
     void AsyncStorage.setItem(
       REPORT_FILTERS_KEY,
@@ -229,7 +247,19 @@ export default function ReportsScreen() {
     );
   }
 
-  const run = async (action: "print" | "share" | "email" | "excel") => {
+  const saveEmailSettings = async () => {
+    const recipient = emailRecipient.trim();
+    if (recipient && !/^\S+@\S+\.\S+$/.test(recipient)) {
+      Alert.alert("بريد غير صالح", "أدخل عنوان بريد إلكتروني صحيحاً.");
+      return false;
+    }
+    await AsyncStorage.setItem("medical-visit-manager:report-email-settings", JSON.stringify({ recipient, frequency: emailFrequency }));
+    setEmailModalVisible(false);
+    Alert.alert("تم الحفظ", emailFrequency === "manual" ? "سيتم استخدام العنوان عند الضغط على إرسال البريد." : "تم حفظ الدورية المطلوبة. الإرسال التلقائي يحتاج خدمة بريد مجدولة مرتبطة بالتطبيق.");
+    return true;
+  };
+
+  const run = async (action: "print" | "share" | "email" | "excel" | "pdf") => {
     setIsWorking(true);
     try {
       if (action === "excel") {
@@ -284,7 +314,7 @@ export default function ReportsScreen() {
         return;
       }
       const pdf = await Print.printToFileAsync({ html });
-      if (action === "share") {
+      if (action === "share" || action === "pdf") {
         if (!(await Sharing.isAvailableAsync())) {
           Alert.alert(
             "المشاركة غير متاحة",
@@ -295,7 +325,7 @@ export default function ReportsScreen() {
         await Sharing.shareAsync(pdf.uri, {
           mimeType: "application/pdf",
           UTI: ".pdf",
-          dialogTitle: "مشاركة تقرير الزيارات",
+          dialogTitle: action === "pdf" ? "تحميل تقرير الزيارات PDF" : "مشاركة تقرير الزيارات",
         });
         return;
       }
@@ -307,9 +337,7 @@ export default function ReportsScreen() {
         return;
       }
       await MailComposer.composeAsync({
-        recipients: data.settings.reportEmail
-          ? [data.settings.reportEmail]
-          : [],
+        recipients: emailRecipient.trim() ? [emailRecipient.trim()] : data.settings.reportEmail ? [data.settings.reportEmail] : [],
         subject: title,
         body: `مرفق ${title}.`,
         attachments: [pdf.uri],
@@ -561,10 +589,7 @@ export default function ReportsScreen() {
             </Pressable>
             <View className="flex-row-reverse gap-2">
               <Pressable
-                onPress={() => {
-                  setDailyDate("");
-                  setRepresentativeFilter("all");
-                }}
+                onPress={() => setActionMenuVisible((visible) => !visible)}
                 className="flex-1 h-10 rounded-xl border border-border bg-background items-center justify-center flex-row-reverse gap-1"
               >
                 <MaterialIcons name="tune" size={16} color="#1257A6" />
@@ -588,6 +613,22 @@ export default function ReportsScreen() {
                 <Text className="text-xs font-bold text-white">معاينة</Text>
               </Pressable>
             </View>
+            {actionMenuVisible ? (
+              <View className="rounded-xl border border-border bg-background overflow-hidden">
+                <Pressable onPress={() => setDownloadMenuVisible((visible) => !visible)} className="h-11 px-3 flex-row-reverse items-center justify-between border-b border-border">
+                  <MaterialIcons name="download" size={18} color="#1257A6" />
+                  <Text className="text-sm font-bold text-foreground">تحميل التقرير</Text>
+                </Pressable>
+                {downloadMenuVisible ? (
+                  <View className="bg-surface flex-row-reverse gap-2 p-2">
+                    <Pressable onPress={() => { setActionMenuVisible(false); setDownloadMenuVisible(false); void run("pdf"); }} className="flex-1 h-10 rounded-lg bg-primary items-center justify-center flex-row-reverse gap-1"><MaterialIcons name="picture-as-pdf" size={16} color="#FFFFFF" /><Text className="text-xs font-bold text-white">PDF</Text></Pressable>
+                    <Pressable onPress={() => { setActionMenuVisible(false); setDownloadMenuVisible(false); void run("excel"); }} className="flex-1 h-10 rounded-lg bg-[#217346] items-center justify-center flex-row-reverse gap-1"><MaterialIcons name="table-chart" size={16} color="#FFFFFF" /><Text className="text-xs font-bold text-white">Excel</Text></Pressable>
+                  </View>
+                ) : null}
+                <Pressable onPress={() => { setActionMenuVisible(false); setEmailModalVisible(true); }} className="h-11 px-3 flex-row-reverse items-center justify-between border-b border-border"><MaterialIcons name="email" size={18} color="#16835B" /><Text className="text-sm font-bold text-foreground">إرسال التقرير بالبريد</Text></Pressable>
+                <Pressable onPress={() => { setActionMenuVisible(false); setEmailModalVisible(true); }} className="h-11 px-3 flex-row-reverse items-center justify-between"><MaterialIcons name="schedule" size={18} color="#1257A6" /><Text className="text-sm font-bold text-foreground">إعداد المستلم والدورية</Text></Pressable>
+              </View>
+            ) : null}
           </View>
         ) : null}
         {period === "monthly" ? (
@@ -1051,7 +1092,28 @@ export default function ReportsScreen() {
               </ScrollView>
             </View>
           </View>
-        </Modal>{" "}
+        </Modal>
+        <Modal visible={emailModalVisible} transparent animationType="slide" onRequestClose={() => setEmailModalVisible(false)}>
+          <View className="flex-1 justify-end bg-black/35">
+            <View className="bg-background rounded-t-[28px] p-5">
+              <View className="flex-row-reverse items-center justify-between mb-4">
+                <Pressable onPress={() => setEmailModalVisible(false)} className="w-10 h-10 rounded-xl bg-surface items-center justify-center"><MaterialIcons name="close" size={22} color="#102A43" /></Pressable>
+                <Text className="text-xl font-bold text-foreground">إرسال التقرير بالبريد</Text>
+              </View>
+              <Text className="text-xs text-muted text-right mb-1">البريد المستلم</Text>
+              <TextInput value={emailRecipient} onChangeText={setEmailRecipient} keyboardType="email-address" autoCapitalize="none" placeholder="example@email.com" placeholderTextColor="#7C8798" textAlign="right" className="h-12 rounded-xl border border-border bg-surface px-4 text-foreground mb-4" />
+              <Text className="text-xs text-muted text-right mb-2">الدورية المطلوبة</Text>
+              <View className="flex-row-reverse flex-wrap gap-2 mb-4">
+                {([['manual', 'يدوي'], ['daily', 'يومي'], ['weekly', 'أسبوعي'], ['monthly', 'شهري']] as const).map(([value, label]) => <Pressable key={value} onPress={() => setEmailFrequency(value)} className={`flex-1 min-w-[22%] h-10 rounded-xl items-center justify-center ${emailFrequency === value ? 'bg-primary' : 'bg-surface border border-border'}`}><Text className={`text-xs font-bold ${emailFrequency === value ? 'text-white' : 'text-foreground'}`}>{label}</Text></Pressable>)}
+              </View>
+              {emailFrequency !== "manual" ? <Text className="text-xs text-warning text-right leading-5 mb-3">سيتم حفظ الدورية كإعداد. الإرسال التلقائي يحتاج خدمة بريد مجدولة مرتبطة بالخادم، أما الإرسال اليدوي فيفتح تطبيق البريد مع التقرير مرفقاً.</Text> : null}
+              <View className="flex-row-reverse gap-2">
+                <Pressable onPress={() => void saveEmailSettings()} className="flex-1 h-12 rounded-xl bg-success items-center justify-center"><Text className="text-white font-bold">حفظ الإعداد</Text></Pressable>
+                <Pressable onPress={() => { setEmailModalVisible(false); void run("email"); }} className="flex-1 h-12 rounded-xl bg-primary items-center justify-center"><Text className="text-white font-bold">إرسال الآن</Text></Pressable>
+              </View>
+            </View>
+          </View>
+        </Modal>
         <Modal
           visible={calendarTarget !== null}
           transparent
