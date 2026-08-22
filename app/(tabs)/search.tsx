@@ -1,36 +1,15 @@
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useMemo, useState } from "react";
-import { FlatList, Keyboard, Linking, Pressable, ScrollView, Text, TextInput, View, Alert } from "react-native";
+import { Keyboard, Linking, Pressable, ScrollView, Text, View, Alert } from "react-native";
 
 import { InteractiveMap } from "@/components/interactive-map";
 import { ScreenContainer } from "@/components/screen-container";
 import { ScreenHeader } from "@/components/screen-header";
+import { SelectionModal } from "@/components/selection-modal";
 import { rankEntitiesForSearch } from "@/lib/entity-search";
 import { ENTITY_KINDS } from "@/lib/visit-utils";
 import { useVisitStore } from "@/lib/visit-store";
 import type { MedicalEntity } from "@/shared/visit-types";
-
-function HighlightedText({ text, query, className }: { text: string; query: string; className: string }) {
-  const normalizedQuery = query.trim().toLocaleLowerCase();
-  if (!normalizedQuery) return <Text className={className}>{text}</Text>;
-
-  const lowerText = text.toLocaleLowerCase();
-  const parts: React.ReactNode[] = [];
-  let cursor = 0;
-  let matchIndex = lowerText.indexOf(normalizedQuery, cursor);
-  let matchNumber = 0;
-
-  while (matchIndex >= 0) {
-    if (matchIndex > cursor) parts.push(text.slice(cursor, matchIndex));
-    parts.push(<Text key={`match-${matchNumber++}`} className="bg-warning/35 text-primary font-extrabold">{text.slice(matchIndex, matchIndex + normalizedQuery.length)}</Text>);
-    cursor = matchIndex + normalizedQuery.length;
-    matchIndex = lowerText.indexOf(normalizedQuery, cursor);
-  }
-
-  if (cursor === 0) return <Text className={className}>{text}</Text>;
-  if (cursor < text.length) parts.push(text.slice(cursor));
-  return <Text className={className}>{parts}</Text>;
-}
 
 export default function SearchScreen() {
   const { data } = useVisitStore();
@@ -38,7 +17,7 @@ export default function SearchScreen() {
   const [selectedEntity, setSelectedEntity] = useState<MedicalEntity | null>(null);
   const [kindFilter, setKindFilter] = useState("الكل");
   const [regionFilter, setRegionFilter] = useState("all");
-  const [searchFocused, setSearchFocused] = useState(false);
+  const [entityPickerVisible, setEntityPickerVisible] = useState(false);
 
   const mappedEntities = useMemo(
     () => data.entities.filter((entity) => {
@@ -53,12 +32,17 @@ export default function SearchScreen() {
     return kindMatches && regionMatches;
   }), [data.entities, kindFilter, regionFilter]);
   const suggestions = useMemo(() => rankEntitiesForSearch(filteredEntities, query), [filteredEntities, query]);
+  const entityPickerOptions = useMemo(() => suggestions.map((entity) => ({
+    label: entity.name,
+    value: entity.id,
+    helper: [entity.kind, entity.address ? `العنوان: ${entity.address}` : "العنوان: غير مسجل", entity.nearestPharmacy ? `أقرب صيدلية: ${entity.nearestPharmacy}` : "أقرب صيدلية: غير محددة", entity.geographicLocation ? `الموقع: ${entity.geographicLocation}` : ""].filter(Boolean).join(" · "),
+  })), [suggestions]);
 
   const selectEntity = (entity: MedicalEntity) => {
     Keyboard.dismiss();
     setSelectedEntity(entity);
-    setQuery(entity.name);
-    setSearchFocused(false);
+    setQuery("");
+    setEntityPickerVisible(false);
   };
   const openExternalMap = async (entity: MedicalEntity) => {
     const coordinates = entity.geographicCoordinates;
@@ -72,35 +56,21 @@ export default function SearchScreen() {
     ? { latitude: selectedCoordinates.latitude, longitude: selectedCoordinates.longitude, latitudeDelta: 0.035, longitudeDelta: 0.035 }
     : { latitude: 15.3694, longitude: 44.191, latitudeDelta: 0.18, longitudeDelta: 0.18 };
 
-  const renderEntityResult = ({ item }: { item: MedicalEntity }) => {
-    const hasCoordinates = Boolean(item.geographicCoordinates);
-    const active = selectedEntity?.id === item.id;
-    return <Pressable onPress={() => selectEntity(item)} className={`rounded-xl border p-3 flex-row-reverse items-center gap-3 ${active ? "bg-primary/10 border-primary" : "bg-background border-border"}`} style={({ pressed }) => [{ opacity: pressed ? 0.72 : 1 }]}><View className={`w-10 h-10 rounded-lg items-center justify-center ${hasCoordinates ? "bg-primary" : "bg-muted"}`}><MaterialIcons name={item.kind === "صيدلية" ? "local-pharmacy" : "local-hospital"} size={20} color="#FFFFFF" /></View><View className="flex-1 items-end"><HighlightedText className="font-bold text-foreground text-right" text={item.name} query={query} /><Text className="text-xs text-muted mt-1 text-right">{item.kind}{item.specialty ? ` · ${item.specialty}` : ""}</Text>{item.address ? <HighlightedText className="text-[11px] text-muted mt-1 text-right" text={`العنوان: ${item.address}`} query={query} /> : null}{item.nearestPharmacy ? <HighlightedText className="text-[11px] text-muted mt-1 text-right" text={`أقرب صيدلية: ${item.nearestPharmacy}`} query={query} /> : null}<Text className={`text-[11px] mt-1 text-right ${hasCoordinates ? "text-success" : "text-warning"}`}>{hasCoordinates ? (item.geographicLocation || "إحداثيات محفوظة") : "لا توجد إحداثيات محفوظة"}</Text></View><MaterialIcons name={active ? "check-circle" : "chevron-left"} size={21} color={active ? "#1257A6" : "#64748B"} /></Pressable>;
-  };
 
   return (
     <ScreenContainer className="px-5" containerClassName="bg-background">
       <View className="flex-1">
         <ScreenHeader title="بحث" subtitle="ابحث عن جهة محفوظة واعرض موقعها على الخريطة" icon="search" />
         <View className="rounded-2xl bg-surface border border-primary/30 p-3 mb-3">
-          <View className="h-14 rounded-xl border border-primary bg-background px-3 flex-row-reverse items-center gap-2">
+          <Pressable onPress={() => { setQuery(""); setEntityPickerVisible(true); }} className="min-h-14 rounded-xl border border-primary bg-background px-3 py-2 flex-row-reverse items-center gap-3" accessibilityRole="button" accessibilityLabel="فتح البحث عن جهة محفوظة" style={({ pressed }) => [{ opacity: pressed ? 0.78 : 1 }]}>
             <MaterialIcons name="search" size={22} color="#1257A6" />
-            <TextInput
-              value={query}
-              onFocus={() => setSearchFocused(true)}
-              onChangeText={(value) => { setQuery(value); setSearchFocused(true); if (selectedEntity && value !== selectedEntity.name) setSelectedEntity(null); }}
-              placeholder="ابحث باسم الجهة أو العنوان أو أقرب صيدلية"
-              placeholderTextColor="#7C8798"
-              textAlign="right"
-              autoCapitalize="none"
-              returnKeyType="search"
-              className="flex-1 h-full text-foreground font-semibold"
-              accessibilityLabel="البحث عن جهة محفوظة"
-            />
-            {query ? <Pressable onPress={() => { setQuery(""); setSelectedEntity(null); Keyboard.dismiss(); setSearchFocused(false); }} className="w-9 h-9 rounded-lg bg-surface items-center justify-center" accessibilityRole="button" accessibilityLabel="مسح البحث"><MaterialIcons name="close" size={19} color="#64748B" /></Pressable> : null}
-          </View>
-          <Text className="text-xs text-muted text-right mt-2">تظهر النتائج تلقائياً أثناء الكتابة في اسم الجهة أو العنوان أو أقرب صيدلية.</Text>
-          {searchFocused ? <View className="mt-2 rounded-xl border border-primary/30 bg-background p-2 shadow-sm"><View className="flex-row-reverse items-center justify-between px-1 pb-2"><Text className="text-xs font-bold text-primary text-right">نتائج البحث</Text><Text className="text-[11px] text-muted">{suggestions.length} نتيجة</Text></View><FlatList data={suggestions} keyExtractor={(item) => `dropdown-search-${item.id}`} renderItem={renderEntityResult} keyboardShouldPersistTaps="handled" nestedScrollEnabled showsVerticalScrollIndicator={false} contentContainerStyle={{ gap: 7 }} style={{ maxHeight: 270 }} ListEmptyComponent={<Text className="text-xs text-muted text-center py-3">لا توجد نتيجة مطابقة</Text>} /></View> : null}
+            <View className="flex-1 items-end">
+              <Text className={`font-bold text-right ${selectedEntity ? "text-foreground" : "text-muted"}`}>{selectedEntity?.name || "اضغط للبحث عن جهة محفوظة"}</Text>
+              <Text className="text-[11px] text-muted text-right mt-1">{suggestions.length} جهات متاحة — اكتب الأحرف الأولى داخل القائمة</Text>
+            </View>
+            <MaterialIcons name="keyboard-arrow-down" size={24} color="#1257A6" />
+          </Pressable>
+          <Text className="text-xs text-muted text-right mt-2">ستظهر النتائج في قائمة منسدلة أثناء الكتابة باسم الجهة أو العنوان أو أقرب صيدلية.</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ flexDirection: "row-reverse", gap: 7, paddingTop: 10 }} keyboardShouldPersistTaps="handled"><Pressable onPress={() => setKindFilter("الكل")} className={`rounded-full px-3 py-2 ${kindFilter === "الكل" ? "bg-primary" : "bg-background border border-border"}`}><Text className={kindFilter === "الكل" ? "text-white text-xs font-bold" : "text-foreground text-xs font-bold"}>كل الأنواع</Text></Pressable>{ENTITY_KINDS.map((kind) => <Pressable key={kind} onPress={() => setKindFilter(kind)} className={`rounded-full px-3 py-2 ${kindFilter === kind ? "bg-primary" : "bg-background border border-border"}`}><Text className={kindFilter === kind ? "text-white text-xs font-bold" : "text-foreground text-xs font-bold"}>{kind}</Text></Pressable>)}</ScrollView>
           <View className="flex-row-reverse gap-2 mt-2"><Pressable onPress={() => setRegionFilter("all")} className={`flex-1 h-10 rounded-xl items-center justify-center ${regionFilter === "all" ? "bg-foreground" : "bg-background border border-border"}`}><Text className={regionFilter === "all" ? "text-white text-xs font-bold" : "text-foreground text-xs font-bold"}>كل المناطق</Text></Pressable><Pressable onPress={() => setRegionFilter("north")} className={`flex-1 h-10 rounded-xl items-center justify-center ${regionFilter === "north" ? "bg-primary" : "bg-background border border-border"}`}><Text className={regionFilter === "north" ? "text-white text-xs font-bold" : "text-foreground text-xs font-bold"}>شمال صنعاء</Text></Pressable><Pressable onPress={() => setRegionFilter("south")} className={`flex-1 h-10 rounded-xl items-center justify-center ${regionFilter === "south" ? "bg-warning" : "bg-background border border-border"}`}><Text className={regionFilter === "south" ? "text-white text-xs font-bold" : "text-foreground text-xs font-bold"}>جنوب صنعاء</Text></Pressable></View>
         </View>
@@ -108,19 +78,11 @@ export default function SearchScreen() {
           {selectedEntity?.geographicCoordinates ? <InteractiveMap key={selectedEntity.id} visits={[]} entities={mappedEntities} representatives={data.representatives} initialRegion={initialRegion} targetLocation={selectedEntity.geographicCoordinates} targetTitle={selectedEntity.name} /> : <View className="flex-1 items-center justify-center px-6"><MaterialIcons name="map" size={42} color="#7C8798" /><Text className="font-bold text-foreground text-center mt-3">اختر جهة لعرض موقعها</Text><Text className="text-sm text-muted text-center mt-1">ستنتقل الخريطة تلقائياً إلى إحداثيات الجهة عند اختيارها.</Text></View>}
         </View>
         {selectedEntity?.geographicCoordinates ? <Pressable onPress={() => void openExternalMap(selectedEntity)} className="h-12 rounded-xl bg-foreground items-center justify-center flex-row-reverse gap-2 mb-3"><MaterialIcons name="open-in-new" size={19} color="#FFFFFF" /><Text className="text-white font-bold text-xs">فتح الموقع في تطبيق الخرائط</Text></Pressable> : null}
-        <View className="flex-row-reverse items-center justify-between mb-2">
-          <Text className="font-bold text-foreground text-right">الاقتراحات المحفوظة</Text>
-          <Text className="text-xs text-primary font-bold">{suggestions.length} نتيجة</Text>
+        <View className="rounded-2xl bg-surface border border-border p-4 mb-3">
+          <View className="flex-row-reverse items-center justify-between mb-2"><Text className="font-bold text-foreground text-right">الجهة المختارة</Text><Text className="text-xs text-primary font-bold">{suggestions.length} جهات متاحة</Text></View>
+          {selectedEntity ? <View className="items-end"><Text className="font-bold text-foreground text-right">{selectedEntity.name}</Text><Text className="text-xs text-muted text-right mt-1">{selectedEntity.kind}{selectedEntity.specialty ? ` · ${selectedEntity.specialty}` : ""}</Text><Text className="text-xs text-muted text-right mt-1">{selectedEntity.address ? `العنوان: ${selectedEntity.address}` : "العنوان: غير مسجل"}</Text><Text className="text-xs text-muted text-right mt-1">{selectedEntity.nearestPharmacy ? `أقرب صيدلية: ${selectedEntity.nearestPharmacy}` : "أقرب صيدلية: غير محددة"}</Text></View> : <Text className="text-sm text-muted text-right">اضغط على حقل البحث بالأعلى لعرض الجهات في قائمة منسدلة واختيار جهة لعرض موقعها.</Text>}
         </View>
-        {!searchFocused ? <FlatList
-          data={suggestions}
-          keyExtractor={(item) => `search-${item.id}`}
-          keyboardShouldPersistTaps="handled"
-          keyboardDismissMode="on-drag"
-          contentContainerStyle={{ gap: 9, paddingBottom: 28 }}
-          ListEmptyComponent={<View className="rounded-2xl bg-surface border border-border p-6 items-center"><MaterialIcons name="search-off" size={34} color="#7C8798" /><Text className="font-bold text-foreground mt-2">لا توجد جهة مطابقة</Text><Text className="text-sm text-muted text-center mt-1">جرّب كتابة اسم مختلف أو جزءاً من الاسم.</Text></View>}
-          renderItem={renderEntityResult}
-        /> : null}
+        <SelectionModal visible={entityPickerVisible} title="بحث عن جهة محفوظة" options={entityPickerOptions} selected={selectedEntity?.id} onClose={() => setEntityPickerVisible(false)} onSelect={(option) => { const entity = suggestions.find((item) => item.id === option.value); if (entity) selectEntity(entity); }} searchable searchValue={query} onSearchChange={setQuery} searchPlaceholder="اكتب الأحرف الأولى أو ابحث بالعنوان أو أقرب صيدلية" />
       </View>
     </ScreenContainer>
   );
