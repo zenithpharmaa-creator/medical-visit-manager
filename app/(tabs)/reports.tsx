@@ -62,6 +62,9 @@ export default function ReportsScreen() {
   const [emailModalVisible, setEmailModalVisible] = useState(false);
   const [emailRecipient, setEmailRecipient] = useState(data.settings.reportEmail || "");
   const [emailFrequency, setEmailFrequency] = useState<"manual" | "daily" | "weekly" | "monthly">("manual");
+  const [savedContacts, setSavedContacts] = useState<string[]>([]);
+  const [contactSearch, setContactSearch] = useState("");
+  const [messageTemplate, setMessageTemplate] = useState("مرفق تقرير الزيارات المطلوب.");
   const [monthlyLoading, setMonthlyLoading] = useState(false);
   const [dailyPrintPreviewVisible, setDailyPrintPreviewVisible] =
     useState(false);
@@ -112,6 +115,7 @@ export default function ReportsScreen() {
       ),
     [basePeriodVisits, fromDate, toDate, representativeFilter, period],
   );
+  const filteredContacts = savedContacts.filter((contact) => contact.toLowerCase().includes(contactSearch.trim().toLowerCase()));
   const selectedRepName =
     data.representatives.find((item) => item.id === representativeFilter)
       ?.name ?? "كل المندوبين";
@@ -131,9 +135,11 @@ export default function ReportsScreen() {
       const emailSettings = entries[1]?.[1];
       if (emailSettings) {
         try {
-          const parsed = JSON.parse(emailSettings) as { recipient?: string; frequency?: "manual" | "daily" | "weekly" | "monthly" };
+          const parsed = JSON.parse(emailSettings) as { recipient?: string; frequency?: "manual" | "daily" | "weekly" | "monthly"; contacts?: string[]; template?: string };
           setEmailRecipient(parsed.recipient || data.settings.reportEmail || "");
           setEmailFrequency(parsed.frequency || "manual");
+          setSavedContacts(Array.isArray(parsed.contacts) ? parsed.contacts : []);
+          setMessageTemplate(parsed.template || "مرفق تقرير الزيارات المطلوب.");
         } catch {
           setEmailRecipient(data.settings.reportEmail || "");
         }
@@ -249,17 +255,33 @@ export default function ReportsScreen() {
 
   const saveEmailSettings = async () => {
     const recipient = emailRecipient.trim();
-    if (recipient && !/^\S+@\S+\.\S+$/.test(recipient)) {
-      Alert.alert("بريد غير صالح", "أدخل عنوان بريد إلكتروني صحيحاً.");
+    const recipients = Array.from(new Set(recipient.split(/[;,\s]+/).map((item) => item.trim()).filter(Boolean)));
+    if (recipients.some((item) => !/^\S+@\S+\.\S+$/.test(item))) {
+      Alert.alert("بريد غير صالح", "أدخل عناوين بريد إلكتروني صحيحة مفصولة بفاصلة أو مسافة.");
       return false;
     }
-    await AsyncStorage.setItem("medical-visit-manager:report-email-settings", JSON.stringify({ recipient, frequency: emailFrequency }));
+    const contacts = Array.from(new Set([...savedContacts, ...recipient.split(/[;,\s]+/).map((item) => item.trim()).filter(Boolean)]));
+    setSavedContacts(contacts);
+    await AsyncStorage.setItem("medical-visit-manager:report-email-settings", JSON.stringify({ recipient, frequency: emailFrequency, contacts, template: messageTemplate }));
     setEmailModalVisible(false);
     Alert.alert("تم الحفظ", emailFrequency === "manual" ? "سيتم استخدام العنوان عند الضغط على إرسال البريد." : "تم حفظ الدورية المطلوبة. الإرسال التلقائي يحتاج خدمة بريد مجدولة مرتبطة بالتطبيق.");
     return true;
   };
 
-  const run = async (action: "print" | "share" | "email" | "excel" | "pdf") => {
+  const saveContact = async () => {
+    const value = contactSearch.trim();
+    if (!/^\S+@\S+\.\S+$/.test(value)) {
+      Alert.alert("جهة اتصال غير صالحة", "أدخل بريداً إلكترونياً صحيحاً.");
+      return;
+    }
+    const contacts = Array.from(new Set([...savedContacts, value]));
+    setSavedContacts(contacts);
+    setEmailRecipient((current) => current ? `${current}, ${value}` : value);
+    setContactSearch("");
+    await AsyncStorage.setItem("medical-visit-manager:report-email-settings", JSON.stringify({ recipient: emailRecipient, frequency: emailFrequency, contacts, template: messageTemplate }));
+  };
+
+  const run = async (action: "print" | "share" | "email" | "excel" | "pdf" | "csv" | "html") => {
     setIsWorking(true);
     try {
       if (action === "excel") {
@@ -306,6 +328,35 @@ export default function ReportsScreen() {
         });
         return;
       }
+      if (action === "csv") {
+        const rows = currentVisits.map((visit, index) => ({
+          "#": index + 1,
+          "وقت الزيارة": formatVisitTime(visit.recordedAt),
+          "اسم الطبيب": visit.entityName,
+          "نوع الجهة": visit.entityKind,
+          "التخصص": visit.specialty || "",
+          "الفئة": visit.category || "",
+          "الأصناف المزارة": visit.visitedItems?.join("، ") || "",
+          "العنوان": visit.entityAddress || visit.geographicLocation || "",
+          "خط العرض": visit.location?.latitude ?? visit.geographicCoordinates?.latitude ?? "",
+          "خط الطول": visit.location?.longitude ?? visit.geographicCoordinates?.longitude ?? "",
+          "المندوب": data.representatives.find((item) => item.id === visit.representativeId)?.name || "غير محدد",
+          "ملاحظات": visit.notes || "",
+        }));
+        const csv = "\\uFEFF" + XLSX.utils.sheet_to_csv(XLSX.utils.json_to_sheet(rows));
+        const uri = `${FileSystem.cacheDirectory}تقرير-الزيارات-${Date.now()}.csv`;
+        await FileSystem.writeAsStringAsync(uri, csv, { encoding: FileSystem.EncodingType.UTF8 });
+        if (!(await Sharing.isAvailableAsync())) { Alert.alert("المشاركة غير متاحة", "تعذر فتح قائمة المشاركة على هذا الجهاز."); return; }
+        await Sharing.shareAsync(uri, { mimeType: "text/csv", dialogTitle: "تحميل تقرير الزيارات CSV" });
+        return;
+      }
+      if (action === "html") {
+        const uri = `${FileSystem.cacheDirectory}تقرير-الزيارات-${Date.now()}.html`;
+        await FileSystem.writeAsStringAsync(uri, html, { encoding: FileSystem.EncodingType.UTF8 });
+        if (!(await Sharing.isAvailableAsync())) { Alert.alert("المشاركة غير متاحة", "تعذر فتح قائمة المشاركة على هذا الجهاز."); return; }
+        await Sharing.shareAsync(uri, { mimeType: "text/html", dialogTitle: "تحميل تقرير الزيارات HTML" });
+        return;
+      }
       if (action === "print") {
         await Print.printAsync({
           html,
@@ -336,10 +387,11 @@ export default function ReportsScreen() {
         );
         return;
       }
+      const mailRecipients = Array.from(new Set([...savedContacts, ...emailRecipient.split(/[;,\s]+/).map((item) => item.trim()).filter((item) => /^\S+@\S+\.\S+$/.test(item))]));
       await MailComposer.composeAsync({
-        recipients: emailRecipient.trim() ? [emailRecipient.trim()] : data.settings.reportEmail ? [data.settings.reportEmail] : [],
+        recipients: mailRecipients.length ? mailRecipients : data.settings.reportEmail ? [data.settings.reportEmail] : [],
         subject: title,
-        body: `مرفق ${title}.`,
+        body: messageTemplate.replace(/\{التقرير\}/g, title),
         attachments: [pdf.uri],
       });
     } catch {
@@ -623,10 +675,16 @@ export default function ReportsScreen() {
                   <View className="bg-surface flex-row-reverse gap-2 p-2">
                     <Pressable onPress={() => { setActionMenuVisible(false); setDownloadMenuVisible(false); void run("pdf"); }} className="flex-1 h-10 rounded-lg bg-primary items-center justify-center flex-row-reverse gap-1"><MaterialIcons name="picture-as-pdf" size={16} color="#FFFFFF" /><Text className="text-xs font-bold text-white">PDF</Text></Pressable>
                     <Pressable onPress={() => { setActionMenuVisible(false); setDownloadMenuVisible(false); void run("excel"); }} className="flex-1 h-10 rounded-lg bg-[#217346] items-center justify-center flex-row-reverse gap-1"><MaterialIcons name="table-chart" size={16} color="#FFFFFF" /><Text className="text-xs font-bold text-white">Excel</Text></Pressable>
+                    <Pressable onPress={() => { setActionMenuVisible(false); setDownloadMenuVisible(false); void run("csv"); }} className="flex-1 h-10 rounded-lg bg-[#6B7280] items-center justify-center flex-row-reverse gap-1"><MaterialIcons name="grid-on" size={16} color="#FFFFFF" /><Text className="text-xs font-bold text-white">CSV</Text></Pressable>
+                    <Pressable onPress={() => { setActionMenuVisible(false); setDownloadMenuVisible(false); void run("html"); }} className="flex-1 h-10 rounded-lg bg-[#D97706] items-center justify-center flex-row-reverse gap-1"><MaterialIcons name="language" size={16} color="#FFFFFF" /><Text className="text-xs font-bold text-white">HTML</Text></Pressable>
                   </View>
                 ) : null}
                 <Pressable onPress={() => { setActionMenuVisible(false); setEmailModalVisible(true); }} className="h-11 px-3 flex-row-reverse items-center justify-between border-b border-border"><MaterialIcons name="email" size={18} color="#16835B" /><Text className="text-sm font-bold text-foreground">إرسال التقرير بالبريد</Text></Pressable>
                 <Pressable onPress={() => { setActionMenuVisible(false); setEmailModalVisible(true); }} className="h-11 px-3 flex-row-reverse items-center justify-between"><MaterialIcons name="schedule" size={18} color="#1257A6" /><Text className="text-sm font-bold text-foreground">إعداد المستلم والدورية</Text></Pressable>
+                <View className="flex-row-reverse gap-2 p-2 border-t border-border">
+                  <Pressable onPress={() => { setActionMenuVisible(false); void run("share"); }} className="flex-1 h-11 rounded-xl bg-[#128C7E] items-center justify-center flex-row-reverse gap-1"><MaterialIcons name="share" size={17} color="#FFFFFF" /><Text className="text-xs font-bold text-white">WhatsApp</Text></Pressable>
+                  <Pressable onPress={() => { setActionMenuVisible(false); setEmailModalVisible(true); }} className="flex-1 h-11 rounded-xl bg-success items-center justify-center flex-row-reverse gap-1"><MaterialIcons name="email" size={17} color="#FFFFFF" /><Text className="text-xs font-bold text-white">البريد</Text></Pressable>
+                </View>
               </View>
             ) : null}
           </View>
@@ -1100,8 +1158,18 @@ export default function ReportsScreen() {
                 <Pressable onPress={() => setEmailModalVisible(false)} className="w-10 h-10 rounded-xl bg-surface items-center justify-center"><MaterialIcons name="close" size={22} color="#102A43" /></Pressable>
                 <Text className="text-xl font-bold text-foreground">إرسال التقرير بالبريد</Text>
               </View>
+              <Text className="text-xs text-muted text-right mb-1">بحث جهات الاتصال</Text>
+              <Text className="text-xs text-muted text-right mb-2">ابحث بالاسم أو البريد الإلكتروني ثم أضف الجهة إلى المستلمين.</Text>
+              <View className="flex-row-reverse items-center gap-2 mb-2">
+                <TextInput value={contactSearch} onChangeText={setContactSearch} keyboardType="email-address" autoCapitalize="none" placeholder="الاسم أو البريد الإلكتروني" placeholderTextColor="#7C8798" textAlign="right" className="flex-1 h-12 rounded-xl border border-border bg-surface px-4 text-foreground" />
+                <Pressable onPress={() => void saveContact()} className="h-12 px-3 rounded-xl bg-primary items-center justify-center"><Text className="text-white text-xs font-bold">إضافة</Text></Pressable>
+              </View>
+              {contactSearch.trim() && filteredContacts.length ? <View className="rounded-xl border border-border bg-surface mb-3">{filteredContacts.map((contact) => <Pressable key={contact} onPress={() => { setEmailRecipient((current) => current ? `${current}, ${contact}` : contact); setContactSearch(""); }} className="px-3 py-2 border-b border-border"><Text className="text-xs text-foreground text-right">{contact}</Text></Pressable>)}</View> : null}
+              {savedContacts.length ? <Text className="text-[11px] text-muted text-right mb-3">جهات محفوظة: {savedContacts.length}</Text> : null}
               <Text className="text-xs text-muted text-right mb-1">البريد المستلم</Text>
-              <TextInput value={emailRecipient} onChangeText={setEmailRecipient} keyboardType="email-address" autoCapitalize="none" placeholder="example@email.com" placeholderTextColor="#7C8798" textAlign="right" className="h-12 rounded-xl border border-border bg-surface px-4 text-foreground mb-4" />
+              <TextInput value={emailRecipient} onChangeText={setEmailRecipient} keyboardType="email-address" autoCapitalize="none" placeholder="example@email.com, another@email.com" placeholderTextColor="#7C8798" textAlign="right" className="min-h-12 rounded-xl border border-border bg-surface px-4 py-3 text-foreground mb-4" multiline />
+              <Text className="text-xs text-muted text-right mb-1">قالب الرسالة</Text>
+              <TextInput value={messageTemplate} onChangeText={setMessageTemplate} placeholder="مرفق {التقرير}" placeholderTextColor="#7C8798" textAlign="right" className="min-h-16 rounded-xl border border-border bg-surface px-4 py-3 text-foreground mb-4" multiline />
               <Text className="text-xs text-muted text-right mb-2">الدورية المطلوبة</Text>
               <View className="flex-row-reverse flex-wrap gap-2 mb-4">
                 {([['manual', 'يدوي'], ['daily', 'يومي'], ['weekly', 'أسبوعي'], ['monthly', 'شهري']] as const).map(([value, label]) => <Pressable key={value} onPress={() => setEmailFrequency(value)} className={`flex-1 min-w-[22%] h-10 rounded-xl items-center justify-center ${emailFrequency === value ? 'bg-primary' : 'bg-surface border border-border'}`}><Text className={`text-xs font-bold ${emailFrequency === value ? 'text-white' : 'text-foreground'}`}>{label}</Text></Pressable>)}
