@@ -22,6 +22,7 @@ const MAPPING = {
   "calendar": "event-note",
   "chart.bar.fill": "bar-chart",
   "gearshape.fill": "settings",
+  "magnifyingglass": "search",
 } as IconMapping;
 
 /**

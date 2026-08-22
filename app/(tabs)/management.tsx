@@ -15,6 +15,7 @@ import type { VisitShift } from "@/shared/visit-types";
 
 const options = [
   { label: "جهات الزيارة", subtitle: "العيادات والصيدليات والمستشفيات والمراكز", icon: "local-hospital" as const, route: "/entities" },
+  { label: "المواقع المشتركة", subtitle: "إضافة وتعديل وربط مواقع المستشفيات والمراكز", icon: "location-city" as const, route: "/shared-locations" },
   { label: "المندوبون", subtitle: "تعديل أسماء المندوبين وحالتهم", icon: "groups" as const, route: "/settings" },
   { label: "المهام المسندة", subtitle: "متابعة الزيارات التي أسندها المدير", icon: "assignment-ind" as const, route: "/tasks" },
   { label: "اعتماد الخطط الأسبوعية", subtitle: "مراجعة خطط المندوبين واعتمادها أو رفضها", icon: "fact-check" as const, route: "/plan-approvals" },

@@ -6,8 +6,12 @@ export function sharedLocationMatchesCoordinates(location: SharedLocation, coord
   return Boolean(coordinates && coordinatesKey(location.coordinates.latitude, location.coordinates.longitude) === coordinatesKey(coordinates.latitude, coordinates.longitude));
 }
 
+export function entityUsesSharedLocation(entity: MedicalEntity, location: SharedLocation) {
+  return entity.sharedLocationId ? entity.sharedLocationId === location.id : sharedLocationMatchesCoordinates(location, entity.geographicCoordinates);
+}
+
 export function countEntitiesUsingSharedLocation(entities: MedicalEntity[], location: SharedLocation) {
-  return entities.filter((entity) => sharedLocationMatchesCoordinates(location, entity.geographicCoordinates)).length;
+  return entities.filter((entity) => entityUsesSharedLocation(entity, location)).length;
 }
 
 export function deriveSharedLocations(entities: MedicalEntity[]): SharedLocation[] {
