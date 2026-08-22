@@ -1,7 +1,39 @@
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import { FlatList, Keyboard, KeyboardAvoidingView, Modal, Platform, Pressable, Text, TextInput, View } from "react-native";
+import { FlatList, Keyboard, KeyboardAvoidingView, Modal, Platform, Pressable, Text, TextInput, View, type TextProps } from "react-native";
 
 type Option = { label: string; value: string; helper?: string; popular?: boolean };
+
+type HighlightedTextProps = {
+  text: string;
+  query?: string;
+  className?: string;
+  numberOfLines?: TextProps["numberOfLines"];
+};
+
+export function HighlightedText({ text, query = "", className = "text-foreground", numberOfLines }: HighlightedTextProps) {
+  const normalizedQuery = query.trim().toLocaleLowerCase();
+  if (!normalizedQuery) return <Text className={className} numberOfLines={numberOfLines}>{text}</Text>;
+
+  const normalizedText = text.toLocaleLowerCase();
+  const parts: Array<{ value: string; matched: boolean }> = [];
+  let cursor = 0;
+  while (cursor < text.length) {
+    const matchIndex = normalizedText.indexOf(normalizedQuery, cursor);
+    if (matchIndex < 0) {
+      parts.push({ value: text.slice(cursor), matched: false });
+      break;
+    }
+    if (matchIndex > cursor) parts.push({ value: text.slice(cursor, matchIndex), matched: false });
+    parts.push({ value: text.slice(matchIndex, matchIndex + normalizedQuery.length), matched: true });
+    cursor = matchIndex + normalizedQuery.length;
+  }
+
+  return (
+    <Text className={className} numberOfLines={numberOfLines}>
+      {parts.map((part, index) => part.matched ? <Text key={`${part.value}-${index}`} style={{ backgroundColor: "#FFE7A3", color: "#8A4B08", fontWeight: "800" }}>{part.value}</Text> : part.value)}
+    </Text>
+  );
+}
 
 type Props = {
   visible: boolean;
@@ -58,8 +90,8 @@ export function SelectionModal({ visible, title, options, selected, onClose, onS
                       style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
                     >
                       <View className="items-end flex-1">
-                        <Text className="font-bold text-foreground text-right">{item.label}</Text>
-                        {item.helper ? <Text className="text-xs text-muted mt-1 text-right">{item.helper}</Text> : null}
+                        <HighlightedText text={item.label} query={searchValue} className="font-bold text-foreground text-right" />
+                        {item.helper ? <HighlightedText text={item.helper} query={searchValue} className="text-xs text-muted mt-1 text-right" /> : null}
                         {item.popular ? <View className="rounded-full bg-warning/15 border border-warning/25 px-2 py-1 mt-2 self-end"><Text className="text-warning text-[10px] font-bold">الأكثر استخداماً</Text></View> : null}
                       </View>
                       {active ? <MaterialIcons name="check-circle" size={22} color="#1565C0" /> : <MaterialIcons name="chevron-left" size={22} color="#64748B" />}
