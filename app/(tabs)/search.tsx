@@ -10,6 +10,28 @@ import { ENTITY_KINDS } from "@/lib/visit-utils";
 import { useVisitStore } from "@/lib/visit-store";
 import type { MedicalEntity } from "@/shared/visit-types";
 
+function HighlightedText({ text, query, className }: { text: string; query: string; className: string }) {
+  const normalizedQuery = query.trim().toLocaleLowerCase();
+  if (!normalizedQuery) return <Text className={className}>{text}</Text>;
+
+  const lowerText = text.toLocaleLowerCase();
+  const parts: React.ReactNode[] = [];
+  let cursor = 0;
+  let matchIndex = lowerText.indexOf(normalizedQuery, cursor);
+  let matchNumber = 0;
+
+  while (matchIndex >= 0) {
+    if (matchIndex > cursor) parts.push(text.slice(cursor, matchIndex));
+    parts.push(<Text key={`match-${matchNumber++}`} className="bg-warning/35 text-primary font-extrabold">{text.slice(matchIndex, matchIndex + normalizedQuery.length)}</Text>);
+    cursor = matchIndex + normalizedQuery.length;
+    matchIndex = lowerText.indexOf(normalizedQuery, cursor);
+  }
+
+  if (cursor === 0) return <Text className={className}>{text}</Text>;
+  if (cursor < text.length) parts.push(text.slice(cursor));
+  return <Text className={className}>{parts}</Text>;
+}
+
 export default function SearchScreen() {
   const { data } = useVisitStore();
   const [query, setQuery] = useState("");
@@ -53,7 +75,7 @@ export default function SearchScreen() {
   const renderEntityResult = ({ item }: { item: MedicalEntity }) => {
     const hasCoordinates = Boolean(item.geographicCoordinates);
     const active = selectedEntity?.id === item.id;
-    return <Pressable onPress={() => selectEntity(item)} className={`rounded-xl border p-3 flex-row-reverse items-center gap-3 ${active ? "bg-primary/10 border-primary" : "bg-background border-border"}`} style={({ pressed }) => [{ opacity: pressed ? 0.72 : 1 }]}><View className={`w-10 h-10 rounded-lg items-center justify-center ${hasCoordinates ? "bg-primary" : "bg-muted"}`}><MaterialIcons name={item.kind === "صيدلية" ? "local-pharmacy" : "local-hospital"} size={20} color="#FFFFFF" /></View><View className="flex-1 items-end"><Text className="font-bold text-foreground text-right">{item.name}</Text><Text className="text-xs text-muted mt-1 text-right">{item.kind}{item.specialty ? ` · ${item.specialty}` : ""}</Text>{item.address ? <Text className="text-[11px] text-muted mt-1 text-right" numberOfLines={1}>العنوان: {item.address}</Text> : null}{item.nearestPharmacy ? <Text className="text-[11px] text-muted mt-1 text-right" numberOfLines={1}>أقرب صيدلية: {item.nearestPharmacy}</Text> : null}<Text className={`text-[11px] mt-1 text-right ${hasCoordinates ? "text-success" : "text-warning"}`}>{hasCoordinates ? (item.geographicLocation || "إحداثيات محفوظة") : "لا توجد إحداثيات محفوظة"}</Text></View><MaterialIcons name={active ? "check-circle" : "chevron-left"} size={21} color={active ? "#1257A6" : "#64748B"} /></Pressable>;
+    return <Pressable onPress={() => selectEntity(item)} className={`rounded-xl border p-3 flex-row-reverse items-center gap-3 ${active ? "bg-primary/10 border-primary" : "bg-background border-border"}`} style={({ pressed }) => [{ opacity: pressed ? 0.72 : 1 }]}><View className={`w-10 h-10 rounded-lg items-center justify-center ${hasCoordinates ? "bg-primary" : "bg-muted"}`}><MaterialIcons name={item.kind === "صيدلية" ? "local-pharmacy" : "local-hospital"} size={20} color="#FFFFFF" /></View><View className="flex-1 items-end"><HighlightedText className="font-bold text-foreground text-right" text={item.name} query={query} /><Text className="text-xs text-muted mt-1 text-right">{item.kind}{item.specialty ? ` · ${item.specialty}` : ""}</Text>{item.address ? <HighlightedText className="text-[11px] text-muted mt-1 text-right" text={`العنوان: ${item.address}`} query={query} /> : null}{item.nearestPharmacy ? <HighlightedText className="text-[11px] text-muted mt-1 text-right" text={`أقرب صيدلية: ${item.nearestPharmacy}`} query={query} /> : null}<Text className={`text-[11px] mt-1 text-right ${hasCoordinates ? "text-success" : "text-warning"}`}>{hasCoordinates ? (item.geographicLocation || "إحداثيات محفوظة") : "لا توجد إحداثيات محفوظة"}</Text></View><MaterialIcons name={active ? "check-circle" : "chevron-left"} size={21} color={active ? "#1257A6" : "#64748B"} /></Pressable>;
   };
 
   return (
