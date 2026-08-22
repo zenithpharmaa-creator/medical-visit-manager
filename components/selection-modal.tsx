@@ -34,7 +34,7 @@ export function SelectionModal({ visible, title, options, selected, onClose, onS
                 </Pressable>
               </View>
             </View>
-            {searchable ? <View className="h-12 rounded-xl border border-primary bg-surface px-3 flex-row-reverse items-center gap-2 mb-3"><MaterialIcons name="search" size={20} color="#102A43" /><TextInput value={searchValue} onChangeText={onSearchChange} placeholder={searchPlaceholder} placeholderTextColor="#7C8798" textAlign="right" returnKeyType="search" blurOnSubmit={false} className="flex-1 h-full text-foreground font-semibold" /></View> : null}
+            {searchable ? <View className="h-12 rounded-xl border border-primary bg-surface px-3 flex-row-reverse items-center gap-2 mb-3"><MaterialIcons name="search" size={20} color="#102A43" /><TextInput value={searchValue} onChangeText={onSearchChange} placeholder={searchPlaceholder} placeholderTextColor="#7C8798" textAlign="right" returnKeyType="search" blurOnSubmit={false} className="flex-1 h-full text-foreground font-semibold" />{searchValue.trim() ? <Pressable onPress={() => onSearchChange?.("")} accessibilityRole="button" accessibilityLabel="مسح البحث" hitSlop={8} className="w-8 h-8 rounded-lg bg-background items-center justify-center" style={({ pressed }) => [{ opacity: pressed ? 0.6 : 1 }]}><MaterialIcons name="close" size={18} color="#64748B" /></Pressable> : null}</View> : null}
             <FlatList
               data={options}
               keyExtractor={(item) => item.value}
