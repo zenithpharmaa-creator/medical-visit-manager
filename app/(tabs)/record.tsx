@@ -3,7 +3,7 @@ import * as Haptics from "expo-haptics";
 import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
 import { useNetworkState } from "expo-network";
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { Alert, Image, Modal, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 
 import { FormField } from "@/components/form-field";
@@ -69,7 +69,6 @@ export default function RecordVisitScreen() {
   const [visitedItemsSearch, setVisitedItemsSearch] = useState("");
   const [visitedItemsModalVisible, setVisitedItemsModalVisible] = useState(false);
   const [entitySearch, setEntitySearch] = useState("");
-  const entitySearchRef = useRef<TextInput>(null);
   const activeRepresentative = session?.representativeId ? data.representatives.find((item) => item.id === session.representativeId) : undefined;
   const representativeForVisit = isManager ? selectedRepresentative : activeRepresentative;
   const availableVisitedItems = isManager ? data.settings.visitedItems : (activeRepresentative?.assignedItems ?? []);
@@ -157,7 +156,7 @@ export default function RecordVisitScreen() {
     if (managerOverride) void notifyManagerOfOverride({ settings: data.settings, visit: createdVisit, representativeName: representativeForVisit.name });
     setOverrideModalVisible(false); setOverridePin(""); setOverrideReason("");
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    Alert.alert("تم حفظ الزيارة", managerOverride ? "تم التسجيل بتجاوز المدير مع حفظ السبب." : !isManager ? "تم حفظ الزيارة دون إنترنت، وستُراجع تلقائياً عند عودة الاتصال." : "تم تسجيل وقت وموقع الزيارة بنجاح.", [{ text: "تسجيل زيارة أخرى", onPress: () => { setSelectedEntity(null); setEntitySearch(""); setNotes(""); setCapturedAt(null); setLocation(null); setLocationSource(null); setLocationStatus("سيتم التقاط الموقع والوقت تلقائياً عند الضغط على حفظ الزيارة."); setPhotoUri(null); setSelectedVisitedItems([]); setVisitedItemsSearch(""); setTimeout(() => entitySearchRef.current?.focus(), 120); } }]);
+    Alert.alert("تم حفظ الزيارة", managerOverride ? "تم التسجيل بتجاوز المدير مع حفظ السبب." : !isManager ? "تم حفظ الزيارة دون إنترنت، وستُراجع تلقائياً عند عودة الاتصال." : "تم تسجيل وقت وموقع الزيارة بنجاح.", [{ text: "تسجيل زيارة أخرى", onPress: () => { setSelectedEntity(null); setEntitySearch(""); setNotes(""); setCapturedAt(null); setLocation(null); setLocationSource(null); setLocationStatus("سيتم التقاط الموقع والوقت تلقائياً عند الضغط على حفظ الزيارة."); setPhotoUri(null); setSelectedVisitedItems([]); setVisitedItemsSearch(""); setTimeout(() => setPicker("entity"), 120); } }]);
   };
 
   const takePhoto = async () => {
@@ -219,7 +218,6 @@ export default function RecordVisitScreen() {
 
         {isManager ? <FormField label="المندوب" icon="person"><SelectBox value={selectedRepresentative?.name} placeholder="اختر المندوب" onPress={() => setPicker("representative")} /></FormField> : <View className="rounded-2xl bg-primary/10 border border-primary/20 px-4 py-3 mb-4 flex-row-reverse items-center justify-between"><Text className="font-bold text-primary">{representativeForVisit?.name ?? "الحساب الحالي"}</Text><Text className="text-xs text-muted">الحساب النشط</Text></View>}
         <FormField label="اسم الطبيب أو الجهة" icon="person">
-          <View className="h-14 rounded-2xl border border-border bg-surface px-4 flex-row-reverse items-center gap-2"><MaterialIcons name="search" size={20} color="#1565C0" /><TextInput ref={entitySearchRef} value={entitySearch} onChangeText={setEntitySearch} placeholder="اكتب اسم الطبيب للبحث" placeholderTextColor="#7C8798" textAlign="right" className="flex-1 h-full text-foreground font-semibold" /></View>
           <Pressable onPress={() => data.entities.length ? setPicker("entity") : Alert.alert("لا توجد جهات", "انتقل إلى شاشة الإدارة لإضافة جهة يدوياً أو استيراد ملف Excel.")} className="min-h-14 rounded-2xl border border-border bg-surface px-4 py-3 flex-row-reverse items-center justify-between"><View className="flex-row-reverse items-center gap-2"><MaterialIcons name="keyboard-arrow-down" size={24} color="#102A43" /><Text className="text-primary font-bold text-xs">فتح القائمة</Text></View><View className="items-end flex-1"><Text className={`font-bold text-right ${selectedEntity ? "text-foreground" : "text-muted"}`}>{selectedEntity?.name || (data.entities.length ? "ابحث واختر الطبيب أو الجهة" : "لا توجد جهات مسجلة")}</Text>{selectedEntity ? <View className="items-end"><Text className="text-xs text-muted text-right mt-1">{selectedEntity.address?.trim() ? `العنوان: ${selectedEntity.address.trim()}` : "العنوان: غير مسجل"}</Text><Text className="text-[11px] text-muted text-right mt-1">{[selectedEntity.kind, selectedEntity.category ? `الفئة: ${selectedEntity.category}` : "", selectedEntity.specialty ? `التخصص: ${selectedEntity.specialty}` : "", selectedEntity.nearestPharmacy ? `أقرب صيدلية: ${selectedEntity.nearestPharmacy}` : ""].filter(Boolean).join(" · ")}</Text></View> : <Text className="text-[11px] text-muted text-right mt-1">قائمة منسدلة مع بحث سريع</Text>}</View></Pressable>
         </FormField>
 
