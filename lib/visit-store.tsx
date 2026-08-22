@@ -46,6 +46,7 @@ type VisitStoreValue = {
   updateSharedLocation: (location: SharedLocation) => void;
   deleteSharedLocation: (id: string) => void;
   incrementSharedLocationUsage: (id: string) => void;
+  adjustSharedLocationUsage: (id: string, delta: number) => void;
   deleteEntity: (id: string) => void;
   deleteVisit: (id: string) => void;
   updateRepresentative: (representative: Representative) => void;
@@ -141,6 +142,7 @@ export function VisitProvider({ children }: PropsWithChildren) {
       updateSharedLocation: (location) => save((current) => ({ ...current, savedLocations: sortSharedLocations((current.savedLocations ?? []).map((item) => item.id === location.id ? { ...location, usageCount: item.usageCount } : item)) })),
       deleteSharedLocation: (id) => save((current) => ({ ...current, savedLocations: (current.savedLocations ?? []).filter((item) => item.id !== id) })),
       incrementSharedLocationUsage: (id) => save((current) => ({ ...current, savedLocations: sortSharedLocations((current.savedLocations ?? []).map((item) => item.id === id ? { ...item, usageCount: item.usageCount + 1, updatedAt: new Date().toISOString() } : item)) })),
+      adjustSharedLocationUsage: (id, delta) => save((current) => ({ ...current, savedLocations: sortSharedLocations((current.savedLocations ?? []).map((item) => item.id === id ? { ...item, usageCount: Math.max(0, item.usageCount + delta), updatedAt: new Date().toISOString() } : item)) })),
       deleteEntity: (id) => save((current) => ({ ...current, entities: current.entities.filter((item) => item.id !== id) })),
       deleteVisit: (id) => save((current) => ({ ...current, visits: current.visits.filter((visit) => visit.id !== id) })),
       updateRepresentative: (representative) =>

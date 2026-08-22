@@ -1,6 +1,6 @@
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import * as ImagePicker from "expo-image-picker";
-import { File, Paths } from "expo-file-system";
+import { createLocalBackup } from "@/lib/local-backup";
 import * as Sharing from "expo-sharing";
 import { useEffect, useState } from "react";
 import { Alert, Image, Modal, Pressable, ScrollView, Switch, Text, TextInput, View } from "react-native";
@@ -111,7 +111,7 @@ export default function SettingsScreen() {
   };
 
   const backup = async () => {
-    try { const file = new File(Paths.cache, `medical-visits-backup-${Date.now()}.json`); file.create({ overwrite: true }); file.write(JSON.stringify(data, null, 2)); if (!(await Sharing.isAvailableAsync())) { Alert.alert("المشاركة غير متاحة", "تعذر فتح نافذة حفظ النسخة الاحتياطية."); return; } await Sharing.shareAsync(file.uri, { mimeType: "application/json", dialogTitle: "حفظ نسخة احتياطية للزيارات" }); } catch { Alert.alert("تعذر إنشاء النسخة الاحتياطية", "حاول مرة أخرى بعد التأكد من مساحة التخزين."); }
+    try { const meta = await createLocalBackup(data); if (!(await Sharing.isAvailableAsync())) { Alert.alert("المشاركة غير متاحة", "تعذر فتح نافذة حفظ النسخة الاحتياطية."); return; } await Sharing.shareAsync(meta.uri, { mimeType: "application/json", dialogTitle: "حفظ نسخة احتياطية للبيانات والمواقع المشتركة" }); Alert.alert("تم إنشاء النسخة", `تتضمن النسخة ${data.savedLocations?.length ?? 0} موقعاً مشتركاً مستقلاً مع بقية البيانات.`); } catch { Alert.alert("تعذر إنشاء النسخة الاحتياطية", "حاول مرة أخرى بعد التأكد من مساحة التخزين."); }
   };
 
   return (

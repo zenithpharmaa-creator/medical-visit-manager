@@ -2,6 +2,14 @@ import type { MedicalEntity, SharedLocation } from "@/shared/visit-types";
 
 const coordinatesKey = (latitude: number, longitude: number) => `${latitude.toFixed(6)}:${longitude.toFixed(6)}`;
 
+export function sharedLocationMatchesCoordinates(location: SharedLocation, coordinates?: { latitude: number; longitude: number }) {
+  return Boolean(coordinates && coordinatesKey(location.coordinates.latitude, location.coordinates.longitude) === coordinatesKey(coordinates.latitude, coordinates.longitude));
+}
+
+export function countEntitiesUsingSharedLocation(entities: MedicalEntity[], location: SharedLocation) {
+  return entities.filter((entity) => sharedLocationMatchesCoordinates(location, entity.geographicCoordinates)).length;
+}
+
 export function deriveSharedLocations(entities: MedicalEntity[]): SharedLocation[] {
   const byCoordinates = new Map<string, SharedLocation>();
 

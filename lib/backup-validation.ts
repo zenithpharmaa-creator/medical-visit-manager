@@ -1,4 +1,5 @@
-import type { AppData, MedicalEntity, PlannedVisit, Representative, Visit } from "@/shared/visit-types";
+import type { AppData, MedicalEntity, PlannedVisit, Representative, SharedLocation, Visit } from "@/shared/visit-types";
+import { normalizeSharedLocations, sortSharedLocations } from "./shared-locations";
 
 export type RestoreSummary = { representatives: number; entities: number; visits: number; plannedVisits: number };
 export type MergeSummary = RestoreSummary & { skippedRepresentatives: number; skippedEntities: number; skippedVisits: number; skippedPlannedVisits: number };
@@ -42,6 +43,18 @@ function mergeCollection<T extends Keyed>(current: T[], incoming: T[], isSame: (
 
 const representativeKeys = (item: Representative) => [item.id, `name:${clean(item.name)}`];
 const entityKeys = (item: MedicalEntity) => [item.id, `entity:${entityKey(item)}`];
+const sharedLocationKey = (item: SharedLocation) => `location:${item.coordinates.latitude.toFixed(6)}:${item.coordinates.longitude.toFixed(6)}`;
+
+function mergeSharedLocations(current: AppData, incoming: AppData): SharedLocation[] {
+  const merged = new Map<string, SharedLocation>();
+  for (const item of [...normalizeSharedLocations(current.savedLocations, current.entities), ...normalizeSharedLocations(incoming.savedLocations, incoming.entities)]) {
+    const key = sharedLocationKey(item);
+    const existing = merged.get(key);
+    if (!existing) { merged.set(key, { ...item, coordinates: { ...item.coordinates } }); continue; }
+    merged.set(key, { ...existing, name: existing.name || item.name, address: existing.address || item.address, usageCount: Math.max(existing.usageCount, item.usageCount), updatedAt: existing.updatedAt || item.updatedAt });
+  }
+  return sortSharedLocations([...merged.values()]);
+}
 
 function resolveImportedIds<T extends Keyed>(current: T[], incoming: T[], isSame: (left: T, right: T) => boolean, keysOf: KeyFn<T>) {
   const index = new Map<string, T[]>();
@@ -71,6 +84,7 @@ export function mergeAppData(current: AppData, incoming: AppData): { data: AppDa
       entities: entities.values,
       visits: visits.values,
       plannedVisits: plannedVisits.values,
+      savedLocations: mergeSharedLocations(current, incoming),
       representativeLocations: { ...incoming.representativeLocations, ...current.representativeLocations },
       settings: current.settings,
     },

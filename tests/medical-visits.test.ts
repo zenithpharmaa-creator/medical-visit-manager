@@ -68,6 +68,20 @@ describe("JSON backup restore validation", () => {
   it("يقرأ النسخة الصحيحة ويحسب ملخص السجلات", () => {
     expect(parseBackupJson(JSON.stringify(backup)).summary).toEqual({ representatives: 1, entities: 1, visits: 1, plannedVisits: 1 });
   });
+  it("يحافظ على سجل المواقع المشتركة داخل النسخة المستوردة", () => {
+    const sharedLocation = { id: "location-1", name: "مستشفى جامعة العلوم", address: "صنعاء", coordinates: { latitude: 15.3, longitude: 44.2, accuracy: null }, usageCount: 3, createdAt: "2026-08-01T00:00:00.000Z" };
+    const parsed = parseBackupJson(JSON.stringify({ data: { ...backup.data, savedLocations: [sharedLocation] } }));
+    expect(parsed.data.savedLocations).toEqual([sharedLocation]);
+  });
+  it("يدمج المواقع المشتركة حسب الإحداثيات دون تكرار", () => {
+    const sharedLocation = { id: "location-1", name: "مستشفى جامعة العلوم", coordinates: { latitude: 15.3, longitude: 44.2, accuracy: null }, usageCount: 3, createdAt: "2026-08-01T00:00:00.000Z" };
+    const current = { data: { ...backup.data, savedLocations: [sharedLocation] } };
+    const incoming = { data: { ...backup.data, savedLocations: [{ ...sharedLocation, id: "location-imported", usageCount: 1 }, { ...sharedLocation, id: "location-2", name: "مركز جديد", coordinates: { latitude: 15.31, longitude: 44.21, accuracy: null }, usageCount: 2 }] } };
+    const result = mergeAppData(parseBackupJson(JSON.stringify(current)).data, parseBackupJson(JSON.stringify(incoming)).data);
+    expect(result.data.savedLocations).toHaveLength(2);
+    expect(result.data.savedLocations?.find((item) => item.coordinates.latitude === 15.3)?.usageCount).toBe(3);
+    expect(result.data.savedLocations?.find((item) => item.coordinates.latitude === 15.31)?.name).toBe("مركز جديد");
+  });
   it("يرفض ملفاً لا يحتوي على بيانات التطبيق", () => {
     expect(() => parseBackupJson(JSON.stringify({ hello: "world" }))).toThrow();
   });
