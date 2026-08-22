@@ -15,7 +15,7 @@ export function HighlightedText({ text, query = "", className = "text-foreground
   if (!normalizedQuery) return <Text className={className} numberOfLines={numberOfLines}>{text}</Text>;
 
   const normalizedText = text.toLocaleLowerCase();
-  const parts: Array<{ value: string; matched: boolean }> = [];
+  const parts: { value: string; matched: boolean }[] = [];
   let cursor = 0;
   while (cursor < text.length) {
     const matchIndex = normalizedText.indexOf(normalizedQuery, cursor);

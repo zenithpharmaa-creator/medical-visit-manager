@@ -1,0 +1,66 @@
+
+> app-template@1.0.0 lint /home/ubuntu/medical-visit-manager
+> expo lint
+
+(node:35460) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/ubuntu/medical-visit-manager/eslint.config.js?mtime=1787257182255 is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /home/ubuntu/medical-visit-manager/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+/home/ubuntu/medical-visit-manager/app/(tabs)/_layout.tsx
+  4:44  warning  'View' is defined but never used  @typescript-eslint/no-unused-vars
+
+/home/ubuntu/medical-visit-manager/app/(tabs)/entities.tsx
+    5:10  warning  'ActivityIndicator' is defined but never used                  @typescript-eslint/no-unused-vars
+    5:92  warning  'TextInput' is defined but never used                          @typescript-eslint/no-unused-vars
+  111:9   warning  'representativesForRegion' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  115:9   warning  'loadMoreEntities' is assigned a value but never used          @typescript-eslint/no-unused-vars
+
+/home/ubuntu/medical-visit-manager/app/(tabs)/index.tsx
+  102:6  warning  React Hook useEffect has a missing dependency: 'createDailyBackup'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/home/ubuntu/medical-visit-manager/app/(tabs)/override-reports.tsx
+   4:13  warning  'Location' is defined but never used                                                                             @typescript-eslint/no-unused-vars
+   7:51  warning  'TextInput' is defined but never used                                                                            @typescript-eslint/no-unused-vars
+  14:1   warning  Import in body of module; reorder to top                                                                         import/first
+  15:1   warning  Import in body of module; reorder to top                                                                         import/first
+  16:1   warning  Import in body of module; reorder to top                                                                         import/first
+  17:1   warning  Import in body of module; reorder to top                                                                         import/first
+  17:35  warning  'overrideRows' is defined but never used                                                                         @typescript-eslint/no-unused-vars
+  18:1   warning  Import in body of module; reorder to top                                                                         import/first
+  19:1   warning  Import in body of module; reorder to top                                                                         import/first
+  20:1   warning  Import in body of module; reorder to top                                                                         import/first
+  42:87  warning  React Hook useMemo has a missing dependency: 'matchesFilters'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  43:77  warning  React Hook useMemo has a missing dependency: 'matchesFilters'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  44:79  warning  React Hook useMemo has a missing dependency: 'matchesFilters'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/home/ubuntu/medical-visit-manager/app/(tabs)/plan-approvals.tsx
+  43:171  warning  React Hook useMemo has a missing dependency: 'start'. Either include it or remove the dependency array                                  react-hooks/exhaustive-deps
+  43:172  warning  React Hook useMemo has a complex expression in the dependency array. Extract it to a separate variable so it can be statically checked  react-hooks/exhaustive-deps
+  54:510  warning  React Hook useMemo has a missing dependency: 'executedForPlan'. Either include it or remove the dependency array                        react-hooks/exhaustive-deps
+
+/home/ubuntu/medical-visit-manager/app/(tabs)/reports.tsx
+   40:1   warning  Import in body of module; reorder to top                                                                      import/first
+   41:1   warning  Import in body of module; reorder to top                                                                      import/first
+   59:10  warning  'reportMenuVisible' is assigned a value but never used                                                        @typescript-eslint/no-unused-vars
+   59:29  warning  'setReportMenuVisible' is assigned a value but never used                                                     @typescript-eslint/no-unused-vars
+  178:5   warning  React Hook useMemo has an unnecessary dependency: 'period'. Either exclude it or remove the dependency array  react-hooks/exhaustive-deps
+
+/home/ubuntu/medical-visit-manager/app/(tabs)/shared-locations.tsx
+  3:45  warning  'ScrollView' is defined but never used  @typescript-eslint/no-unused-vars
+  3:63  warning  'TextInput' is defined but never used   @typescript-eslint/no-unused-vars
+
+/home/ubuntu/medical-visit-manager/app/(tabs)/weekly.tsx
+   69:10  warning  'selectedDayIndex' is assigned a value but never used      @typescript-eslint/no-unused-vars
+   87:10  warning  'approvalModalVisible' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  224:9   warning  'rejectPlan' is assigned a value but never used            @typescript-eslint/no-unused-vars
+
+/home/ubuntu/medical-visit-manager/components/location-picker.android.tsx
+  22:10  warning  'region' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/home/ubuntu/medical-visit-manager/components/location-picker.web.tsx
+  2:10  warning  'Alert' is defined but never used  @typescript-eslint/no-unused-vars
+
+✖ 34 problems (0 errors, 34 warnings)
+  0 errors and 9 warnings potentially fixable with the `--fix` option.
+
