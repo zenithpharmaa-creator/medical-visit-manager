@@ -1,4 +1,5 @@
 import type { MedicalEntity } from "@/shared/visit-types";
+import { normalizeEntityKind } from "./visit-utils";
 
 export const EMBEDDED_COORDINATES_MIGRATION_VERSION = 2;
 
@@ -21,11 +22,13 @@ export function mergeEmbeddedEntities(
   embeddedEntities: MedicalEntity[],
   applyEmbeddedCoordinates: boolean,
 ): MedicalEntity[] {
-  if (!savedEntities?.length) return embeddedEntities;
+  const normalizedEmbeddedEntities = embeddedEntities.map((entity) => ({ ...entity, kind: normalizeEntityKind(entity.kind) }));
+  const normalizedSavedEntities = savedEntities?.map((entity) => ({ ...entity, kind: normalizeEntityKind(entity.kind) }));
+  if (!normalizedSavedEntities?.length) return normalizedEmbeddedEntities;
 
-  const embeddedByName = new Map(embeddedEntities.map((entity) => [normalizeName(entity.name), entity]));
+  const embeddedByName = new Map(normalizedEmbeddedEntities.map((entity) => [normalizeName(entity.name), entity]));
   const savedNames = new Set<string>();
-  const merged = savedEntities.map((saved) => {
+  const merged = normalizedSavedEntities.map((saved) => {
     const key = normalizeName(saved.name);
     savedNames.add(key);
     const embedded = embeddedByName.get(key);
@@ -33,7 +36,7 @@ export function mergeEmbeddedEntities(
     return { ...saved, geographicCoordinates: embedded.geographicCoordinates };
   });
 
-  for (const embedded of embeddedEntities) {
+  for (const embedded of normalizedEmbeddedEntities) {
     if (!savedNames.has(normalizeName(embedded.name))) merged.push(embedded);
   }
   return merged;

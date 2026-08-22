@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { parseEntitiesFromRows } from "../lib/entity-import";
 import { getPeriodVisits } from "../lib/reporting";
 import { distanceBetweenMeters, isWithinGeofence } from "../lib/visit-utils";
-import { ENTITY_CATEGORIES, SPECIALTIES } from "../lib/visit-utils";
+import { ENTITY_CATEGORIES, ENTITY_KINDS, normalizeEntityKind, SPECIALTIES } from "../lib/visit-utils";
 import type { Visit } from "../shared/visit-types";
 import { SANAA_OFFLINE_AREAS } from "../data/sanaa-offline";
 import { buildVisitExportRows, buildVisitsCsv, buildVisitsExcelBase64 } from "../lib/visit-export";
@@ -97,6 +97,18 @@ describe("JSON backup restore validation", () => {
 });
 
 describe("entity dropdown options", () => {
+  it("يوفر خيارات الجهات بالترتيب الجديد دون الصيدلية", () => {
+    expect(ENTITY_KINDS).toEqual(["عيادة", "مستشفى حكومي", "مستشفى خاص", "مركز حكومي", "مركز خاص", "برج طبي"]);
+    expect(ENTITY_KINDS).not.toContain("صيدلية");
+  });
+
+  it("يحافظ على أقرب صيدلية كحقل مستقل عند تحويل القيم القديمة", () => {
+    expect(normalizeEntityKind("صيدلية")).toBe("عيادة");
+    expect(normalizeEntityKind("مستشفى خاص")).toBe("مستشفى خاص");
+    expect(normalizeEntityKind("مركز حكومي")).toBe("مركز حكومي");
+    expect(normalizeEntityKind("برج طبي")).toBe("برج طبي");
+  });
+
   it("يوفر خيارات محددة للتخصص والفئة", () => {
     expect(SPECIALTIES).toContain("I.M");
     expect(SPECIALTIES).toContain("Gyno");
@@ -108,7 +120,7 @@ describe("Excel entity import", () => {
   it("يقرأ الأعمدة العربية ويصنّف جهة الزيارة", () => {
     const imported = parseEntitiesFromRows([{ "اسم الجهة": "صيدلية الشفاء", "نوع الجهة": "صيدلية", "اسم الطبيب": "د. خالد", "العنوان": "الرياض", "التخصص": "I.M", "الفئة": "A", "أقرب صيدلية": "صيدلية الشفاء", "الموقع الجغرافي": "الرياض - العليا" }]);
     expect(imported).toHaveLength(1);
-    expect(imported[0]).toMatchObject({ name: "د. خالد", kind: "صيدلية", contactName: "", address: "الرياض", specialty: "I.M", category: "A", nearestPharmacy: "صيدلية الشفاء", geographicLocation: "الرياض - العليا" });
+    expect(imported[0]).toMatchObject({ name: "د. خالد", kind: "عيادة", contactName: "", address: "الرياض", specialty: "I.M", category: "A", nearestPharmacy: "صيدلية الشفاء", geographicLocation: "الرياض - العليا" });
   });
 
   it("يقرأ قالب ملف اسمالطبيب.xlsx مع المسافات الزائدة في العناوين", () => {

@@ -1,4 +1,4 @@
-import { buildId, ENTITY_KINDS, SPECIALTIES } from "./visit-utils";
+import { buildId, normalizeEntityKind, SPECIALTIES } from "./visit-utils";
 import { EntityKind, MedicalEntity } from "../shared/visit-types";
 
 type ExcelRow = Record<string, unknown>;
@@ -24,13 +24,7 @@ function resolveSpecialty(value: string): string {
 }
 
 function resolveKind(value: string): EntityKind {
-  const clean = value.trim().toLowerCase();
-  const match = ENTITY_KINDS.find((kind) => kind.toLowerCase() === clean);
-  if (match) return match;
-  if (clean.includes("صيد")) return "صيدلية";
-  if (clean.includes("مست")) return "مستشفى";
-  if (clean.includes("مركز")) return "مركز طبي";
-  return "عيادة";
+  return normalizeEntityKind(value);
 }
 
 export function parseEntitiesFromRows(rows: ExcelRow[]): MedicalEntity[] {

@@ -3,6 +3,7 @@ import { PropsWithChildren, createContext, useContext, useEffect, useMemo, useSt
 import { useNetworkState } from "expo-network";
 
 import { AppData, AppSettings, MedicalEntity, Representative, Visit, PlanApprovalAudit, SharedLocation } from "@/shared/visit-types";
+import { normalizeEntityKind } from "@/lib/visit-utils";
 import { synchronizePendingVisits } from "@/lib/visit-sync";
 import { EMBEDDED_ENTITIES } from "@/data/embedded-entities";
 import { EMBEDDED_COORDINATES_MIGRATION_VERSION, mergeEmbeddedEntities, preserveExistingCoordinates } from "@/lib/entity-migration";
@@ -77,15 +78,18 @@ export function VisitProvider({ children }: PropsWithChildren) {
         if (saved) {
           const parsed = JSON.parse(saved) as Partial<AppData>;
           const shouldApplyEmbeddedCoordinates = Number(migrationVersionValue) < EMBEDDED_COORDINATES_MIGRATION_VERSION;
+          const mergedEntities = mergeEmbeddedEntities(parsed.entities, EMBEDDED_ENTITIES, true);
+          const normalizedPlannedVisits = (parsed.plannedVisits ?? []).map((item) => ({ ...item, entityKind: normalizeEntityKind(item.entityKind) }));
+          const normalizedVisits = (parsed.visits ?? []).map((item) => ({ ...item, entityKind: normalizeEntityKind(item.entityKind) }));
           setData({
             ...INITIAL_DATA,
             ...parsed,
             representatives: parsed.representatives?.length ? parsed.representatives.map((item) => ({ ...item, ...(REPRESENTATIVE_NAMES[item.id] && LEGACY_REPRESENTATIVE_NAMES.has(item.name) ? { name: REPRESENTATIVE_NAMES[item.id] } : {}), ...(REPRESENTATIVE_REGIONS[item.id] ? { region: REPRESENTATIVE_REGIONS[item.id] } : {}), ...(!Array.isArray(item.assignedItems) && REPRESENTATIVE_ITEMS[item.id] ? { assignedItems: REPRESENTATIVE_ITEMS[item.id] } : {}) })) : INITIAL_DATA.representatives,
             representativeLocations: parsed.representativeLocations ?? {},
-            entities: mergeEmbeddedEntities(parsed.entities, EMBEDDED_ENTITIES, true),
-            savedLocations: normalizeSharedLocations(parsed.savedLocations, mergeEmbeddedEntities(parsed.entities, EMBEDDED_ENTITIES, true)),
-            plannedVisits: parsed.plannedVisits ?? [],
-            visits: parsed.visits ?? [],
+            entities: mergedEntities,
+            savedLocations: normalizeSharedLocations(parsed.savedLocations, mergedEntities),
+            plannedVisits: normalizedPlannedVisits,
+            visits: normalizedVisits,
             planApprovalHistory: parsed.planApprovalHistory ?? [],
             lastSuccessfulSyncAt: parsed.lastSuccessfulSyncAt,
             settings: { ...INITIAL_DATA.settings, ...(parsed.settings ?? {}), geofenceRadiusMeters: Number(parsed.settings?.geofenceRadiusMeters) || INITIAL_DATA.settings.geofenceRadiusMeters, managerPin: String(parsed.settings?.managerPin ?? INITIAL_DATA.settings.managerPin), visitedItems: Array.isArray(parsed.settings?.visitedItems) ? parsed.settings.visitedItems.filter((item): item is string => typeof item === "string") : [] },
@@ -154,7 +158,7 @@ export function VisitProvider({ children }: PropsWithChildren) {
       deleteRepresentative: (id) => save((current) => ({ ...current, representatives: current.representatives.filter((item) => item.id !== id), plannedVisits: current.plannedVisits.filter((item) => item.representativeId !== id), representativeLocations: Object.fromEntries(Object.entries(current.representativeLocations).filter(([key]) => key !== id)) })),
       updateSettings: (settings) => save((current) => ({ ...current, settings })),
       replaceEntities: (entities) => save((current) => ({ ...current, entities: entities.map((entity) => { const previous = current.entities.find((item) => item.id === entity.id); return previous ? preserveExistingCoordinates(previous, entity) : entity; }) })),
-      restoreData: (restored) => save(() => { const entities = mergeEmbeddedEntities(restored.entities, EMBEDDED_ENTITIES, true); return { ...restored, entities, savedLocations: normalizeSharedLocations(restored.savedLocations, entities) }; }),
+      restoreData: (restored) => save(() => { const entities = mergeEmbeddedEntities(restored.entities, EMBEDDED_ENTITIES, true); return { ...restored, entities, plannedVisits: restored.plannedVisits.map((item) => ({ ...item, entityKind: normalizeEntityKind(item.entityKind) })), visits: restored.visits.map((item) => ({ ...item, entityKind: normalizeEntityKind(item.entityKind) })), savedLocations: normalizeSharedLocations(restored.savedLocations, entities) }; }),
       updateRepresentativeLocation: (id, value) => save((current) => ({ ...current, representativeLocations: { ...current.representativeLocations, [id]: value } })),
       addPlanApprovalAudit: (audit) => save((current) => ({ ...current, planApprovalHistory: [audit, ...(current.planApprovalHistory ?? [])] })),
       syncPendingVisits,

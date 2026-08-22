@@ -1,4 +1,7 @@
-export type EntityKind = "عيادة" | "صيدلية" | "مستشفى" | "مركز طبي";
+export type CurrentEntityKind = "عيادة" | "مستشفى حكومي" | "مستشفى خاص" | "مركز حكومي" | "مركز خاص" | "برج طبي";
+/** قيم قديمة تُقبل عند قراءة البيانات السابقة فقط، ولا تظهر في القوائم الجديدة. */
+export type LegacyEntityKind = "صيدلية" | "مستشفى" | "مركز طبي";
+export type EntityKind = CurrentEntityKind | LegacyEntityKind;
 export type VisitShift = "morning" | "evening";
 
 export type RepresentativeRegion = "north" | "south" | "sanaa";

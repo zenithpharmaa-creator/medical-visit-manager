@@ -1,6 +1,18 @@
-import { EntityKind, Visit } from "../shared/visit-types";
+import { CurrentEntityKind, EntityKind, Visit } from "../shared/visit-types";
 
-export const ENTITY_KINDS: EntityKind[] = ["عيادة", "صيدلية", "مستشفى", "مركز طبي"];
+export const ENTITY_KINDS: CurrentEntityKind[] = ["عيادة", "مستشفى حكومي", "مستشفى خاص", "مركز حكومي", "مركز خاص", "برج طبي"];
+
+/** يحول قيمة قديمة أو غير مكتملة إلى تصنيف من القائمة الجديدة. */
+export function normalizeEntityKind(value?: EntityKind | string): CurrentEntityKind {
+  const clean = String(value ?? "").trim().toLocaleLowerCase();
+  const exact = ENTITY_KINDS.find((kind) => kind.toLocaleLowerCase() === clean);
+  if (exact) return exact;
+  if (clean.includes("برج") || clean.includes("tower")) return "برج طبي";
+  if (clean.includes("مستشفى") || clean.includes("hospital")) return clean.includes("خاص") || clean.includes("private") ? "مستشفى خاص" : "مستشفى حكومي";
+  if (clean.includes("مركز") || clean.includes("center") || clean.includes("centre")) return clean.includes("خاص") || clean.includes("private") ? "مركز خاص" : "مركز حكومي";
+  // الصيدلية لم تعد نوع جهة؛ تُحفظ كجهة عيادة ويظل حقل «أقرب صيدلية» مستقلاً.
+  return "عيادة";
+}
 
 export const SPECIALTIES = [
   "I.M", "Endo", "Emer", "Gyno", "Psych", "Ped", "Cardi", "Derm", "ENT", "G.P", "Hema", "Hepa", "Immu", "Nephro", "Neur", "Onco", "Ortho", "Pulmo", "Rheum", "Surg", "Uro",
