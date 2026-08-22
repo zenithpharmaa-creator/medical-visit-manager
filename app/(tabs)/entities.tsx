@@ -18,6 +18,7 @@ import { useVisitStore } from "@/lib/visit-store";
 import { useAccountSession } from "@/lib/account-session";
 import { buildId, ENTITY_CATEGORIES, ENTITY_KINDS, SPECIALTIES } from "@/lib/visit-utils";
 import { parseEntitiesFromRows } from "@/lib/entity-import";
+import { formatEntityMergeReport, mergeEntitiesSmart } from "@/lib/entity-import-merge";
 import { normalizeLocation } from "@/lib/location-capture";
 import { deriveSanaaLocation, getSanaaLocationFailureReason } from "@/lib/geographic-location";
 import { countEntitiesUsingSharedLocation, sharedLocationMatchesCoordinates } from "@/lib/shared-locations";
@@ -273,6 +274,13 @@ export default function EntitiesScreen() {
     resetForm(); setModalVisible(false); setSuccessVisible(true);
   };
 
+  const showMergeReport = (result: ReturnType<typeof mergeEntitiesSmart>) => {
+    const report = formatEntityMergeReport(result);
+    const conflictSummary = report.conflictDetails.slice(0, 5).map((item) => `• ${item.message}`).join("\n");
+    const details = `جديدة: ${report.added}\nمحدثة: ${report.updated}\nمكررة دون تغيير: ${report.duplicates}\nمتعارضة: ${report.conflicts}${conflictSummary ? `\n\nتفاصيل التعارضات:\n${conflictSummary}${report.conflicts > 5 ? "\n… توجد تعارضات أخرى في هذا الاستيراد." : ""}` : ""}`;
+    Alert.alert("نتيجة الدمج الذكي", details, [{ text: "إغلاق", style: "cancel" }]);
+  };
+
   const importExcel = async () => {
     setIsImporting(true);
     try {
@@ -285,7 +293,7 @@ export default function EntitiesScreen() {
       const entities = parseEntitiesFromRows(rows);
       if (!entities.length) { Alert.alert("لم نعثر على أسماء أطباء", "أضف عموداً باسم «اسم الطبيب» أو «الطبيب» في الصف الأول من ملف Excel."); return; }
       const missingLocation = entities.filter((entity) => !entity.geographicLocation).length;
-      Alert.alert("تمت قراءة الملف", `تم العثور على ${entities.length} طبيباً${missingLocation ? `، منهم ${missingLocation} بلا موقع جغرافي` : ""}.`, [{ text: "إلغاء", style: "cancel" }, { text: "إضافة للقائمة", onPress: () => entities.forEach(addEntity) }, { text: "استبدال", style: "destructive", onPress: () => replaceEntities(entities) }]);
+      Alert.alert("تمت قراءة الملف", `تم العثور على ${entities.length} طبيباً${missingLocation ? `، منهم ${missingLocation} بلا موقع جغرافي` : ""}. اختر طريقة المعالجة:`, [{ text: "إلغاء", style: "cancel" }, { text: "دمج ذكي", onPress: () => { const result = mergeEntitiesSmart(data.entities, entities); replaceEntities(result.entities); showMergeReport(result); } }, { text: "استبدال بالكامل", style: "destructive", onPress: () => replaceEntities(entities) }]);
     } catch { Alert.alert("تعذر استيراد الملف", "تأكد أن الملف بصيغة Excel أو CSV وأن الصف الأول يحتوي عناوين الأعمدة."); } finally { setIsImporting(false); }
   };
 

@@ -32,8 +32,9 @@ export function parseEntitiesFromRows(rows: ExcelRow[]): MedicalEntity[] {
     .map((row): MedicalEntity | null => {
       const name = textValue(row, ["اسم الطبيب", "الطبيب", "doctor", "doctor name", "الاسم", "اسم الجهة", "اسم المركز", "name", "entity name"]);
       if (!name) return null;
+      const importedId = textValue(row, ["المعرّف", "المعرف", "id", "entity id"]);
       return {
-        id: buildId("entity"),
+        id: importedId || buildId("entity"),
         name,
         kind: resolveKind(textValue(row, ["النوع", "نوع الجهة", "type", "entity type"])),
         region: resolveRegion(textValue(row, ["منطقة الزيارة", "منطقة الطبيب", "region", "doctor region"])),
