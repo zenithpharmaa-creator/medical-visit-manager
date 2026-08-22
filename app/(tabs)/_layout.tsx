@@ -1,4 +1,5 @@
 import { Tabs, useRouter } from "expo-router";
+import type { BottomTabBarButtonProps } from "@react-navigation/bottom-tabs";
 import { useState } from "react";
 import { Modal, Platform, Pressable, Text, View, useWindowDimensions } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -9,17 +10,19 @@ import { useColors } from "@/hooks/use-colors";
 import { useAccountSession } from "@/lib/account-session";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
-function ReportsTabButton() {
+function ReportsTabButton({ style: tabStyle, accessibilityState }: BottomTabBarButtonProps) {
   const router = useRouter();
+  const isActive = accessibilityState?.selected === true;
+  const iconColor = isActive ? "#1257A6" : "#64748B";
   const [visible, setVisible] = useState(false);
   const open = (period: "daily" | "monthly") => {
     setVisible(false);
     router.push(`/(tabs)/reports?period=${period}` as never);
   };
   return <>
-    <Pressable onPress={() => setVisible(true)} style={({ pressed }) => [{ flex: 1, height: "100%", minWidth: 0, paddingTop: 6, paddingBottom: 2, alignItems: "center", justifyContent: "center", borderRadius: 14, backgroundColor: pressed ? "rgba(21,101,192,0.18)" : "transparent" }]}>
-      <MaterialIcons name="assessment" size={23} color="#1257A6" />
-      <Text style={{ fontSize: 10, fontWeight: "700", color: "#1257A6", marginTop: 2 }}>التقارير</Text>
+    <Pressable onPress={() => setVisible(true)} accessibilityState={accessibilityState} style={({ pressed }) => [tabStyle, { flex: 1, height: "100%", minWidth: 0, paddingTop: 0, paddingBottom: 0, alignItems: "center", justifyContent: "center", borderRadius: 14, backgroundColor: pressed ? "rgba(21,101,192,0.18)" : "transparent" }, isActive && { shadowColor: "#1257A6", shadowOpacity: Platform.OS === "web" ? 0.16 : 0.24, shadowRadius: 5, shadowOffset: { width: 0, height: 2 }, elevation: Platform.OS === "android" ? 4 : 0 }]}>
+      <MaterialIcons name="assessment" size={23} color={iconColor} />
+      <Text style={{ fontSize: 10, fontWeight: "700", color: iconColor, marginTop: 2 }}>التقارير</Text>
     </Pressable>
     <Modal visible={visible} transparent animationType="fade" onRequestClose={() => setVisible(false)}>
       <Pressable onPress={() => setVisible(false)} style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.28)", justifyContent: "flex-end" }}>
@@ -47,7 +50,7 @@ export default function TabLayout() {
       <Tabs.Screen name="record" options={{ title: "تسجيل", tabBarIcon: ({ color }) => <IconSymbol name="location.fill" size={23} color={color} /> }} />
       <Tabs.Screen name="visits" options={{ title: "الزيارات", tabBarIcon: ({ color }) => <IconSymbol name="calendar" size={23} color={color} /> }} />
       <Tabs.Screen name="search" options={{ title: "بحث", tabBarIcon: ({ color }) => <IconSymbol name="magnifyingglass" size={23} color={color} /> }} />
-      <Tabs.Screen name="reports" options={{ href: isManager ? undefined : null, title: "التقارير", tabBarButton: isManager ? () => <ReportsTabButton /> : undefined, tabBarIcon: ({ color }) => <IconSymbol name="chart.bar.fill" size={23} color={color} /> }} />
+      <Tabs.Screen name="reports" options={{ href: isManager ? undefined : null, title: "التقارير", tabBarButton: isManager ? (props) => <ReportsTabButton {...props} /> : undefined, tabBarIcon: ({ color }) => <IconSymbol name="chart.bar.fill" size={23} color={color} /> }} />
       <Tabs.Screen name="weekly" options={{ title: "الخطة", tabBarIcon: ({ color }) => <IconSymbol name="calendar" size={23} color={color} /> }} />
       <Tabs.Screen name="tasks" options={{ href: isManager ? undefined : null, title: "المهام", tabBarIcon: ({ color }) => <IconSymbol name="calendar" size={23} color={color} /> }} />
       <Tabs.Screen name="plan-approvals" options={{ href: null, title: "اعتماد الخطط" }} />
