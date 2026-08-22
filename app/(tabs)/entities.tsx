@@ -18,7 +18,7 @@ import { useVisitStore } from "@/lib/visit-store";
 import { useAccountSession } from "@/lib/account-session";
 import { buildId, ENTITY_CATEGORIES, ENTITY_KINDS, SPECIALTIES } from "@/lib/visit-utils";
 import { parseEntitiesFromRows } from "@/lib/entity-import";
-import { formatEntityMergeReport, mergeEntitiesSmart } from "@/lib/entity-import-merge";
+import { formatEntityMergeReport, mergeEntitiesSmart, preserveCoordinatesForReplacement } from "@/lib/entity-import-merge";
 import { normalizeLocation } from "@/lib/location-capture";
 import { deriveSanaaLocation, getSanaaLocationFailureReason } from "@/lib/geographic-location";
 import { countEntitiesUsingSharedLocation, sharedLocationMatchesCoordinates } from "@/lib/shared-locations";
@@ -293,7 +293,7 @@ export default function EntitiesScreen() {
       showMergeReport(result);
       return;
     }
-    replaceEntities(pendingImportEntities);
+    replaceEntities(preserveCoordinatesForReplacement(data.entities, pendingImportEntities));
     setImportPreviewVisible(false);
     setPendingImportEntities([]);
     Alert.alert("تم الاستبدال", `تم استبدال قائمة الجهات بـ ${pendingImportEntities.length} سجلاً من الملف.`);

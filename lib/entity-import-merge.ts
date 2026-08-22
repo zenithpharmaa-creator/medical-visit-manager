@@ -1,4 +1,5 @@
 import { buildId, normalizeEntityKind } from "./visit-utils";
+import type { ImportedMedicalEntity } from "./entity-import";
 import type { MedicalEntity, VisitLocation } from "../shared/visit-types";
 
 export type EntityMergeConflict = {
@@ -43,7 +44,13 @@ const sameCoordinate = (left?: VisitLocation, right?: VisitLocation) => {
 const coordinateLabel = (coordinates?: VisitLocation) => coordinates ? `${coordinates.latitude}, ${coordinates.longitude}` : "غير موجود";
 
 function normalizeEntity(entity: MedicalEntity): MedicalEntity {
-  return { ...entity, kind: normalizeEntityKind(entity.kind) };
+  const normalized = { ...entity } as MedicalEntity & { coordinatePatch?: unknown };
+  delete normalized.coordinatePatch;
+  return { ...normalized, kind: normalizeEntityKind(entity.kind) };
+}
+
+function coordinatePatchOf(entity: ImportedMedicalEntity) {
+  return entity.coordinatePatch;
 }
 
 function findMatch(incoming: MedicalEntity, current: MedicalEntity[]) {
@@ -59,7 +66,7 @@ function findMatch(incoming: MedicalEntity, current: MedicalEntity[]) {
   return undefined;
 }
 
-export function mergeEntitiesSmart(existingEntities: MedicalEntity[], importedEntities: MedicalEntity[]): EntityMergeResult {
+export function mergeEntitiesSmart(existingEntities: MedicalEntity[], importedEntities: ImportedMedicalEntity[]): EntityMergeResult {
   const merged = existingEntities.map(normalizeEntity);
   const added: MedicalEntity[] = [];
   const updated: MedicalEntity[] = [];
@@ -67,7 +74,9 @@ export function mergeEntitiesSmart(existingEntities: MedicalEntity[], importedEn
   const duplicates: MedicalEntity[] = [];
   const conflicts: EntityMergeConflict[] = [];
 
-  for (const [index, incoming] of importedEntities.map(normalizeEntity).entries()) {
+  for (const [index, rawIncoming] of importedEntities.entries()) {
+    const incoming = normalizeEntity(rawIncoming);
+    const coordinatePatch = coordinatePatchOf(rawIncoming);
     const match = findMatch(incoming, merged);
     if (!match) {
       merged.push(incoming);
@@ -107,10 +116,23 @@ export function mergeEntitiesSmart(existingEntities: MedicalEntity[], importedEn
       }
     });
 
-    if (!isFilled(next.geographicCoordinates) && incoming.geographicCoordinates) {
-      next.geographicCoordinates = incoming.geographicCoordinates;
+    const existingCoordinates = next.geographicCoordinates;
+    const existingLatitude = existingCoordinates && Number.isFinite(existingCoordinates.latitude) ? existingCoordinates.latitude : undefined;
+    const existingLongitude = existingCoordinates && Number.isFinite(existingCoordinates.longitude) ? existingCoordinates.longitude : undefined;
+    const patchHasCoordinates = Boolean(coordinatePatch && (coordinatePatch.latitude !== undefined || coordinatePatch.longitude !== undefined));
+    const candidateCoordinates = coordinatePatch && patchHasCoordinates
+      ? { latitude: coordinatePatch.latitude ?? existingLatitude, longitude: coordinatePatch.longitude ?? existingLongitude, accuracy: existingCoordinates?.accuracy ?? null }
+      : incoming.geographicCoordinates;
+    const completeCandidate: VisitLocation | undefined = candidateCoordinates && Number.isFinite(candidateCoordinates.latitude) && Number.isFinite(candidateCoordinates.longitude)
+      ? { latitude: Number(candidateCoordinates.latitude), longitude: Number(candidateCoordinates.longitude), accuracy: candidateCoordinates.accuracy }
+      : undefined;
+    const completeExisting = existingLatitude !== undefined && existingLongitude !== undefined
+      ? { latitude: Number(existingLatitude), longitude: Number(existingLongitude), accuracy: existingCoordinates?.accuracy ?? null }
+      : undefined;
+    if (completeCandidate && !completeExisting) {
+      next.geographicCoordinates = completeCandidate;
       changedFields.push("الإحداثيات");
-    } else if (next.geographicCoordinates && incoming.geographicCoordinates && !sameCoordinate(next.geographicCoordinates, incoming.geographicCoordinates)) {
+    } else if (completeExisting && completeCandidate && !sameCoordinate(completeExisting, completeCandidate)) {
       conflictingFields.push("الإحداثيات");
     }
 
@@ -138,6 +160,21 @@ export function mergeEntitiesSmart(existingEntities: MedicalEntity[], importedEn
   }
 
   return { entities: merged, added, updated, unchanged, duplicates, conflicts };
+}
+
+export function preserveCoordinatesForReplacement(existingEntities: MedicalEntity[], importedEntities: ImportedMedicalEntity[]): MedicalEntity[] {
+  return importedEntities.map((rawIncoming) => {
+    const incoming = normalizeEntity(rawIncoming);
+    const existing = existingEntities.find((item) => item.id === incoming.id || normalizeText(item.name) === normalizeText(incoming.name));
+    const patch = coordinatePatchOf(rawIncoming);
+    const old = existing?.geographicCoordinates;
+    const latitude = patch?.latitude ?? incoming.geographicCoordinates?.latitude ?? old?.latitude;
+    const longitude = patch?.longitude ?? incoming.geographicCoordinates?.longitude ?? old?.longitude;
+    const coordinates = latitude !== undefined && longitude !== undefined && Number.isFinite(latitude) && Number.isFinite(longitude)
+      ? { latitude, longitude, accuracy: incoming.geographicCoordinates?.accuracy ?? old?.accuracy ?? null }
+      : undefined;
+    return { ...incoming, geographicCoordinates: coordinates };
+  });
 }
 
 export function formatEntityMergeReport(result: EntityMergeResult) {

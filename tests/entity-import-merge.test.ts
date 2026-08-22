@@ -52,3 +52,29 @@ describe("smart entity import merge", () => {
     expect(result.updated).toHaveLength(1);
     expect(result.entities[0].address).toBe("شارع جديد");
   });
+
+
+describe("coordinate-safe Excel import", () => {
+  it("يقرأ خط العرض والطول مع الأرقام العربية والفاصلة العشرية", async () => {
+    const { parseEntitiesFromRows } = await import("../lib/entity-import");
+    const imported = parseEntitiesFromRows([{ "اسم الطبيب": "د. إحداثيات", "خطول العرض": "١٥،٣٠", "خطول الطول": "٤٤،١٩" }]);
+    expect(imported[0].geographicCoordinates).toMatchObject({ latitude: 15.3, longitude: 44.19 });
+  });
+
+  it("يحافظ على الإحداثية المكتملة ويسجل تعارض خط الطول الجزئي دون مسح البيانات", async () => {
+    const { parseEntitiesFromRows } = await import("../lib/entity-import");
+    const imported = parseEntitiesFromRows([{ "اسم الطبيب": "د. جزئي", "خط الطول": "44.21" }]);
+    const result = mergeEntitiesSmart([entity({ name: "د. جزئي", geographicCoordinates: { latitude: 15.31, longitude: 44.2, accuracy: 8 } })], imported);
+    expect(result.entities[0].geographicCoordinates).toMatchObject({ latitude: 15.31, longitude: 44.2, accuracy: 8 });
+    expect(result.conflicts).toHaveLength(1);
+  });
+});
+
+
+it("يحافظ على الإحداثيات عند الاستبدال إذا كانت أعمدة الملف ناقصة", async () => {
+  const { parseEntitiesFromRows } = await import("../lib/entity-import");
+  const { preserveCoordinatesForReplacement } = await import("../lib/entity-import-merge");
+  const imported = parseEntitiesFromRows([{ "اسم الطبيب": "د. محفوظ", "العنوان": "عنوان جديد" }]);
+  const replacement = preserveCoordinatesForReplacement([entity({ name: "د. محفوظ", geographicCoordinates: { latitude: 15.32, longitude: 44.22, accuracy: 6 } })], imported);
+  expect(replacement[0].geographicCoordinates).toMatchObject({ latitude: 15.32, longitude: 44.22, accuracy: 6 });
+});
