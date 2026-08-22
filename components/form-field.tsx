@@ -10,9 +10,10 @@ type Props = {
   onChangeText?: (value: string) => void;
   placeholder?: string;
   multiline?: boolean;
+  keyboardType?: React.ComponentProps<typeof TextInput>["keyboardType"];
 };
 
-export function FormField({ label, icon, children, value, onChangeText, placeholder, multiline }: Props) {
+export function FormField({ label, icon, children, value, onChangeText, placeholder, multiline, keyboardType }: Props) {
   return (
     <View className="mb-4">
       <View className="flex-row-reverse items-center gap-2 mb-2">
@@ -28,6 +29,7 @@ export function FormField({ label, icon, children, value, onChangeText, placehol
           placeholder={placeholder}
           placeholderTextColor="#7C8798"
           multiline={multiline}
+          keyboardType={keyboardType}
           textAlign="right"
           textAlignVertical={multiline ? "top" : "center"}
           className={`rounded-2xl border border-border bg-surface px-4 text-foreground font-semibold ${multiline ? "min-h-28 pt-3" : "h-14"}`}

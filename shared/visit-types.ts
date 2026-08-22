@@ -38,6 +38,16 @@ export type VisitLocation = {
   accuracy: number | null;
 };
 
+export type SharedLocation = {
+  id: string;
+  name: string;
+  address?: string;
+  coordinates: VisitLocation;
+  usageCount: number;
+  createdAt: string;
+  updatedAt?: string;
+};
+
 export type PlannedVisitStatus = "planned" | "executed" | "cancelled";
 export type PlanApprovalStatus = "pending" | "approved" | "rejected";
 export type PlanApprovalAudit = { id: string; planId: string; action: "approved" | "rejected"; actedAt: string; actedBy: string; representativeId: string; representativeName: string; entityName: string; scheduledDate: string; reason?: string };
@@ -112,6 +122,7 @@ export type AppData = {
   visits: Visit[];
   plannedVisits: PlannedVisit[];
   settings: AppSettings;
+  savedLocations?: SharedLocation[];
   planApprovalHistory?: PlanApprovalAudit[];
   lastSuccessfulSyncAt?: string;
 };

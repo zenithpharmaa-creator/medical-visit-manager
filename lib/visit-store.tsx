@@ -2,10 +2,11 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { PropsWithChildren, createContext, useContext, useEffect, useMemo, useState } from "react";
 import { useNetworkState } from "expo-network";
 
-import { AppData, AppSettings, MedicalEntity, Representative, Visit, PlanApprovalAudit } from "@/shared/visit-types";
+import { AppData, AppSettings, MedicalEntity, Representative, Visit, PlanApprovalAudit, SharedLocation } from "@/shared/visit-types";
 import { synchronizePendingVisits } from "@/lib/visit-sync";
 import { EMBEDDED_ENTITIES } from "@/data/embedded-entities";
 import { EMBEDDED_COORDINATES_MIGRATION_VERSION, mergeEmbeddedEntities, preserveExistingCoordinates } from "@/lib/entity-migration";
+import { deriveSharedLocations, normalizeSharedLocations, sortSharedLocations } from "@/lib/shared-locations";
 
 const STORAGE_KEY = "medical-visit-manager-data-v1";
 const EMBEDDED_COORDINATES_MIGRATION_KEY = "medical-visit-manager-embedded-coordinates-version";
@@ -25,6 +26,7 @@ const INITIAL_DATA: AppData = {
   ],
   representativeLocations: {},
   entities: EMBEDDED_ENTITIES,
+  savedLocations: deriveSharedLocations(EMBEDDED_ENTITIES),
   plannedVisits: [],
   visits: [],
   settings: { managerName: "مدير النظام", reportEmail: "", reminderTime: "18:00", geofenceRadiusMeters: 200, managerPin: "", visitedItems: [] },
@@ -40,6 +42,10 @@ type VisitStoreValue = {
   updatePlannedVisit: (visit: AppData["plannedVisits"][number]) => void;
   addEntity: (entity: MedicalEntity) => void;
   updateEntity: (entity: MedicalEntity) => void;
+  addSharedLocation: (location: SharedLocation) => void;
+  updateSharedLocation: (location: SharedLocation) => void;
+  deleteSharedLocation: (id: string) => void;
+  incrementSharedLocationUsage: (id: string) => void;
   deleteEntity: (id: string) => void;
   deleteVisit: (id: string) => void;
   updateRepresentative: (representative: Representative) => void;
@@ -76,6 +82,7 @@ export function VisitProvider({ children }: PropsWithChildren) {
             representatives: parsed.representatives?.length ? parsed.representatives.map((item) => ({ ...item, ...(REPRESENTATIVE_NAMES[item.id] && LEGACY_REPRESENTATIVE_NAMES.has(item.name) ? { name: REPRESENTATIVE_NAMES[item.id] } : {}), ...(REPRESENTATIVE_REGIONS[item.id] ? { region: REPRESENTATIVE_REGIONS[item.id] } : {}), ...(!Array.isArray(item.assignedItems) && REPRESENTATIVE_ITEMS[item.id] ? { assignedItems: REPRESENTATIVE_ITEMS[item.id] } : {}) })) : INITIAL_DATA.representatives,
             representativeLocations: parsed.representativeLocations ?? {},
             entities: mergeEmbeddedEntities(parsed.entities, EMBEDDED_ENTITIES, true),
+            savedLocations: normalizeSharedLocations(parsed.savedLocations, mergeEmbeddedEntities(parsed.entities, EMBEDDED_ENTITIES, true)),
             plannedVisits: parsed.plannedVisits ?? [],
             visits: parsed.visits ?? [],
             planApprovalHistory: parsed.planApprovalHistory ?? [],
@@ -130,6 +137,10 @@ export function VisitProvider({ children }: PropsWithChildren) {
       updatePlannedVisit: (visit) => save((current) => ({ ...current, plannedVisits: current.plannedVisits.map((item) => item.id === visit.id ? visit : item) })),
       addEntity: (entity) => save((current) => ({ ...current, entities: [entity, ...current.entities] })),
       updateEntity: (entity) => save((current) => ({ ...current, entities: current.entities.map((item) => item.id === entity.id ? preserveExistingCoordinates(item, entity) : item) })),
+      addSharedLocation: (location) => save((current) => ({ ...current, savedLocations: sortSharedLocations([...(current.savedLocations ?? []), location]) })),
+      updateSharedLocation: (location) => save((current) => ({ ...current, savedLocations: sortSharedLocations((current.savedLocations ?? []).map((item) => item.id === location.id ? { ...location, usageCount: item.usageCount } : item)) })),
+      deleteSharedLocation: (id) => save((current) => ({ ...current, savedLocations: (current.savedLocations ?? []).filter((item) => item.id !== id) })),
+      incrementSharedLocationUsage: (id) => save((current) => ({ ...current, savedLocations: sortSharedLocations((current.savedLocations ?? []).map((item) => item.id === id ? { ...item, usageCount: item.usageCount + 1, updatedAt: new Date().toISOString() } : item)) })),
       deleteEntity: (id) => save((current) => ({ ...current, entities: current.entities.filter((item) => item.id !== id) })),
       deleteVisit: (id) => save((current) => ({ ...current, visits: current.visits.filter((visit) => visit.id !== id) })),
       updateRepresentative: (representative) =>
@@ -141,7 +152,7 @@ export function VisitProvider({ children }: PropsWithChildren) {
       deleteRepresentative: (id) => save((current) => ({ ...current, representatives: current.representatives.filter((item) => item.id !== id), plannedVisits: current.plannedVisits.filter((item) => item.representativeId !== id), representativeLocations: Object.fromEntries(Object.entries(current.representativeLocations).filter(([key]) => key !== id)) })),
       updateSettings: (settings) => save((current) => ({ ...current, settings })),
       replaceEntities: (entities) => save((current) => ({ ...current, entities: entities.map((entity) => { const previous = current.entities.find((item) => item.id === entity.id); return previous ? preserveExistingCoordinates(previous, entity) : entity; }) })),
-      restoreData: (restored) => save(() => ({ ...restored, entities: mergeEmbeddedEntities(restored.entities, EMBEDDED_ENTITIES, true) })),
+      restoreData: (restored) => save(() => { const entities = mergeEmbeddedEntities(restored.entities, EMBEDDED_ENTITIES, true); return { ...restored, entities, savedLocations: normalizeSharedLocations(restored.savedLocations, entities) }; }),
       updateRepresentativeLocation: (id, value) => save((current) => ({ ...current, representativeLocations: { ...current.representativeLocations, [id]: value } })),
       addPlanApprovalAudit: (audit) => save((current) => ({ ...current, planApprovalHistory: [audit, ...(current.planApprovalHistory ?? [])] })),
       syncPendingVisits,
