@@ -17,9 +17,10 @@ type Props = {
   actionLabel?: string;
   onAction?: () => void;
   onEdit?: (option: Option) => void;
+  emptyMessage?: string;
 };
 
-export function SelectionModal({ visible, title, options, selected, onClose, onSelect, searchable = false, searchValue = "", onSearchChange, searchPlaceholder = "بحث سريع...", actionLabel, onAction, onEdit }: Props) {
+export function SelectionModal({ visible, title, options, selected, onClose, onSelect, searchable = false, searchValue = "", onSearchChange, searchPlaceholder = "بحث سريع...", actionLabel, onAction, onEdit, emptyMessage = "لا توجد مواقع محفوظة مطابقة للبحث" }: Props) {
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <Pressable className="flex-1 justify-end bg-black/35" onPress={onClose}>
@@ -42,7 +43,7 @@ export function SelectionModal({ visible, title, options, selected, onClose, onS
               keyboardDismissMode="on-drag"
               showsVerticalScrollIndicator
               contentContainerStyle={{ gap: 10, paddingBottom: 8 }}
-              ListEmptyComponent={<View className="items-center py-8"><MaterialIcons name="location-off" size={34} color="#7C8798" /><Text className="text-muted font-bold mt-2 text-center">لا توجد مواقع محفوظة مطابقة للبحث</Text></View>}
+              ListEmptyComponent={<View className="items-center py-8"><MaterialIcons name="location-off" size={34} color="#7C8798" /><Text className="text-muted font-bold mt-2 text-center">{emptyMessage}</Text></View>}
               renderItem={({ item }) => {
                 const active = item.value === selected;
                 return (
