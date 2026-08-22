@@ -282,6 +282,7 @@ export default function ReportsScreen() {
   };
 
   const run = async (action: "print" | "share" | "email" | "excel" | "pdf" | "csv" | "html") => {
+    if (session?.role !== "manager") return;
     setIsWorking(true);
     try {
       if (action === "excel") {
@@ -665,7 +666,7 @@ export default function ReportsScreen() {
                 <Text className="text-xs font-bold text-white">معاينة</Text>
               </Pressable>
             </View>
-            {actionMenuVisible ? (
+            {session?.role === "manager" && actionMenuVisible ? (
               <View className="rounded-xl border border-border bg-background overflow-hidden">
                 <Pressable onPress={() => setDownloadMenuVisible((visible) => !visible)} className="h-11 px-3 flex-row-reverse items-center justify-between border-b border-border">
                   <MaterialIcons name="download" size={18} color="#1257A6" />
