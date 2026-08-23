@@ -64,7 +64,8 @@ type VisitStoreValue = {
   updateRepresentativeLocation: (id: string, value: AppData["representativeLocations"][string]) => void;
   addPlanApprovalAudit: (audit: PlanApprovalAudit) => void;
   syncPendingVisits: () => Promise<{ processed: number; syncedAt?: string; error?: string }>;
-  resolveSyncConflict: (id: string, choice: "local" | "server") => void;
+  resolveSyncConflict: (id: string, choice: "local" | "server", note: string) => void;
+  recordNotificationTest: (status: "passed" | "failed") => Promise<void>;
 };
 
 const VisitStore = createContext<VisitStoreValue | null>(null);
@@ -100,6 +101,7 @@ export function VisitProvider({ children }: PropsWithChildren) {
             syncQueue: parsed.syncQueue ?? [],
             syncConflicts: parsed.syncConflicts ?? [],
             syncHistory: parsed.syncHistory ?? [],
+            notificationTests: parsed.notificationTests ?? [],
             syncVersions: parsed.syncVersions ?? {},
             lastSuccessfulSyncAt: parsed.lastSuccessfulSyncAt,
             settings: { ...INITIAL_DATA.settings, ...(parsed.settings ?? {}), geofenceRadiusMeters: Number(parsed.settings?.geofenceRadiusMeters) || INITIAL_DATA.settings.geofenceRadiusMeters, managerPin: String(parsed.settings?.managerPin ?? INITIAL_DATA.settings.managerPin), visitedItems: Array.isArray(parsed.settings?.visitedItems) ? parsed.settings.visitedItems.filter((item): item is string => typeof item === "string") : [] },
@@ -137,6 +139,7 @@ export function VisitProvider({ children }: PropsWithChildren) {
       return result.data;
     });
     await new Promise((resolve) => setTimeout(resolve, 0));
+    const representativeName = activated?.representativeId ? currentData.representatives.find((item) => item.id === activated.representativeId)?.name : undefined;
     if (!activated) {
       setData((current) => {
         const next = appendSyncLog(current, { id: `sync-${Date.now()}`, status: "skipped", startedAt, completedAt: new Date().toISOString(), pushed: 0, pulled: 0, conflicts: 0, message: "الجهاز غير مفعّل للمزامنة المركزية." });
@@ -150,7 +153,7 @@ export function VisitProvider({ children }: PropsWithChildren) {
       const response = await createTRPCClient().sync.pushPull.mutate({ deviceId: activated.deviceId, deviceToken: activated.deviceToken, changes: queue.slice(0, 100).map((item) => ({ ...item, payload: item.payload })) });
       if (!response.authorized) {
         const message = "تم رفض هوية الجهاز. اطلب من المدير إعادة تفعيل الجهاز.";
-        setData((current) => { const next = appendSyncLog(current, { id: `sync-${Date.now()}`, status: "error", startedAt, completedAt: new Date().toISOString(), pushed: 0, pulled: 0, conflicts: 0, message }); void AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next)); return next; });
+        setData((current) => { const next = appendSyncLog(current, { id: `sync-${Date.now()}`, status: "error", startedAt, completedAt: new Date().toISOString(), pushed: 0, pulled: 0, conflicts: 0, message, representativeId: activated.representativeId, representativeName, deviceId: activated.deviceId }); void AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next)); return next; });
         void notifySyncStatus({ success: false, pushed: 0, pulled: 0, message });
         return { processed, error: message };
       }
@@ -163,7 +166,7 @@ export function VisitProvider({ children }: PropsWithChildren) {
         const conflicts = buildConflicts(pulled.syncConflicts ?? [], response.conflicts as never[], value.syncQueue ?? []);
         const nextQueue = (pulled.syncQueue ?? []).filter((item) => !accepted.has(item.changeId) && !conflictIds.has(item.changeId));
         const message = conflictCount ? `اكتملت المزامنة مع ${conflictCount} تعارض يحتاج مراجعة.` : `اكتملت المزامنة: رُفع ${accepted.size} تغيير وسُحب ${response.records.length} سجل.`;
-        const next = appendSyncLog({ ...pulled, syncQueue: nextQueue, syncConflicts: conflicts, lastSuccessfulSyncAt: checkedAt }, { id: `sync-${Date.now()}`, status: conflictCount ? "conflict" : "success", startedAt, completedAt: new Date().toISOString(), pushed: accepted.size, pulled: response.records.length, conflicts: conflictCount, message });
+        const next = appendSyncLog({ ...pulled, syncQueue: nextQueue, syncConflicts: conflicts, lastSuccessfulSyncAt: checkedAt }, { id: `sync-${Date.now()}`, status: conflictCount ? "conflict" : "success", startedAt, completedAt: new Date().toISOString(), pushed: accepted.size, pulled: response.records.length, conflicts: conflictCount, message, representativeId: activated.representativeId, representativeName, deviceId: activated.deviceId });
         void AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next));
         void notifySyncStatus({ success: conflictCount === 0, pushed: accepted.size, pulled: response.records.length, conflicts: conflictCount, message });
         return next;
@@ -171,7 +174,7 @@ export function VisitProvider({ children }: PropsWithChildren) {
       return { processed, syncedAt: checkedAt };
     } catch (error) {
       const message = error instanceof Error ? error.message : "تعذر الاتصال بخادم المزامنة.";
-      setData((current) => { const next = appendSyncLog(current, { id: `sync-${Date.now()}`, status: "error", startedAt, completedAt: new Date().toISOString(), pushed: 0, pulled: 0, conflicts: 0, message }); void AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next)); return next; });
+      setData((current) => { const next = appendSyncLog(current, { id: `sync-${Date.now()}`, status: "error", startedAt, completedAt: new Date().toISOString(), pushed: 0, pulled: 0, conflicts: 0, message, representativeId: activated.representativeId, representativeName, deviceId: activated.deviceId }); void AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next)); return next; });
       void notifySyncStatus({ success: false, pushed: 0, pulled: 0, message: "تعذر الاتصال بخادم المزامنة؛ ستبقى البيانات محفوظة على الجهاز." });
       return { processed, error: message };
     }
@@ -221,7 +224,7 @@ export function VisitProvider({ children }: PropsWithChildren) {
       updateRepresentativeLocation: (id, value) => save((current) => ({ ...current, representativeLocations: { ...current.representativeLocations, [id]: value } })),
       addPlanApprovalAudit: (audit) => save((current) => ({ ...current, planApprovalHistory: [audit, ...(current.planApprovalHistory ?? [])] })),
       syncPendingVisits,
-      resolveSyncConflict: (id, choice) => setData((current) => {
+      resolveSyncConflict: (id, choice, note) => setData((current) => {
         const conflict = (current.syncConflicts ?? []).find((item) => item.id === id);
         if (!conflict) return current;
         let resolved = current;
@@ -231,10 +234,21 @@ export function VisitProvider({ children }: PropsWithChildren) {
           const entry = createSyncChange({ recordType: conflict.recordType, recordId: conflict.recordId, operation: "upsert", baseVersion: conflict.serverVersion, payload: conflict.localPayload });
           resolved = { ...current, syncQueue: enqueueSyncChange(current.syncQueue ?? [], entry) };
         }
-        const next = { ...resolved, syncConflicts: (resolved.syncConflicts ?? []).map((item) => item.id === id ? { ...item, status: choice === "local" ? "kept-local" as const : "kept-server" as const } : item) };
+        const completedAt = new Date().toISOString();
+        const next = appendSyncLog({ ...resolved, syncConflicts: (resolved.syncConflicts ?? []).map((item) => item.id === id ? { ...item, status: choice === "local" ? "kept-local" as const : "kept-server" as const, resolutionNote: note.trim() || undefined, resolvedAt: completedAt } : item) }, { id: `sync-resolution-${Date.now()}`, status: choice === "local" ? "success" : "success", startedAt: completedAt, completedAt, pushed: choice === "local" ? 1 : 0, pulled: choice === "server" ? 1 : 0, conflicts: 0, message: `تم حل التعارض باعتماد ${choice === "local" ? "النسخة المحلية" : "نسخة الخادم"}.`, resolutionChoice: choice, resolutionNote: note.trim() || undefined });
         void AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next));
         return next;
       }),
+      recordNotificationTest: async (status) => {
+        const device = await getActivatedDevice();
+        if (!device) return;
+        setData((current) => {
+          const tests = [{ deviceId: device.deviceId, deviceLabel: device.deviceId, testedAt: new Date().toISOString(), status }, ...(current.notificationTests ?? [])].slice(0, 20);
+          const next = { ...current, notificationTests: tests };
+          void AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+          return next;
+        });
+      },
     }),
     [data, loading, networkState.isInternetReachable],
   );

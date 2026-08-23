@@ -120,6 +120,12 @@ export type SyncQueueEntry = {
   createdAt: string;
 };
 export type SyncLogStatus = "success" | "error" | "conflict" | "offline" | "skipped";
+export type NotificationTestRecord = {
+  deviceId: string;
+  deviceLabel: string;
+  testedAt: string;
+  status: "passed" | "failed";
+};
 export type SyncLogEntry = {
   id: string;
   status: SyncLogStatus;
@@ -129,6 +135,11 @@ export type SyncLogEntry = {
   pulled: number;
   conflicts: number;
   message: string;
+  representativeId?: string;
+  representativeName?: string;
+  deviceId?: string;
+  resolutionChoice?: "local" | "server";
+  resolutionNote?: string;
 };
 export type SyncConflict = {
   id: string;
@@ -140,6 +151,8 @@ export type SyncConflict = {
   serverVersion: number;
   detectedAt: string;
   status: "pending" | "kept-local" | "kept-server";
+  resolutionNote?: string;
+  resolvedAt?: string;
 };
 
 export type AppSettings = {
@@ -165,6 +178,7 @@ export type AppData = {
   syncQueue?: SyncQueueEntry[];
   syncConflicts?: SyncConflict[];
   syncHistory?: SyncLogEntry[];
+  notificationTests?: NotificationTestRecord[];
   syncVersions?: Record<string, number>;
   lastSuccessfulSyncAt?: string;
 };

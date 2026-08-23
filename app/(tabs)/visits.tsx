@@ -34,7 +34,7 @@ export default function VisitsScreen() {
   const pendingQueueCount = data.syncQueue?.length ?? 0;
   const pendingConflicts = data.syncConflicts?.filter((item) => item.status === "pending") ?? [];
   const conflictCount = pendingConflicts.length;
-  const resolveConflict = (id: string, choice: "local" | "server") => Alert.alert(choice === "local" ? "اعتماد النسخة المحلية" : "اعتماد نسخة الخادم", "سيتم حفظ الاختيار مع تسجيل وقت الحل.", [{ text: "إلغاء", style: "cancel" }, { text: "تأكيد", onPress: () => resolveSyncConflict(id, choice) }]);
+  const resolveConflict = (id: string, choice: "local" | "server") => Alert.alert(choice === "local" ? "اعتماد النسخة المحلية" : "اعتماد نسخة الخادم", "سيتم حفظ الاختيار مع تسجيل وقت الحل.", [{ text: "إلغاء", style: "cancel" }, { text: "تأكيد", onPress: () => resolveSyncConflict(id, choice, "تم الحل من شاشة سجل الزيارات.") }]);
 
   const [exportBusy, setExportBusy] = useState(false);
   const [editVisit, setEditVisit] = useState<typeof data.visits[number] | null>(null);
