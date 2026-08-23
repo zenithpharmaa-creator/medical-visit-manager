@@ -119,6 +119,17 @@ export type SyncQueueEntry = {
   payload?: unknown;
   createdAt: string;
 };
+export type SyncLogStatus = "success" | "error" | "conflict" | "offline" | "skipped";
+export type SyncLogEntry = {
+  id: string;
+  status: SyncLogStatus;
+  startedAt: string;
+  completedAt: string;
+  pushed: number;
+  pulled: number;
+  conflicts: number;
+  message: string;
+};
 export type SyncConflict = {
   id: string;
   changeId: string;
@@ -153,6 +164,7 @@ export type AppData = {
   planApprovalHistory?: PlanApprovalAudit[];
   syncQueue?: SyncQueueEntry[];
   syncConflicts?: SyncConflict[];
+  syncHistory?: SyncLogEntry[];
   syncVersions?: Record<string, number>;
   lastSuccessfulSyncAt?: string;
 };

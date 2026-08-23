@@ -18,6 +18,7 @@ const options = [
   { label: "المواقع المشتركة", subtitle: "إضافة وتعديل وربط مواقع المستشفيات والمراكز", icon: "location-city" as const, route: "/shared-locations" },
   { label: "المندوبون", subtitle: "تعديل أسماء المندوبين وحالتهم", icon: "groups" as const, route: "/settings" },
   { label: "تفعيل أجهزة المندوبين", subtitle: "إنشاء رمز أو QR وإدارة الأجهزة المتصلة", icon: "phonelink-lock" as const, route: "/device-activation" },
+  { label: "سجل المزامنة", subtitle: "عمليات الدفع والسحب والتعارضات السابقة", icon: "history" as const, route: "/sync-history" },
   { label: "المهام المسندة", subtitle: "متابعة الزيارات التي أسندها المدير", icon: "assignment-ind" as const, route: "/tasks" },
   { label: "اعتماد الخطط الأسبوعية", subtitle: "مراجعة خطط المندوبين واعتمادها أو رفضها", icon: "fact-check" as const, route: "/plan-approvals" },
   { label: "إعدادات التقارير", subtitle: "البريد والتذكير والنسخة الاحتياطية", icon: "settings" as const, route: "/settings" },

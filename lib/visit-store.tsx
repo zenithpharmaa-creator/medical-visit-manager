@@ -2,7 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { PropsWithChildren, createContext, useContext, useEffect, useMemo, useState } from "react";
 import { useNetworkState } from "expo-network";
 
-import { AppData, AppSettings, MedicalEntity, Representative, Visit, PlanApprovalAudit, SharedLocation, SyncOperation, SyncRecordType } from "@/shared/visit-types";
+import { AppData, AppSettings, MedicalEntity, Representative, Visit, PlanApprovalAudit, SharedLocation, SyncOperation, SyncRecordType, SyncLogEntry } from "@/shared/visit-types";
 import { normalizeEntityKind } from "@/lib/visit-utils";
 import { synchronizePendingVisits } from "@/lib/visit-sync";
 import { EMBEDDED_ENTITIES } from "@/data/embedded-entities";
@@ -11,6 +11,8 @@ import { deriveSharedLocations, normalizeSharedLocations, sortSharedLocations } 
 import { createSyncChange, enqueueSyncChange, applyRemoteRecords, buildConflicts, syncKey } from "@/lib/sync-queue";
 import { createTRPCClient } from "@/lib/trpc";
 import { getActivatedDevice } from "@/lib/sync-device";
+import { notifySyncStatus } from "@/lib/sync-notifications";
+import { appendSyncLog } from "@/lib/sync-history";
 
 const STORAGE_KEY = "medical-visit-manager-data-v1";
 const EMBEDDED_COORDINATES_MIGRATION_KEY = "medical-visit-manager-embedded-coordinates-version";
@@ -97,6 +99,7 @@ export function VisitProvider({ children }: PropsWithChildren) {
             planApprovalHistory: parsed.planApprovalHistory ?? [],
             syncQueue: parsed.syncQueue ?? [],
             syncConflicts: parsed.syncConflicts ?? [],
+            syncHistory: parsed.syncHistory ?? [],
             syncVersions: parsed.syncVersions ?? {},
             lastSuccessfulSyncAt: parsed.lastSuccessfulSyncAt,
             settings: { ...INITIAL_DATA.settings, ...(parsed.settings ?? {}), geofenceRadiusMeters: Number(parsed.settings?.geofenceRadiusMeters) || INITIAL_DATA.settings.geofenceRadiusMeters, managerPin: String(parsed.settings?.managerPin ?? INITIAL_DATA.settings.managerPin), visitedItems: Array.isArray(parsed.settings?.visitedItems) ? parsed.settings.visitedItems.filter((item): item is string => typeof item === "string") : [] },
@@ -113,43 +116,65 @@ export function VisitProvider({ children }: PropsWithChildren) {
   }, []);
 
   const syncPendingVisits = async () => {
-    if (networkState.isInternetReachable !== true) return { processed: 0, error: "لا يوجد اتصال بالإنترنت حالياً." };
+    const startedAt = new Date().toISOString();
+    if (networkState.isInternetReachable !== true) {
+      const completedAt = new Date().toISOString();
+      setData((current) => {
+        const next = appendSyncLog(current, { id: `sync-${Date.now()}`, status: "offline", startedAt, completedAt, pushed: 0, pulled: 0, conflicts: 0, message: "لا يوجد اتصال بالإنترنت؛ تم الاحتفاظ بالتغييرات محلياً." });
+        void AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+        return next;
+      });
+      return { processed: 0, error: "لا يوجد اتصال بالإنترنت حالياً." };
+    }
     const checkedAt = new Date().toISOString();
     const activated = await getActivatedDevice();
     let processed = 0;
-    let syncError: string | undefined;
-    let syncedAt: string | undefined;
+    let currentData = data;
     setData((current) => {
       const result = synchronizePendingVisits(current, checkedAt);
       processed = result.processed;
-      return { ...result.data, lastSuccessfulSyncAt: checkedAt };
+      currentData = result.data;
+      return result.data;
     });
     await new Promise((resolve) => setTimeout(resolve, 0));
     if (!activated) {
+      setData((current) => {
+        const next = appendSyncLog(current, { id: `sync-${Date.now()}`, status: "skipped", startedAt, completedAt: new Date().toISOString(), pushed: 0, pulled: 0, conflicts: 0, message: "الجهاز غير مفعّل للمزامنة المركزية." });
+        void AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+        return next;
+      });
       return { processed, error: "الجهاز غير مفعّل للمزامنة المركزية." };
     }
     try {
-      const current = await new Promise<AppData>((resolve) => setData((value) => { resolve(value); return value; }));
-      const queue = current.syncQueue ?? [];
-      const client = createTRPCClient();
-      const response = await client.sync.pushPull.mutate({ deviceId: activated.deviceId, deviceToken: activated.deviceToken, changes: queue.slice(0, 100).map((item) => ({ ...item, payload: item.payload })) });
-      if (!response.authorized) return { processed, error: "تم رفض هوية الجهاز. اطلب من المدير إعادة تفعيل الجهاز." };
+      const queue = currentData.syncQueue ?? [];
+      const response = await createTRPCClient().sync.pushPull.mutate({ deviceId: activated.deviceId, deviceToken: activated.deviceToken, changes: queue.slice(0, 100).map((item) => ({ ...item, payload: item.payload })) });
+      if (!response.authorized) {
+        const message = "تم رفض هوية الجهاز. اطلب من المدير إعادة تفعيل الجهاز.";
+        setData((current) => { const next = appendSyncLog(current, { id: `sync-${Date.now()}`, status: "error", startedAt, completedAt: new Date().toISOString(), pushed: 0, pulled: 0, conflicts: 0, message }); void AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next)); return next; });
+        void notifySyncStatus({ success: false, pushed: 0, pulled: 0, message });
+        return { processed, error: message };
+      }
       const accepted = new Set(response.accepted);
       const conflictIds = new Set(response.conflicts.map((item) => item.changeId));
+      const conflictCount = response.conflicts.length;
       setData((value) => {
         const protectedKeys = new Set(value.syncQueue?.filter((item) => conflictIds.has(item.changeId)).map((item) => syncKey(item.recordType, item.recordId)) ?? []);
         const pulled = applyRemoteRecords(value, response.records as never[], protectedKeys);
         const conflicts = buildConflicts(pulled.syncConflicts ?? [], response.conflicts as never[], value.syncQueue ?? []);
         const nextQueue = (pulled.syncQueue ?? []).filter((item) => !accepted.has(item.changeId) && !conflictIds.has(item.changeId));
-        syncedAt = checkedAt;
-        const next = { ...pulled, syncQueue: nextQueue, syncConflicts: conflicts, lastSuccessfulSyncAt: checkedAt };
+        const message = conflictCount ? `اكتملت المزامنة مع ${conflictCount} تعارض يحتاج مراجعة.` : `اكتملت المزامنة: رُفع ${accepted.size} تغيير وسُحب ${response.records.length} سجل.`;
+        const next = appendSyncLog({ ...pulled, syncQueue: nextQueue, syncConflicts: conflicts, lastSuccessfulSyncAt: checkedAt }, { id: `sync-${Date.now()}`, status: conflictCount ? "conflict" : "success", startedAt, completedAt: new Date().toISOString(), pushed: accepted.size, pulled: response.records.length, conflicts: conflictCount, message });
         void AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+        void notifySyncStatus({ success: conflictCount === 0, pushed: accepted.size, pulled: response.records.length, conflicts: conflictCount, message });
         return next;
       });
+      return { processed, syncedAt: checkedAt };
     } catch (error) {
-      syncError = error instanceof Error ? error.message : "تعذر الاتصال بخادم المزامنة.";
+      const message = error instanceof Error ? error.message : "تعذر الاتصال بخادم المزامنة.";
+      setData((current) => { const next = appendSyncLog(current, { id: `sync-${Date.now()}`, status: "error", startedAt, completedAt: new Date().toISOString(), pushed: 0, pulled: 0, conflicts: 0, message }); void AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next)); return next; });
+      void notifySyncStatus({ success: false, pushed: 0, pulled: 0, message: "تعذر الاتصال بخادم المزامنة؛ ستبقى البيانات محفوظة على الجهاز." });
+      return { processed, error: message };
     }
-    return { processed, syncedAt, error: syncError };
   };
 
   useEffect(() => {
