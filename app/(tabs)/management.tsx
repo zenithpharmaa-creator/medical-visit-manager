@@ -17,6 +17,7 @@ const options = [
   { label: "جهات الزيارة", subtitle: "العيادات والصيدليات والمستشفيات والمراكز", icon: "local-hospital" as const, route: "/entities" },
   { label: "المواقع المشتركة", subtitle: "إضافة وتعديل وربط مواقع المستشفيات والمراكز", icon: "location-city" as const, route: "/shared-locations" },
   { label: "المندوبون", subtitle: "تعديل أسماء المندوبين وحالتهم", icon: "groups" as const, route: "/settings" },
+  { label: "تخصيص نطاق المندوبين", subtitle: "تحديد المناطق والأصناف والجهات الظاهرة لكل مندوب", icon: "tune" as const, route: "/representative-scope" },
   { label: "تفعيل أجهزة المندوبين", subtitle: "إنشاء رمز أو QR وإدارة الأجهزة المتصلة", icon: "phonelink-lock" as const, route: "/device-activation" },
   { label: "سجل المزامنة", subtitle: "عمليات الدفع والسحب والتعارضات السابقة", icon: "history" as const, route: "/sync-history" },
   { label: "المهام المسندة", subtitle: "متابعة الزيارات التي أسندها المدير", icon: "assignment-ind" as const, route: "/tasks" },

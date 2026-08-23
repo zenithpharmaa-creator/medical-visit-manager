@@ -29,6 +29,7 @@ import { saveRepresentativePassword } from "@/lib/representative-auth";
 import { validateRepresentativePassword } from "@/lib/representative-auth-validation";
 import { BACKUP_RECIPIENT, composeBackupEmail, createLocalBackup, ensureDailyLocalBackup, parseBackupJson, type BackupMeta } from "@/lib/local-backup";
 import { mergeAppData } from "@/lib/backup-validation";
+import { getEntitiesForRepresentative } from "@/lib/representative-scope";
 
 export default function HomeScreen() {
   const { data, loading, restoreData, updateVisit } = useVisitStore();
@@ -103,6 +104,8 @@ export default function HomeScreen() {
   const activeRepresentative = session?.representativeId
     ? data.representatives.find((rep) => rep.id === session.representativeId)
     : undefined;
+  const scopedEntities = session?.role === "representative" ? getEntitiesForRepresentative(data.entities, activeRepresentative) : [];
+  const scopedItems = session?.role === "representative" ? (activeRepresentative?.assignedItems?.length ? activeRepresentative.assignedItems : data.settings.visitedItems) : [];
   const activeAccountName =
     session?.role === "manager"
       ? "مدير النظام"
@@ -333,6 +336,8 @@ export default function HomeScreen() {
             </View>
           </View>
         </View> : null}
+
+        {session?.role === "representative" ? <View className="rounded-3xl bg-surface border border-border p-4 mb-5"><View className="flex-row-reverse items-center justify-between mb-3"><View className="items-end flex-1"><Text className="text-lg font-bold text-foreground text-right">نطاقي المخصص</Text><Text className="text-xs text-muted text-right mt-1">البيانات المتاحة لهذا الحساب فقط</Text></View><View className="w-11 h-11 rounded-2xl bg-primary/10 items-center justify-center"><MaterialIcons name="tune" size={23} color="#1565C0" /></View></View><View className="flex-row-reverse gap-2"><View className="flex-1 rounded-2xl bg-primary/10 border border-primary/15 p-3 items-center"><Text className="text-2xl font-bold text-primary">{scopedEntities.length}</Text><Text className="text-[11px] text-muted font-bold mt-1">جهة متاحة</Text></View><View className="flex-1 rounded-2xl bg-success/10 border border-success/15 p-3 items-center"><Text className="text-2xl font-bold text-success">{scopedItems.length}</Text><Text className="text-[11px] text-muted font-bold mt-1">صنف متاح</Text></View><View className="flex-1 rounded-2xl bg-warning/10 border border-warning/15 p-3 items-center"><Text className="text-2xl font-bold text-warning">{activeRepresentative?.assignedKinds?.length || new Set(scopedEntities.map((entity) => entity.kind)).size}</Text><Text className="text-[11px] text-muted font-bold mt-1">نوع جهة</Text></View></View><Text className="text-[11px] text-muted text-right mt-3">المنطقة: {activeRepresentative?.region === "north" ? "شمال صنعاء" : activeRepresentative?.region === "south" ? "جنوب صنعاء" : "صنعاء كاملة"}</Text></View> : null}
 
         <View className="flex-row-reverse gap-3 mb-3">
           <MetricCard
