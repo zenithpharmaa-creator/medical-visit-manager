@@ -1,6 +1,7 @@
-import { eq } from "drizzle-orm";
+import { and, eq, gt, isNull } from "drizzle-orm";
+import { createHash, randomBytes } from "node:crypto";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
+import { InsertUser, syncActivationCodes, syncDevices, users } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -90,3 +91,108 @@ export async function getUserByOpenId(openId: string) {
 }
 
 // TODO: add feature queries here as your schema grows.
+
+
+const hashActivationValue = (value: string) => createHash("sha256").update(value).digest("hex");
+
+const createActivationCode = () => {
+  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  const bytes = randomBytes(8);
+  return Array.from(bytes, (byte) => alphabet[byte % alphabet.length]).join("");
+};
+
+export async function issueRepresentativeActivationCode(input: {
+  createdBy: number;
+  representativeId: string;
+  ttlMinutes?: number;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const code = createActivationCode();
+  const expiresAt = new Date(Date.now() + (input.ttlMinutes ?? 15) * 60_000);
+  await db.insert(syncActivationCodes).values({
+    codeHash: hashActivationValue(code),
+    representativeId: input.representativeId,
+    createdBy: input.createdBy,
+    expiresAt,
+  });
+
+  return { code, representativeId: input.representativeId, expiresAt };
+}
+
+export async function redeemRepresentativeActivationCode(input: {
+  code: string;
+  deviceId: string;
+  deviceLabel?: string;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const codeHash = hashActivationValue(input.code.trim().toUpperCase());
+  const now = new Date();
+  const deviceToken = randomBytes(32).toString("hex");
+  const tokenHash = hashActivationValue(deviceToken);
+
+  return db.transaction(async (tx) => {
+    const rows = await tx.select().from(syncActivationCodes).where(and(
+      eq(syncActivationCodes.codeHash, codeHash),
+      isNull(syncActivationCodes.usedAt),
+      gt(syncActivationCodes.expiresAt, now),
+    )).limit(1);
+    const activation = rows[0];
+    if (!activation) return null;
+
+    await tx.update(syncActivationCodes).set({
+      usedAt: now,
+      usedDeviceId: input.deviceId,
+    }).where(eq(syncActivationCodes.codeHash, codeHash));
+
+    await tx.insert(syncDevices).values({
+      deviceId: input.deviceId,
+      userId: activation.createdBy,
+      representativeId: activation.representativeId,
+      tokenHash,
+      deviceLabel: input.deviceLabel ?? null,
+      lastSeenAt: now,
+    }).onDuplicateKeyUpdate({
+      set: {
+        userId: activation.createdBy,
+        representativeId: activation.representativeId,
+        tokenHash,
+        deviceLabel: input.deviceLabel ?? null,
+        revokedAt: null,
+        lastSeenAt: now,
+      },
+    });
+
+    return {
+      deviceId: input.deviceId,
+      representativeId: activation.representativeId,
+      deviceToken,
+    };
+  });
+}
+
+export async function listRepresentativeDevices(userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return db.select({
+    deviceId: syncDevices.deviceId,
+    representativeId: syncDevices.representativeId,
+    deviceLabel: syncDevices.deviceLabel,
+    lastSeenAt: syncDevices.lastSeenAt,
+    lastSyncAt: syncDevices.lastSyncAt,
+    revokedAt: syncDevices.revokedAt,
+    createdAt: syncDevices.createdAt,
+  }).from(syncDevices).where(eq(syncDevices.userId, userId));
+}
+
+export async function revokeRepresentativeDevice(userId: number, deviceId: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(syncDevices).set({ revokedAt: new Date() }).where(and(
+    eq(syncDevices.userId, userId),
+    eq(syncDevices.deviceId, deviceId),
+  ));
+}
