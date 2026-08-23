@@ -74,6 +74,7 @@ export const syncChanges = mysqlTable("sync_changes", {
   recordType: varchar("recordType", { length: 64 }).notNull(),
   recordId: varchar("recordId", { length: 191 }).notNull(),
   operation: mysqlEnum("operation", ["upsert", "delete"]).notNull(),
+  baseVersion: int("baseVersion"),
   payload: text("payload"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 }, (table) => ({

@@ -16,7 +16,7 @@ import { getVisitSyncLabel, getVisitSyncState } from "@/lib/visit-sync-status";
 import { canManageVisit } from "@/lib/visit-permissions";
 
 export default function VisitsScreen() {
-  const { data, deleteVisit, updateVisit, syncPendingVisits } = useVisitStore();
+  const { data, deleteVisit, updateVisit, syncPendingVisits, resolveSyncConflict } = useVisitStore();
   const networkState = useNetworkState();
   const { session } = useAccountSession();
   const isManager = session?.role === "manager";
@@ -31,6 +31,10 @@ export default function VisitsScreen() {
   });
   const pendingSyncCount = visibleVisits.filter((visit) => getVisitSyncState(visit) === "pending").length;
   const syncedCount = visibleVisits.filter((visit) => getVisitSyncState(visit) === "synced").length;
+  const pendingQueueCount = data.syncQueue?.length ?? 0;
+  const pendingConflicts = data.syncConflicts?.filter((item) => item.status === "pending") ?? [];
+  const conflictCount = pendingConflicts.length;
+  const resolveConflict = (id: string, choice: "local" | "server") => Alert.alert(choice === "local" ? "اعتماد النسخة المحلية" : "اعتماد نسخة الخادم", "سيتم حفظ الاختيار مع تسجيل وقت الحل.", [{ text: "إلغاء", style: "cancel" }, { text: "تأكيد", onPress: () => resolveSyncConflict(id, choice) }]);
 
   const [exportBusy, setExportBusy] = useState(false);
   const [editVisit, setEditVisit] = useState<typeof data.visits[number] | null>(null);
@@ -97,6 +101,8 @@ export default function VisitsScreen() {
             <View className="flex-1 rounded-xl bg-background/70 px-3 py-2"><Text className="text-[11px] text-muted text-right">تمت المزامنة</Text><Text className="font-bold text-success text-right mt-1">{syncedCount}</Text></View>
           </View>
         </View>
+        {(pendingQueueCount > 0 || conflictCount > 0) ? <View className="rounded-2xl bg-[#FFF8E7] border border-[#F59E0B] p-3 mb-3 flex-row-reverse items-center gap-3"><MaterialIcons name={conflictCount > 0 ? "warning" : "cloud-upload"} size={21} color="#B45309" /><View className="flex-1 items-end"><Text className="font-bold text-foreground text-right">حالة طابور المزامنة</Text><Text className="text-xs text-muted text-right mt-1">{pendingQueueCount} تغيير بانتظار الرفع{conflictCount ? ` · ${conflictCount} تعارض يحتاج مراجعة` : ""}</Text></View></View> : null}
+        {pendingConflicts.length ? <View className="rounded-2xl bg-error/10 border border-error/25 p-3 mb-3"><View className="flex-row-reverse items-center gap-2 mb-2"><MaterialIcons name="compare-arrows" size={20} color="#C0392B" /><Text className="font-bold text-foreground flex-1 text-right">تعارضات تحتاج قراراً</Text></View>{pendingConflicts.map((conflict) => <View key={conflict.id} className="rounded-xl bg-background p-3 mb-2"><Text className="font-bold text-foreground text-right">{conflict.recordType === "entity" ? "جهة" : conflict.recordType === "visit" ? "زيارة" : conflict.recordType === "plannedVisit" ? "خطة" : "موقع مشترك"} · {conflict.recordId}</Text><Text className="text-xs text-muted text-right mt-1">تعديل محلي وتعديل آخر على الخادم بالإصدار {conflict.serverVersion}.</Text><View className="flex-row-reverse gap-2 mt-2"><Pressable onPress={() => resolveConflict(conflict.id, "local")} className="flex-1 h-10 rounded-xl bg-primary items-center justify-center"><Text className="text-white font-bold text-xs">اعتماد المحلي</Text></Pressable><Pressable onPress={() => resolveConflict(conflict.id, "server")} className="flex-1 h-10 rounded-xl bg-foreground items-center justify-center"><Text className="text-white font-bold text-xs">اعتماد الخادم</Text></Pressable></View></View>)}</View> : null}
         {isManager ? <View className="h-13 rounded-2xl border border-border bg-surface px-4 flex-row-reverse items-center gap-2 mb-3">
           <MaterialIcons name="search" size={21} color="#102A43" />
           <TextInput value={query} onChangeText={setQuery} placeholder="ابحث بالطبيب أو الصيدلية أو المنطقة أو العنوان أو الموقع" placeholderTextColor="#7C8798" textAlign="right" className="flex-1 h-full text-foreground font-semibold" />

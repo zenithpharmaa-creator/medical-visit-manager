@@ -1,7 +1,7 @@
-import { and, eq, gt, isNull } from "drizzle-orm";
+import { and, desc, eq, gt, isNull } from "drizzle-orm";
 import { createHash, randomBytes } from "node:crypto";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, syncActivationCodes, syncDevices, users } from "../drizzle/schema";
+import { InsertUser, syncActivationCodes, syncChanges, syncDevices, syncRecords, users } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -195,4 +195,94 @@ export async function revokeRepresentativeDevice(userId: number, deviceId: strin
     eq(syncDevices.userId, userId),
     eq(syncDevices.deviceId, deviceId),
   ));
+}
+
+
+type SyncChangeInput = {
+  changeId: string;
+  recordType: string;
+  recordId: string;
+  operation: "upsert" | "delete";
+  baseVersion?: number;
+  payload?: unknown;
+  createdAt?: string;
+};
+
+export async function syncDeviceChanges(input: {
+  deviceId: string;
+  deviceToken: string;
+  changes: SyncChangeInput[];
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const tokenHash = hashActivationValue(input.deviceToken);
+  const deviceRows = await db.select().from(syncDevices).where(and(
+    eq(syncDevices.deviceId, input.deviceId),
+    eq(syncDevices.tokenHash, tokenHash),
+    isNull(syncDevices.revokedAt),
+  )).limit(1);
+  const device = deviceRows[0];
+  if (!device) return { authorized: false as const, accepted: [], conflicts: [], records: [] };
+
+  const accepted: string[] = [];
+  const conflicts: Array<{ changeId: string; recordType: string; recordId: string; serverRecord: typeof syncRecords.$inferSelect | null }> = [];
+  const now = new Date();
+
+  await db.transaction(async (tx) => {
+    for (const change of input.changes) {
+      const currentRows = await tx.select().from(syncRecords).where(and(
+        eq(syncRecords.recordType, change.recordType),
+        eq(syncRecords.recordId, change.recordId),
+      )).limit(1);
+      const current = currentRows[0] ?? null;
+      if (current && change.baseVersion !== undefined && change.baseVersion !== current.version) {
+        conflicts.push({ changeId: change.changeId, recordType: change.recordType, recordId: change.recordId, serverRecord: current });
+        continue;
+      }
+
+      const nextVersion = (current?.version ?? 0) + 1;
+      const payload = change.operation === "delete" ? (current?.payload ?? "null") : JSON.stringify(change.payload ?? null);
+      if (current) {
+        await tx.update(syncRecords).set({
+          payload,
+          version: nextVersion,
+          updatedBy: device.userId,
+          updatedAt: now,
+          deletedAt: change.operation === "delete" ? now : null,
+        }).where(and(
+          eq(syncRecords.recordType, change.recordType),
+          eq(syncRecords.recordId, change.recordId),
+        ));
+      } else {
+        await tx.insert(syncRecords).values({
+          recordType: change.recordType,
+          recordId: change.recordId,
+          payload,
+          version: nextVersion,
+          updatedBy: device.userId,
+          updatedAt: now,
+          deletedAt: change.operation === "delete" ? now : null,
+        });
+      }
+
+      await tx.insert(syncChanges).values({
+        changeId: change.changeId,
+        deviceId: input.deviceId,
+        userId: device.userId,
+        recordType: change.recordType,
+        recordId: change.recordId,
+        operation: change.operation,
+        baseVersion: change.baseVersion ?? null,
+        payload: change.operation === "delete" ? null : JSON.stringify(change.payload ?? null),
+        createdAt: change.createdAt ? new Date(change.createdAt) : now,
+      }).onDuplicateKeyUpdate({ set: { changeId: change.changeId } });
+      accepted.push(change.changeId);
+    }
+
+    await tx.update(syncDevices).set({ lastSeenAt: now, lastSyncAt: now }).where(eq(syncDevices.deviceId, input.deviceId));
+  });
+
+  const records = await db.select().from(syncRecords).orderBy(desc(syncRecords.updatedAt));
+  return { authorized: true as const, accepted, conflicts, records };
 }

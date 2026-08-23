@@ -2,12 +2,15 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { PropsWithChildren, createContext, useContext, useEffect, useMemo, useState } from "react";
 import { useNetworkState } from "expo-network";
 
-import { AppData, AppSettings, MedicalEntity, Representative, Visit, PlanApprovalAudit, SharedLocation } from "@/shared/visit-types";
+import { AppData, AppSettings, MedicalEntity, Representative, Visit, PlanApprovalAudit, SharedLocation, SyncOperation, SyncRecordType } from "@/shared/visit-types";
 import { normalizeEntityKind } from "@/lib/visit-utils";
 import { synchronizePendingVisits } from "@/lib/visit-sync";
 import { EMBEDDED_ENTITIES } from "@/data/embedded-entities";
 import { EMBEDDED_COORDINATES_MIGRATION_VERSION, mergeEmbeddedEntities, preserveExistingCoordinates } from "@/lib/entity-migration";
 import { deriveSharedLocations, normalizeSharedLocations, sortSharedLocations } from "@/lib/shared-locations";
+import { createSyncChange, enqueueSyncChange, applyRemoteRecords, buildConflicts, syncKey } from "@/lib/sync-queue";
+import { createTRPCClient } from "@/lib/trpc";
+import { getActivatedDevice } from "@/lib/sync-device";
 
 const STORAGE_KEY = "medical-visit-manager-data-v1";
 const EMBEDDED_COORDINATES_MIGRATION_KEY = "medical-visit-manager-embedded-coordinates-version";
@@ -59,6 +62,7 @@ type VisitStoreValue = {
   updateRepresentativeLocation: (id: string, value: AppData["representativeLocations"][string]) => void;
   addPlanApprovalAudit: (audit: PlanApprovalAudit) => void;
   syncPendingVisits: () => Promise<{ processed: number; syncedAt?: string; error?: string }>;
+  resolveSyncConflict: (id: string, choice: "local" | "server") => void;
 };
 
 const VisitStore = createContext<VisitStoreValue | null>(null);
@@ -91,6 +95,9 @@ export function VisitProvider({ children }: PropsWithChildren) {
             plannedVisits: normalizedPlannedVisits,
             visits: normalizedVisits,
             planApprovalHistory: parsed.planApprovalHistory ?? [],
+            syncQueue: parsed.syncQueue ?? [],
+            syncConflicts: parsed.syncConflicts ?? [],
+            syncVersions: parsed.syncVersions ?? {},
             lastSuccessfulSyncAt: parsed.lastSuccessfulSyncAt,
             settings: { ...INITIAL_DATA.settings, ...(parsed.settings ?? {}), geofenceRadiusMeters: Number(parsed.settings?.geofenceRadiusMeters) || INITIAL_DATA.settings.geofenceRadiusMeters, managerPin: String(parsed.settings?.managerPin ?? INITIAL_DATA.settings.managerPin), visitedItems: Array.isArray(parsed.settings?.visitedItems) ? parsed.settings.visitedItems.filter((item): item is string => typeof item === "string") : [] },
           });
@@ -108,27 +115,54 @@ export function VisitProvider({ children }: PropsWithChildren) {
   const syncPendingVisits = async () => {
     if (networkState.isInternetReachable !== true) return { processed: 0, error: "لا يوجد اتصال بالإنترنت حالياً." };
     const checkedAt = new Date().toISOString();
+    const activated = await getActivatedDevice();
     let processed = 0;
+    let syncError: string | undefined;
+    let syncedAt: string | undefined;
     setData((current) => {
       const result = synchronizePendingVisits(current, checkedAt);
       processed = result.processed;
-      const next = { ...result.data, lastSuccessfulSyncAt: checkedAt };
-      void AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-      return next;
+      return { ...result.data, lastSuccessfulSyncAt: checkedAt };
     });
     await new Promise((resolve) => setTimeout(resolve, 0));
-    return { processed, syncedAt: checkedAt };
+    if (!activated) {
+      return { processed, error: "الجهاز غير مفعّل للمزامنة المركزية." };
+    }
+    try {
+      const current = await new Promise<AppData>((resolve) => setData((value) => { resolve(value); return value; }));
+      const queue = current.syncQueue ?? [];
+      const client = createTRPCClient();
+      const response = await client.sync.pushPull.mutate({ deviceId: activated.deviceId, deviceToken: activated.deviceToken, changes: queue.slice(0, 100).map((item) => ({ ...item, payload: item.payload })) });
+      if (!response.authorized) return { processed, error: "تم رفض هوية الجهاز. اطلب من المدير إعادة تفعيل الجهاز." };
+      const accepted = new Set(response.accepted);
+      const conflictIds = new Set(response.conflicts.map((item) => item.changeId));
+      setData((value) => {
+        const protectedKeys = new Set(value.syncQueue?.filter((item) => conflictIds.has(item.changeId)).map((item) => syncKey(item.recordType, item.recordId)) ?? []);
+        const pulled = applyRemoteRecords(value, response.records as never[], protectedKeys);
+        const conflicts = buildConflicts(pulled.syncConflicts ?? [], response.conflicts as never[], value.syncQueue ?? []);
+        const nextQueue = (pulled.syncQueue ?? []).filter((item) => !accepted.has(item.changeId) && !conflictIds.has(item.changeId));
+        syncedAt = checkedAt;
+        const next = { ...pulled, syncQueue: nextQueue, syncConflicts: conflicts, lastSuccessfulSyncAt: checkedAt };
+        void AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+        return next;
+      });
+    } catch (error) {
+      syncError = error instanceof Error ? error.message : "تعذر الاتصال بخادم المزامنة.";
+    }
+    return { processed, syncedAt, error: syncError };
   };
 
   useEffect(() => {
     if (networkState.isInternetReachable === true) void syncPendingVisits();
   }, [networkState.isInternetReachable]);
 
-  const save = (updater: (current: AppData) => AppData) => {
+  const save = (updater: (current: AppData) => AppData, change?: { recordType: SyncRecordType; recordId: string; operation?: SyncOperation; payload?: unknown }) => {
     setData((current) => {
       const next = updater(current);
-      AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next)).catch(() => undefined);
-      return next;
+      const queued = change ? enqueueSyncChange(next.syncQueue ?? [], createSyncChange({ recordType: change.recordType, recordId: change.recordId, operation: change.operation ?? "upsert", baseVersion: next.syncVersions?.[syncKey(change.recordType, change.recordId)] ?? 0, payload: change.payload })) : next.syncQueue;
+      const persisted = queued ? { ...next, syncQueue: queued } : next;
+      AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(persisted)).catch(() => undefined);
+      return persisted;
     });
   };
 
@@ -136,19 +170,19 @@ export function VisitProvider({ children }: PropsWithChildren) {
     () => ({
       data,
       loading,
-      addVisit: (visit) => save((current) => ({ ...current, visits: [visit, ...current.visits] })),
-      updateVisit: (visit) => save((current) => ({ ...current, visits: current.visits.map((item) => item.id === visit.id ? visit : item) })),
-      addPlannedVisit: (visit) => save((current) => ({ ...current, plannedVisits: [visit, ...current.plannedVisits] })),
-      updatePlannedVisit: (visit) => save((current) => ({ ...current, plannedVisits: current.plannedVisits.map((item) => item.id === visit.id ? visit : item) })),
-      addEntity: (entity) => save((current) => ({ ...current, entities: [entity, ...current.entities] })),
-      updateEntity: (entity) => save((current) => ({ ...current, entities: current.entities.map((item) => item.id === entity.id ? preserveExistingCoordinates(item, entity) : item) })),
-      addSharedLocation: (location) => save((current) => ({ ...current, savedLocations: sortSharedLocations([...(current.savedLocations ?? []), location]) })),
-      updateSharedLocation: (location) => save((current) => ({ ...current, savedLocations: sortSharedLocations((current.savedLocations ?? []).map((item) => item.id === location.id ? { ...location, usageCount: item.usageCount } : item)) })),
-      deleteSharedLocation: (id) => save((current) => ({ ...current, savedLocations: (current.savedLocations ?? []).filter((item) => item.id !== id) })),
+      addVisit: (visit) => save((current) => ({ ...current, visits: [visit, ...current.visits] }), { recordType: "visit", recordId: visit.id, payload: visit }),
+      updateVisit: (visit) => save((current) => ({ ...current, visits: current.visits.map((item) => item.id === visit.id ? visit : item) }), { recordType: "visit", recordId: visit.id, payload: visit }),
+      addPlannedVisit: (visit) => save((current) => ({ ...current, plannedVisits: [visit, ...current.plannedVisits] }), { recordType: "plannedVisit", recordId: visit.id, payload: visit }),
+      updatePlannedVisit: (visit) => save((current) => ({ ...current, plannedVisits: current.plannedVisits.map((item) => item.id === visit.id ? visit : item) }), { recordType: "plannedVisit", recordId: visit.id, payload: visit }),
+      addEntity: (entity) => save((current) => ({ ...current, entities: [entity, ...current.entities] }), { recordType: "entity", recordId: entity.id, payload: entity }),
+      updateEntity: (entity) => save((current) => ({ ...current, entities: current.entities.map((item) => item.id === entity.id ? preserveExistingCoordinates(item, entity) : item) }), { recordType: "entity", recordId: entity.id, payload: entity }),
+      addSharedLocation: (location) => save((current) => ({ ...current, savedLocations: sortSharedLocations([...(current.savedLocations ?? []), location]) }), { recordType: "sharedLocation", recordId: location.id, payload: location }),
+      updateSharedLocation: (location) => save((current) => ({ ...current, savedLocations: sortSharedLocations((current.savedLocations ?? []).map((item) => item.id === location.id ? { ...location, usageCount: item.usageCount } : item)) }), { recordType: "sharedLocation", recordId: location.id, payload: location }),
+      deleteSharedLocation: (id) => save((current) => ({ ...current, savedLocations: (current.savedLocations ?? []).filter((item) => item.id !== id) }), { recordType: "sharedLocation", recordId: id, operation: "delete" }),
       incrementSharedLocationUsage: (id) => save((current) => ({ ...current, savedLocations: sortSharedLocations((current.savedLocations ?? []).map((item) => item.id === id ? { ...item, usageCount: item.usageCount + 1, updatedAt: new Date().toISOString() } : item)) })),
       adjustSharedLocationUsage: (id, delta) => save((current) => ({ ...current, savedLocations: sortSharedLocations((current.savedLocations ?? []).map((item) => item.id === id ? { ...item, usageCount: Math.max(0, item.usageCount + delta), updatedAt: new Date().toISOString() } : item)) })),
-      deleteEntity: (id) => save((current) => ({ ...current, entities: current.entities.filter((item) => item.id !== id) })),
-      deleteVisit: (id) => save((current) => ({ ...current, visits: current.visits.filter((visit) => visit.id !== id) })),
+      deleteEntity: (id) => save((current) => ({ ...current, entities: current.entities.filter((item) => item.id !== id) }), { recordType: "entity", recordId: id, operation: "delete" }),
+      deleteVisit: (id) => save((current) => ({ ...current, visits: current.visits.filter((visit) => visit.id !== id) }), { recordType: "visit", recordId: id, operation: "delete" }),
       updateRepresentative: (representative) =>
         save((current) => ({
           ...current,
@@ -162,6 +196,20 @@ export function VisitProvider({ children }: PropsWithChildren) {
       updateRepresentativeLocation: (id, value) => save((current) => ({ ...current, representativeLocations: { ...current.representativeLocations, [id]: value } })),
       addPlanApprovalAudit: (audit) => save((current) => ({ ...current, planApprovalHistory: [audit, ...(current.planApprovalHistory ?? [])] })),
       syncPendingVisits,
+      resolveSyncConflict: (id, choice) => setData((current) => {
+        const conflict = (current.syncConflicts ?? []).find((item) => item.id === id);
+        if (!conflict) return current;
+        let resolved = current;
+        if (choice === "server") {
+          resolved = applyRemoteRecords(current, [{ recordType: conflict.recordType, recordId: conflict.recordId, payload: JSON.stringify(conflict.serverPayload ?? null), version: conflict.serverVersion, deletedAt: null }], new Set());
+        } else {
+          const entry = createSyncChange({ recordType: conflict.recordType, recordId: conflict.recordId, operation: "upsert", baseVersion: conflict.serverVersion, payload: conflict.localPayload });
+          resolved = { ...current, syncQueue: enqueueSyncChange(current.syncQueue ?? [], entry) };
+        }
+        const next = { ...resolved, syncConflicts: (resolved.syncConflicts ?? []).map((item) => item.id === id ? { ...item, status: choice === "local" ? "kept-local" as const : "kept-server" as const } : item) };
+        void AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+        return next;
+      }),
     }),
     [data, loading, networkState.isInternetReachable],
   );

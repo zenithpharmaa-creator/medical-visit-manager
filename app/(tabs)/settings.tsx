@@ -6,6 +6,7 @@ import { createLocalBackup } from "@/lib/local-backup";
 import { mergeAppData, parseBackupJson, type MergeSummary, type RestoreSummary } from "@/lib/backup-validation";
 import * as Sharing from "expo-sharing";
 import { useEffect, useState } from "react";
+import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ActivityIndicator, Alert, FlatList, Image, Modal, Pressable, ScrollView, Switch, Text, TextInput, View } from "react-native";
 
@@ -28,7 +29,7 @@ const normalizeAssignedItems = (value: string) => Array.from(new Map(value.split
 
 export default function SettingsScreen() {
   const { data, addRepresentative, updateRepresentative, updateSettings, deleteRepresentative, restoreData } = useVisitStore();
-  const { biometricEnabled, enableBiometric, disableBiometric } = useAccountSession();
+  const { session, biometricEnabled, enableBiometric, disableBiometric } = useAccountSession();
   const insets = useSafeAreaInsets();
   const contentBottomPadding = Math.max(insets.bottom + 96, 120);
   const [managerName, setManagerName] = useState(data.settings.managerName);
@@ -187,6 +188,7 @@ export default function SettingsScreen() {
         <ScreenHeader title="الإعدادات" subtitle="بيانات الفريق والتقارير والنسخ الاحتياطي" icon="settings" />
         <View className="rounded-2xl bg-primary/10 border border-primary/20 p-4 mb-5 flex-row-reverse gap-3"><MaterialIcons name="security" size={21} color="#1565C0" /><Text className="flex-1 text-right text-primary text-sm leading-5">تُحفظ الزيارات والإعدادات على هذا الجهاز. كلمات مرور المندوبين تُحفظ في التخزين الآمن ولا تظهر في النسخة الاحتياطية العامة.</Text></View>
         <View className="rounded-2xl bg-surface border border-border p-4 mb-5 flex-row-reverse items-center gap-3"><MaterialIcons name="fingerprint" size={25} color="#1565C0" /><View className="flex-1"><Text className="font-bold text-foreground text-right">الدخول بالبصمة أو الوجه</Text><Text className="text-xs text-muted text-right mt-1">يتطلب تفعيل البصمة أو التعرف على الوجه في إعدادات الهاتف. يبقى رمز المرور متاحاً كخيار بديل.</Text></View><Switch value={biometricEnabled} onValueChange={async (enabled) => { if (enabled) { const ok = await enableBiometric(); if (!ok) Alert.alert("تعذر التفعيل", "أكمل تسجيل بصمة أو وجه على الجهاز ثم حاول مرة أخرى."); } else await disableBiometric(); }} trackColor={{ false: "#CBD5E1", true: "#90CAF9" }} thumbColor={biometricEnabled ? "#1565C0" : "#F8FAFC"} accessibilityLabel="تفعيل الدخول بالبصمة أو الوجه" /></View>
+        <Pressable onPress={() => router.push("/device-activation" as never)} className="rounded-2xl bg-primary/10 border border-primary/25 p-4 mb-5 flex-row-reverse items-center gap-3" style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}><View className="w-11 h-11 rounded-xl bg-primary items-center justify-center"><MaterialIcons name="phonelink-lock" size={22} color="#FFFFFF" /></View><View className="flex-1 items-end"><Text className="font-bold text-primary text-right">{session?.role === "manager" ? "تفعيل أجهزة المندوبين" : "تفعيل جهاز المزامنة"}</Text><Text className="text-xs text-muted text-right mt-1">{session?.role === "manager" ? "إنشاء رمز أو QR ومراجعة الأجهزة المتصلة" : "أدخل رمز المدير لربط هذا الجهاز بالمزامنة"}</Text></View><MaterialIcons name="chevron-left" size={23} color="#1257A6" /></Pressable>
         <Text className="font-bold text-foreground text-right mb-3">إدارة النظام</Text>
         <View className="rounded-2xl bg-surface border border-border p-4 mb-5">
           <Text className="font-bold text-foreground text-right">الأصناف المزارة</Text>

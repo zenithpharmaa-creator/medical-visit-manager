@@ -4,6 +4,7 @@ import { systemRouter } from "./_core/systemRouter";
 import { adminProcedure, publicProcedure, router } from "./_core/trpc";
 import { z } from "zod";
 import * as db from "./db";
+import QRCode from "qrcode";
 
 export const appRouter = router({
   // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -25,11 +26,14 @@ export const appRouter = router({
         representativeId: z.string().trim().min(1).max(128),
         ttlMinutes: z.number().int().min(5).max(60).optional(),
       }))
-      .mutation(({ ctx, input }) => db.issueRepresentativeActivationCode({
-        createdBy: ctx.user.id,
-        representativeId: input.representativeId,
-        ttlMinutes: input.ttlMinutes,
-      })),
+      .mutation(async ({ ctx, input }) => {
+        const activation = await db.issueRepresentativeActivationCode({
+          createdBy: ctx.user.id,
+          representativeId: input.representativeId,
+          ttlMinutes: input.ttlMinutes,
+        });
+        return { ...activation, qrDataUrl: await QRCode.toDataURL(activation.code, { width: 360, margin: 1 }) };
+      }),
 
     redeemActivationCode: publicProcedure
       .input(z.object({
@@ -51,6 +55,22 @@ export const appRouter = router({
         await db.revokeRepresentativeDevice(ctx.user.id, input.deviceId);
         return { success: true as const };
       }),
+
+    pushPull: publicProcedure
+      .input(z.object({
+        deviceId: z.string().trim().min(8).max(128),
+        deviceToken: z.string().trim().min(32).max(128),
+        changes: z.array(z.object({
+          changeId: z.string().trim().min(8).max(128),
+          recordType: z.enum(["entity", "visit", "plannedVisit", "sharedLocation"]),
+          recordId: z.string().trim().min(1).max(191),
+          operation: z.enum(["upsert", "delete"]),
+          baseVersion: z.number().int().nonnegative().optional(),
+          payload: z.unknown().optional(),
+          createdAt: z.string().datetime().optional(),
+        })).max(100),
+      }))
+      .mutation(({ input }) => db.syncDeviceChanges(input)),
   }),
 
   // TODO: add feature routers here, e.g.

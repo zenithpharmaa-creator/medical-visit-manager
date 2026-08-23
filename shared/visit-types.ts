@@ -108,6 +108,29 @@ export type Visit = {
   overrideReason?: string;
 };
 
+export type SyncRecordType = "entity" | "visit" | "plannedVisit" | "sharedLocation";
+export type SyncOperation = "upsert" | "delete";
+export type SyncQueueEntry = {
+  changeId: string;
+  recordType: SyncRecordType;
+  recordId: string;
+  operation: SyncOperation;
+  baseVersion: number;
+  payload?: unknown;
+  createdAt: string;
+};
+export type SyncConflict = {
+  id: string;
+  changeId: string;
+  recordType: SyncRecordType;
+  recordId: string;
+  localPayload?: unknown;
+  serverPayload?: unknown;
+  serverVersion: number;
+  detectedAt: string;
+  status: "pending" | "kept-local" | "kept-server";
+};
+
 export type AppSettings = {
   managerName: string;
   reportEmail: string;
@@ -128,5 +151,8 @@ export type AppData = {
   settings: AppSettings;
   savedLocations?: SharedLocation[];
   planApprovalHistory?: PlanApprovalAudit[];
+  syncQueue?: SyncQueueEntry[];
+  syncConflicts?: SyncConflict[];
+  syncVersions?: Record<string, number>;
   lastSuccessfulSyncAt?: string;
 };
