@@ -9,10 +9,15 @@ import { SelectionModal } from "@/components/selection-modal";
 import { rankEntitiesForSearch } from "@/lib/entity-search";
 import { ENTITY_KINDS } from "@/lib/visit-utils";
 import { useVisitStore } from "@/lib/visit-store";
+import { useAccountSession } from "@/lib/account-session";
+import { getEntitiesForRepresentative } from "@/lib/representative-scope";
 import type { MedicalEntity } from "@/shared/visit-types";
 
 export default function SearchScreen() {
   const { data } = useVisitStore();
+  const { session } = useAccountSession();
+  const currentRepresentative = session?.representativeId ? data.representatives.find((item) => item.id === session.representativeId) : undefined;
+  const scopedEntities = session?.role === "manager" ? data.entities : getEntitiesForRepresentative(data.entities, currentRepresentative);
   const [query, setQuery] = useState("");
   const [selectedEntity, setSelectedEntity] = useState<MedicalEntity | null>(null);
   const [kindFilter, setKindFilter] = useState("الكل");
@@ -20,17 +25,17 @@ export default function SearchScreen() {
   const [entityPickerVisible, setEntityPickerVisible] = useState(false);
 
   const mappedEntities = useMemo(
-    () => data.entities.filter((entity) => {
+    () => scopedEntities.filter((entity) => {
       const coordinates = entity.geographicCoordinates;
       return coordinates && Number.isFinite(coordinates.latitude) && Number.isFinite(coordinates.longitude);
     }),
-    [data.entities],
+    [scopedEntities],
   );
-  const filteredEntities = useMemo(() => data.entities.filter((entity) => {
+  const filteredEntities = useMemo(() => scopedEntities.filter((entity) => {
     const kindMatches = kindFilter === "الكل" || entity.kind === kindFilter;
     const regionMatches = regionFilter === "all" || entity.region === regionFilter;
     return kindMatches && regionMatches;
-  }), [data.entities, kindFilter, regionFilter]);
+  }), [scopedEntities, kindFilter, regionFilter]);
   const suggestions = useMemo(() => rankEntitiesForSearch(filteredEntities, query), [filteredEntities, query]);
   const entityPickerOptions = useMemo(() => suggestions.map((entity) => ({
     label: entity.name,

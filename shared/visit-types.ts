@@ -15,6 +15,9 @@ export type Representative = {
   photoUri?: string;
   region?: RepresentativeRegion;
   assignedItems?: string[];
+  assignedEntityIds?: string[];
+  assignedKinds?: EntityKind[];
+  assignedSharedLocationIds?: string[];
   active: boolean;
 };
 

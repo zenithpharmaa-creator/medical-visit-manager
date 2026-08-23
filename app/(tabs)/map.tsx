@@ -8,6 +8,8 @@ import { ScreenContainer } from "@/components/screen-container";
 import { ScreenHeader } from "@/components/screen-header";
 import { SelectionModal } from "@/components/selection-modal";
 import { useVisitStore } from "@/lib/visit-store";
+import { useAccountSession } from "@/lib/account-session";
+import { getEntitiesForRepresentative } from "@/lib/representative-scope";
 import { ENTITY_KINDS } from "@/lib/visit-utils";
 import type { Visit, VisitLocation } from "@/shared/visit-types";
 
@@ -16,6 +18,9 @@ type Filter = typeof ALL | string;
 
 export default function MapScreen() {
   const { data } = useVisitStore();
+  const { session } = useAccountSession();
+  const currentRepresentative = session?.representativeId ? data.representatives.find((item) => item.id === session.representativeId) : undefined;
+  const scopedEntities = session?.role === "manager" ? data.entities : getEntitiesForRepresentative(data.entities, currentRepresentative);
   const [representativeFilter, setRepresentativeFilter] = useState<Filter>(ALL);
   const [kindFilter, setKindFilter] = useState<Filter>(ALL);
   const [representativeModal, setRepresentativeModal] = useState(false);
@@ -24,9 +29,9 @@ export default function MapScreen() {
   const [selectedVisit, setSelectedVisit] = useState<Visit | null>(null);
   const [selectedEntity, setSelectedEntity] = useState<(typeof data.entities)[number] | null>(null);
 
-  const mappedEntities = useMemo(() => data.entities.filter((entity) => entity.geographicCoordinates && Number.isFinite(entity.geographicCoordinates.latitude) && Number.isFinite(entity.geographicCoordinates.longitude)), [data.entities]);
+  const mappedEntities = useMemo(() => scopedEntities.filter((entity) => entity.geographicCoordinates && Number.isFinite(entity.geographicCoordinates.latitude) && Number.isFinite(entity.geographicCoordinates.longitude)), [scopedEntities]);
   const visibleEntities = useMemo(() => mappedEntities.filter((entity) => kindFilter === ALL || entity.kind === kindFilter), [kindFilter, mappedEntities]);
-  const mappedVisits = useMemo(() => data.visits.filter((visit) => visit.location), [data.visits]);
+  const mappedVisits = useMemo(() => data.visits.filter((visit) => visit.location && (session?.role === "manager" || scopedEntities.some((entity) => entity.id === visit.entityId))), [data.visits, scopedEntities, session?.role]);
   const visibleVisits = useMemo(() => mappedVisits.filter((visit) => {
     const representativeMatches = representativeFilter === ALL || visit.representativeId === representativeFilter;
     const kindMatches = kindFilter === ALL || visit.entityKind === kindFilter;

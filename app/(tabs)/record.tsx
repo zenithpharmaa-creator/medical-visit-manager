@@ -19,6 +19,7 @@ import { isFiniteLocation, normalizeLocation } from "@/lib/location-capture";
 import { appendLocationDiagnostic, type LocationDiagnostic } from "@/lib/location-diagnostics";
 import { MedicalEntity, Representative, VisitLocation, VisitVerificationStatus } from "@/shared/visit-types";
 import { hasRequiredVisitedItems } from "@/lib/visit-form-rules";
+import { getEntitiesForRepresentative } from "@/lib/representative-scope";
 
 type PickerTarget = "representative" | "entity" | null;
 
@@ -78,13 +79,14 @@ export default function RecordVisitScreen() {
     void appendLocationDiagnostic({ ...entry, offline: !internetAvailable });
   };
 
+  const scopedEntities = isManager ? data.entities : getEntitiesForRepresentative(data.entities, activeRepresentative);
   const entityPickerOptions = useMemo(() => {
     const query = entitySearch.trim().toLocaleLowerCase();
-    return data.entities
+    return scopedEntities
       .map((item) => ({ label: item.name, value: item.id, helper: [item.address?.trim() ? `العنوان: ${item.address.trim()}` : "العنوان: غير مسجل", [item.kind, item.category ? `الفئة: ${item.category}` : "", item.specialty ? `التخصص: ${item.specialty}` : ""].filter(Boolean).join(" · "), item.nearestPharmacy ? `أقرب صيدلية: ${item.nearestPharmacy}` : "أقرب صيدلية: غير محددة", item.geographicLocation ? `الموقع: ${item.geographicLocation}` : ""].filter(Boolean).join("\n") }))
       .filter((item) => !query || `${item.label} ${item.helper}`.toLocaleLowerCase().includes(query))
       .sort((a, b) => entityMatchScore(a.label, a.helper, query) - entityMatchScore(b.label, b.helper, query) || a.label.localeCompare(b.label, "ar"));
-  }, [data.entities, entitySearch]);
+  }, [scopedEntities, entitySearch]);
   const pickerOptions = useMemo(() => picker === "representative" ? data.representatives.filter((item) => item.active).map((item) => ({ label: item.name, value: item.id })) : entityPickerOptions, [data.representatives, entityPickerOptions, picker]);
 
   const captureLocation = async (): Promise<VisitLocation | null> => {
@@ -130,7 +132,7 @@ export default function RecordVisitScreen() {
       }
       if (!usedLastKnown) { setLocationSource("gps"); logLocationDiagnostic({ stage: "success", result: "success", source: "gps", accuracy: nextLocation.accuracy, latitude: nextLocation.latitude, longitude: nextLocation.longitude, message: "تم التقاط موقع GPS جديد بنجاح." }); }
       setLocation(nextLocation); setCapturedAt(new Date().toISOString());
-      if (!usedLastKnown) setLocationStatus(`تم التقاط الموقع تلقائياً بنجاح${internetAvailable ? " — الاتصال متاح" : " — GPS يعمل دون إنترنت وسيُتحقق لاحقاً"}.`);
+      if (!usedLastKnown) setLocationStatus("تم التقاط الموقع تلقائياً بنجاح.");
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       return nextLocation;
     } catch (error) { const reason = error instanceof Error ? error.message : "خطأ غير معروف"; setLocationStatus("تعذر التقاط الموقع. تأكد من إشارة GPS ثم أعد المحاولة."); logLocationDiagnostic({ stage: "failure", result: "failed", source: "none", message: `استثناء أثناء التقاط الموقع: ${reason}` }); Alert.alert("تعذر تحديد الموقع", "تأكد من وجود إشارة GPS جيدة ثم أعد المحاولة."); return null; }
@@ -156,7 +158,7 @@ export default function RecordVisitScreen() {
     if (managerOverride) void notifyManagerOfOverride({ settings: data.settings, visit: createdVisit, representativeName: representativeForVisit.name });
     setOverrideModalVisible(false); setOverridePin(""); setOverrideReason("");
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    Alert.alert("تم حفظ الزيارة", managerOverride ? "تم التسجيل بتجاوز المدير مع حفظ السبب." : !isManager ? "تم حفظ الزيارة دون إنترنت، وستُراجع تلقائياً عند عودة الاتصال." : "تم تسجيل وقت وموقع الزيارة بنجاح.", [{ text: "تسجيل زيارة أخرى", onPress: () => { setSelectedEntity(null); setEntitySearch(""); setNotes(""); setCapturedAt(null); setLocation(null); setLocationSource(null); setLocationStatus("سيتم التقاط الموقع والوقت تلقائياً عند الضغط على حفظ الزيارة."); setPhotoUri(null); setSelectedVisitedItems([]); setVisitedItemsSearch(""); setTimeout(() => setPicker("entity"), 120); } }]);
+    Alert.alert("تم حفظ الزيارة", managerOverride ? "تم التسجيل بتجاوز المدير مع حفظ السبب." : !isManager ? "تم حفظ الزيارة دون إنترنت، وستُراجع تلقائياً عند عودة الاتصال." : "تم تسجيل وقت وموقع الزيارة بنجاح.", [{ text: "تسجيل زيارة أخرى", onPress: () => { setSelectedEntity(null); setEntitySearch(""); setNotes(""); setCapturedAt(null); setLocation(null); setLocationSource(null); setLocationStatus("سيتم التقاط الموقع والوقت تلقائياً عند الضغط على حفظ الزيارة."); setPhotoUri(null); setSelectedVisitedItems([]); setVisitedItemsSearch(""); setTimeout(() => setPicker("entity"), 120); } }, { text: "عودة", style: "cancel" }]);
   };
 
   const takePhoto = async () => {
@@ -211,14 +213,10 @@ export default function RecordVisitScreen() {
           <MaterialIcons name="privacy-tip" size={22} color="#1565C0" />
           <Text className="text-primary font-semibold flex-1 text-right leading-5">يُلتقط الموقع مرة واحدة عند الضغط على الزر، ولا يتم تتبع موقع المندوب بشكل مستمر.</Text>
         </View>
-        <View className={`rounded-xl px-4 py-3 mb-5 flex-row-reverse items-center gap-2 ${internetAvailable ? "bg-success/10 border border-success/20" : "bg-warning/10 border border-warning/20"}`}>
-          <MaterialIcons name={internetAvailable ? "cloud-done" : "cloud-off"} size={19} color={internetAvailable ? "#16835B" : "#D97706"} />
-          <Text className={`text-xs font-bold flex-1 text-right ${internetAvailable ? "text-success" : "text-warning"}`}>{internetAvailable ? "الاتصال متاح — ستتم المطابقة تلقائياً" : "لا يوجد إنترنت — ستُحفظ الزيارة وتُراجع عند عودة الاتصال"}</Text>
-        </View>
 
         {isManager ? <FormField label="المندوب" icon="person"><SelectBox value={selectedRepresentative?.name} placeholder="اختر المندوب" onPress={() => setPicker("representative")} /></FormField> : <View className="rounded-2xl bg-primary/10 border border-primary/20 px-4 py-3 mb-4 flex-row-reverse items-center justify-between"><Text className="font-bold text-primary">{representativeForVisit?.name ?? "الحساب الحالي"}</Text><Text className="text-xs text-muted">الحساب النشط</Text></View>}
         <FormField label="اسم الطبيب أو الجهة" icon="person">
-          <Pressable onPress={() => data.entities.length ? setPicker("entity") : Alert.alert("لا توجد جهات", "انتقل إلى شاشة الإدارة لإضافة جهة يدوياً أو استيراد ملف Excel.")} className="min-h-14 rounded-2xl border border-border bg-surface px-4 py-3 flex-row-reverse items-center justify-between"><View className="flex-row-reverse items-center gap-2"><MaterialIcons name="keyboard-arrow-down" size={24} color="#102A43" /><Text className="text-primary font-bold text-xs">فتح القائمة</Text></View><View className="items-end flex-1"><Text className={`font-bold text-right ${selectedEntity ? "text-foreground" : "text-muted"}`}>{selectedEntity?.name || (data.entities.length ? "ابحث واختر الطبيب أو الجهة" : "لا توجد جهات مسجلة")}</Text>{selectedEntity ? <View className="items-end"><Text className="text-xs text-muted text-right mt-1">{selectedEntity.address?.trim() ? `العنوان: ${selectedEntity.address.trim()}` : "العنوان: غير مسجل"}</Text><Text className="text-[11px] text-muted text-right mt-1">{[selectedEntity.kind, selectedEntity.category ? `الفئة: ${selectedEntity.category}` : "", selectedEntity.specialty ? `التخصص: ${selectedEntity.specialty}` : "", selectedEntity.nearestPharmacy ? `أقرب صيدلية: ${selectedEntity.nearestPharmacy}` : ""].filter(Boolean).join(" · ")}</Text></View> : <Text className="text-[11px] text-muted text-right mt-1">قائمة منسدلة مع بحث سريع</Text>}</View></Pressable>
+          <Pressable onPress={() => scopedEntities.length ? setPicker("entity") : Alert.alert("لا توجد جهات مخصصة", isManager ? "أضف جهة من شاشة الإدارة أو استورد ملف Excel أولاً." : "لا توجد جهات مخصصة لهذا الحساب حالياً. اطلب من مدير النظام تحديث التخصيص.")} className="min-h-14 rounded-2xl border border-border bg-surface px-4 py-3 flex-row-reverse items-center justify-between"><View className="flex-row-reverse items-center gap-2"><MaterialIcons name="keyboard-arrow-down" size={24} color="#102A43" /><Text className="text-primary font-bold text-xs">فتح القائمة</Text></View><View className="items-end flex-1"><Text className={`font-bold text-right ${selectedEntity ? "text-foreground" : "text-muted"}`}>{selectedEntity?.name || (scopedEntities.length ? "ابحث واختر الطبيب أو الجهة" : "لا توجد جهات مخصصة لهذا الحساب")}</Text>{selectedEntity ? <View className="items-end"><Text className="text-xs text-muted text-right mt-1">{selectedEntity.address?.trim() ? `العنوان: ${selectedEntity.address.trim()}` : "العنوان: غير مسجل"}</Text><Text className="text-[11px] text-muted text-right mt-1">{[selectedEntity.kind, selectedEntity.category ? `الفئة: ${selectedEntity.category}` : "", selectedEntity.specialty ? `التخصص: ${selectedEntity.specialty}` : "", selectedEntity.nearestPharmacy ? `أقرب صيدلية: ${selectedEntity.nearestPharmacy}` : ""].filter(Boolean).join(" · ")}</Text></View> : <Text className="text-[11px] text-muted text-right mt-1">قائمة منسدلة مع بحث سريع</Text>}</View></Pressable>
         </FormField>
 
 
