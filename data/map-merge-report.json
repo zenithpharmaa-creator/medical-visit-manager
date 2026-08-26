@@ -1,0 +1,15 @@
+{
+  "source": "/home/ubuntu/upload/Map.xlsx",
+  "sourceRows": 906,
+  "originalEmbeddedEntities": 906,
+  "finalEmbeddedEntities": 924,
+  "matchedRows": 888,
+  "newEntities": 18,
+  "coordinatesAdded": 203,
+  "otherFieldsBackfilled": 0,
+  "duplicateSourceRowsSkipped": 0,
+  "duplicateEntitiesRemoved": 0,
+  "entitiesWithCompleteCoordinates": 856,
+  "entitiesWithoutCompleteCoordinates": 68,
+  "generatedAt": "2026-08-26T15:56:54.888261Z"
+}

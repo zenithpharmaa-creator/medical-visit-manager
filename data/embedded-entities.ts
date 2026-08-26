@@ -1,6 +1,5 @@
-// Generated from the user-provided Excel workbooks. Coordinates merged without duplicate entities.
+// Generated from Map.xlsx. Coordinates merged without duplicate entities.
 import type { MedicalEntity } from "@/shared/visit-types";
-
 export const EMBEDDED_ENTITIES: MedicalEntity[] = [
   {
     "id": "excel-entity-1",
@@ -22,7 +21,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Gyno",
     "category": "A",
     "nearestPharmacy": "د سلوى الغميري",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.330001057765,
+      "longitude": 44.1926310160837,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-3",
@@ -33,7 +37,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Ped",
     "category": "A",
     "nearestPharmacy": "د نجيبة الشرجبي",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3330906525118,
+      "longitude": 44.1939158519894,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-4",
@@ -44,7 +53,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Gyno",
     "category": "A",
     "nearestPharmacy": "د نجيبة الشرجبي",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3330906525118,
+      "longitude": 44.1939158519894,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-5",
@@ -311,7 +325,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Gyno",
     "category": "A",
     "nearestPharmacy": "قصر العين, العمده",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.2727947841747,
+      "longitude": 44.2470931653835,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-22",
@@ -322,7 +341,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Ped",
     "category": "B",
     "nearestPharmacy": "قصر العين, العمده",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.2727947841747,
+      "longitude": 44.2470931653835,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-23",
@@ -365,7 +389,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Gyno",
     "category": "A",
     "nearestPharmacy": "نبض الحياة",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.2804944274242,
+      "longitude": 44.2156431538713,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-26",
@@ -376,7 +405,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Ped",
     "category": "B",
     "nearestPharmacy": "برج ياس",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.2816666,
+      "longitude": 44.2127975,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-27",
@@ -387,7 +421,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Gyno",
     "category": "B",
     "nearestPharmacy": "برج ياس",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.2816666,
+      "longitude": 44.2127975,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-28",
@@ -398,7 +437,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Ped",
     "category": "B",
     "nearestPharmacy": "ريفكو",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.2788939,
+      "longitude": 44.2196401,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-29",
@@ -409,7 +453,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Psych",
     "category": "A",
     "nearestPharmacy": "اليمن  السعيد- عصر",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3417588,
+      "longitude": 44.1689028,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-30",
@@ -420,7 +469,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Gyno",
     "category": "B",
     "nearestPharmacy": "حياتي",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.2337204,
+      "longitude": 44.2525344,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-31",
@@ -431,7 +485,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Ped",
     "category": "A",
     "nearestPharmacy": "السنحاني",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.2339355,
+      "longitude": 44.2521465,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-32",
@@ -442,7 +501,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "G.P",
     "category": "A",
     "nearestPharmacy": "٤٨ الحديثة",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.2477147,
+      "longitude": 44.2540911,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-33",
@@ -453,7 +517,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Gyno",
     "category": "C",
     "nearestPharmacy": "الصالح",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3382619,
+      "longitude": 44.2107774,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-34",
@@ -464,7 +533,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Gyno",
     "category": "B",
     "nearestPharmacy": "الحسين",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3470564,
+      "longitude": 44.2084161,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-35",
@@ -486,7 +560,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "G.P",
     "category": "C",
     "nearestPharmacy": "الفلاحي",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3348423,
+      "longitude": 44.2177472,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-37",
@@ -497,7 +576,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "I.M",
     "category": "A",
     "nearestPharmacy": "بسمه",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.335855,
+      "longitude": 44.2171034,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-38",
@@ -519,7 +603,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Gyno",
     "category": "B",
     "nearestPharmacy": "رمسيس",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3326407,
+      "longitude": 44.2174913,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-40",
@@ -530,7 +619,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Ortho",
     "category": "A",
     "nearestPharmacy": "البيداء",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.2924987,
+      "longitude": 44.2300649,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-41",
@@ -541,7 +635,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Ped",
     "category": "B",
     "nearestPharmacy": "الرفاعي",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.2815143,
+      "longitude": 44.2202842,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-42",
@@ -552,7 +651,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Ped",
     "category": "A",
     "nearestPharmacy": "هاجر",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.2908953,
+      "longitude": 44.2208008,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-43",
@@ -563,7 +667,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Gyno",
     "category": "B",
     "nearestPharmacy": "ابن حيان ١٠",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.2866405,
+      "longitude": 44.2376156,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-44",
@@ -574,7 +683,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Gyno",
     "category": "A",
     "nearestPharmacy": "د ملكه بامدهف",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.2858161,
+      "longitude": 44.2227827,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-45",
@@ -585,7 +699,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Gyno",
     "category": "B",
     "nearestPharmacy": "النمر",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.2861343,
+      "longitude": 44.2217614,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-46",
@@ -596,7 +715,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Gyno",
     "category": "A",
     "nearestPharmacy": "الذهبيه",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.2806712,
+      "longitude": 44.2447905,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-47",
@@ -607,7 +731,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Ped",
     "category": "A",
     "nearestPharmacy": "الذهبيه",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.2806712,
+      "longitude": 44.2447905,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-48",
@@ -618,7 +747,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Cardi",
     "category": "A",
     "nearestPharmacy": "د محمد الكبسي",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3401732,
+      "longitude": 44.1920801,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-49",
@@ -651,7 +785,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Uro",
     "category": "B",
     "nearestPharmacy": "النخبه فارما",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3187653,
+      "longitude": 44.2296937,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-52",
@@ -662,7 +801,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "ENT",
     "category": "B",
     "nearestPharmacy": "الرواد",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3267813,
+      "longitude": 44.2263249,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-53",
@@ -673,7 +817,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Surg",
     "category": "A",
     "nearestPharmacy": "د محمد الدوبلي",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3190631,
+      "longitude": 44.2300025,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-54",
@@ -684,7 +833,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Gyno",
     "category": "B",
     "nearestPharmacy": "الحكمه",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3198104,
+      "longitude": 44.229578,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-55",
@@ -695,7 +849,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Nephro",
     "category": "A",
     "nearestPharmacy": "اليمن السعيد 7",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3218346,
+      "longitude": 44.2286473,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-56",
@@ -706,7 +865,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Cardi",
     "category": "B",
     "nearestPharmacy": "الفيصل",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3289833,
+      "longitude": 44.2252422,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-57",
@@ -717,7 +881,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Neur",
     "category": "A",
     "nearestPharmacy": "الغزالي",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3271238,
+      "longitude": 44.2262296,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-58",
@@ -728,7 +897,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Ped",
     "category": "B",
     "nearestPharmacy": "الحياة",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.332762,
+      "longitude": 44.2235833,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-59",
@@ -739,7 +913,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Ped",
     "category": "B",
     "nearestPharmacy": "الغزالي",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3271238,
+      "longitude": 44.2262296,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-60",
@@ -750,7 +929,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Cardi",
     "category": "B",
     "nearestPharmacy": "المري",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3299149,
+      "longitude": 44.2245023,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-61",
@@ -761,7 +945,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Cardi",
     "category": "B",
     "nearestPharmacy": "النخبه فارما",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3194663,
+      "longitude": 44.229681,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-62",
@@ -772,7 +961,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Ped",
     "category": "A",
     "nearestPharmacy": "ساك",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3193593,
+      "longitude": 44.2298389,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-63",
@@ -783,7 +977,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "ENT",
     "category": "B",
     "nearestPharmacy": "الهيثم فارما",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.2875257,
+      "longitude": 44.2413278,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-64",
@@ -794,7 +993,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Gyno",
     "category": "B",
     "nearestPharmacy": "الامجاد فارما",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.2856515,
+      "longitude": 44.2434112,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-65",
@@ -816,7 +1020,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Ped",
     "category": "B",
     "nearestPharmacy": "الهتاري",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3309451,
+      "longitude": 44.2275516,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-67",
@@ -827,7 +1036,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Gyno",
     "category": "B",
     "nearestPharmacy": "المعتصم",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3406766,
+      "longitude": 44.2190732,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-68",
@@ -838,7 +1052,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "I.M",
     "category": "B",
     "nearestPharmacy": "الدملؤه",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3445306,
+      "longitude": 44.2179027,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-69",
@@ -860,7 +1079,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Uro",
     "category": "B",
     "nearestPharmacy": "المركزية بلاس",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3407985,
+      "longitude": 44.2195154,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-71",
@@ -882,7 +1106,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Nephro",
     "category": "A",
     "nearestPharmacy": "ارض السلام",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3396701,
+      "longitude": 44.1987155,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-73",
@@ -893,7 +1122,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "I.M",
     "category": "A",
     "nearestPharmacy": "الجولحي",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3403122,
+      "longitude": 44.1989606,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-74",
@@ -915,7 +1149,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Gyno",
     "category": "C",
     "nearestPharmacy": "د فكتوريا العزي",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3066812,
+      "longitude": 44.188558,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-76",
@@ -926,7 +1165,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Gyno",
     "category": "B",
     "nearestPharmacy": "الهويدي",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3220733,
+      "longitude": 44.1988004,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-77",
@@ -937,7 +1181,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Ped",
     "category": "B",
     "nearestPharmacy": "الهويدي",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3220733,
+      "longitude": 44.1988004,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-78",
@@ -948,7 +1197,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Gyno",
     "category": "A",
     "nearestPharmacy": "جنيف",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3212924,
+      "longitude": 44.1996003,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-79",
@@ -959,7 +1213,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Gyno",
     "category": "C",
     "nearestPharmacy": "الراية فارما",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.2891029,
+      "longitude": 44.2631979,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-80",
@@ -970,7 +1229,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Gyno",
     "category": "A",
     "nearestPharmacy": "الاخصائيون",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3418755,
+      "longitude": 44.2228299,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-81",
@@ -1014,7 +1278,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "G.P",
     "category": "B",
     "nearestPharmacy": "الراية فارما",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.2891029,
+      "longitude": 44.2631979,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-85",
@@ -1025,7 +1294,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Pulmo",
     "category": "A",
     "nearestPharmacy": "العرشي",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3318825,
+      "longitude": 44.1888966,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-86",
@@ -1036,7 +1310,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Ped",
     "category": "B",
     "nearestPharmacy": "العرشي",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3318825,
+      "longitude": 44.1888966,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-87",
@@ -1047,7 +1326,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Uro",
     "category": "B",
     "nearestPharmacy": "الكرامة",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3381358,
+      "longitude": 44.2022011,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-88",
@@ -1058,7 +1342,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Ped",
     "category": "B",
     "nearestPharmacy": "الكرامة",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3381358,
+      "longitude": 44.2022011,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-89",
@@ -1069,7 +1358,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Ped",
     "category": "A",
     "nearestPharmacy": "الكرامة",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3381358,
+      "longitude": 44.2022011,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-90",
@@ -1080,7 +1374,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Gyno",
     "category": "A",
     "nearestPharmacy": "اليسر",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.340524,
+      "longitude": 44.1903159,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-91",
@@ -1091,7 +1390,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Gyno",
     "category": "B",
     "nearestPharmacy": "الفرح",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3069282,
+      "longitude": 44.2341686,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-92",
@@ -1102,7 +1406,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Psych",
     "category": "B",
     "nearestPharmacy": "العريفي",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3079281,
+      "longitude": 44.2392846,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-93",
@@ -1113,7 +1422,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Gyno",
     "category": "B",
     "nearestPharmacy": "العريفي",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3079281,
+      "longitude": 44.2392846,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-94",
@@ -1135,7 +1449,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Gyno",
     "category": "A",
     "nearestPharmacy": "بيحان, علي غراب",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.312554,
+      "longitude": 44.2320983,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-96",
@@ -1146,7 +1465,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Gyno",
     "category": "B",
     "nearestPharmacy": "المجذوب",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3121773,
+      "longitude": 44.2323079,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-97",
@@ -1157,7 +1481,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Gyno",
     "category": "A",
     "nearestPharmacy": "المجذوب",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3121773,
+      "longitude": 44.2323079,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-98",
@@ -1201,7 +1530,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Ped",
     "category": "B",
     "nearestPharmacy": "اليمن السعيد 4",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3321237,
+      "longitude": 44.2064893,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-102",
@@ -1212,7 +1546,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Ped",
     "category": "A",
     "nearestPharmacy": "الامتياز",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.2721048,
+      "longitude": 44.2540743,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-103",
@@ -1330,7 +1669,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Gyno",
     "category": "B",
     "nearestPharmacy": "الاخلاص",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.2698925,
+      "longitude": 44.229797,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-111",
@@ -1341,7 +1685,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Gyno",
     "category": "B",
     "nearestPharmacy": "الاخلاص",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.2698925,
+      "longitude": 44.229797,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-112",
@@ -1352,7 +1701,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "G.P",
     "category": "B",
     "nearestPharmacy": "الاخلاص",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.2698925,
+      "longitude": 44.229797,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-113",
@@ -1363,7 +1717,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Ped",
     "category": "B",
     "nearestPharmacy": "الاخلاص",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.2698925,
+      "longitude": 44.229797,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-114",
@@ -1374,7 +1733,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "G.P",
     "category": "B",
     "nearestPharmacy": "الاخلاص",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.2698925,
+      "longitude": 44.229797,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-115",
@@ -1385,7 +1749,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "G.P",
     "category": "B",
     "nearestPharmacy": "الايهم",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.2902957,
+      "longitude": 44.2473648,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-116",
@@ -1396,7 +1765,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "ped",
     "category": "A",
     "nearestPharmacy": "الحكمه",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3377284,
+      "longitude": 44.1221274,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-117",
@@ -1407,7 +1781,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "G.P",
     "category": "B",
     "nearestPharmacy": "الربيعي",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3464027,
+      "longitude": 44.2252992,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-118",
@@ -1498,7 +1877,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Gyno",
     "category": "B",
     "nearestPharmacy": "فصول السلام",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3324606,
+      "longitude": 44.2219542,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-124",
@@ -1509,7 +1893,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Gyno",
     "category": "B",
     "nearestPharmacy": "المطاع",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3324606,
+      "longitude": 44.2219542,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-125",
@@ -1520,7 +1909,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Gyno",
     "category": "B",
     "nearestPharmacy": "فصول السلام",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3324606,
+      "longitude": 44.2219542,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-126",
@@ -1531,7 +1925,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Gyno",
     "category": "B",
     "nearestPharmacy": "فصول السلام",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3324606,
+      "longitude": 44.2219542,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-127",
@@ -1542,7 +1941,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "ENT",
     "category": "A",
     "nearestPharmacy": "المطاع",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3324606,
+      "longitude": 44.2219542,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-128",
@@ -1553,7 +1957,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Ped",
     "category": "A",
     "nearestPharmacy": "المطاع",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3324606,
+      "longitude": 44.2219542,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-129",
@@ -1564,7 +1973,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Ortho",
     "category": "A",
     "nearestPharmacy": "المطاع",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3324606,
+      "longitude": 44.2219542,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-130",
@@ -1575,7 +1989,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Derm",
     "category": "A",
     "nearestPharmacy": "المطاع",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3324606,
+      "longitude": 44.2219542,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-131",
@@ -1586,7 +2005,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Ped",
     "category": "A",
     "nearestPharmacy": "المطاع",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3324606,
+      "longitude": 44.2219542,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-132",
@@ -1597,7 +2021,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Ped",
     "category": "B",
     "nearestPharmacy": "المطاع",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3324606,
+      "longitude": 44.2219542,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-133",
@@ -1608,7 +2037,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Ped",
     "category": "B",
     "nearestPharmacy": "الصالح",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3207701,
+      "longitude": 44.2240859,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-134",
@@ -1619,7 +2053,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "G.P",
     "category": "B",
     "nearestPharmacy": "الصالح",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3207701,
+      "longitude": 44.2240859,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-135",
@@ -1630,7 +2069,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "G.P",
     "category": "B",
     "nearestPharmacy": "الصالح",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3207701,
+      "longitude": 44.2240859,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-136",
@@ -1641,7 +2085,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Gyno",
     "category": "C",
     "nearestPharmacy": "الصمود العربي",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.291057,
+      "longitude": 44.2009414,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-137",
@@ -1652,7 +2101,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "I.M",
     "category": "B",
     "nearestPharmacy": "الصمود العربي",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.291057,
+      "longitude": 44.2009414,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-138",
@@ -1663,7 +2117,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "I.M",
     "category": "B",
     "nearestPharmacy": "الطبي العربي",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3365952,
+      "longitude": 44.2170028,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-139",
@@ -1674,7 +2133,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Gyno",
     "category": "B",
     "nearestPharmacy": "العشاش",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.2968779,
+      "longitude": 44.1718116,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-140",
@@ -1685,7 +2149,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Ped",
     "category": "A",
     "nearestPharmacy": "بيكادز مركز الغدد الصم",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3309713,
+      "longitude": 44.1865484,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-141",
@@ -1696,7 +2165,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Cardi",
     "category": "C",
     "nearestPharmacy": "الطارق",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3294111,
+      "longitude": 44.2226439,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-142",
@@ -1707,7 +2181,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Ped",
     "category": "A",
     "nearestPharmacy": "القاضي للامومة والطفولة, الأطباء النموذجيه",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3129896,
+      "longitude": 44.2325868,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-143",
@@ -1718,7 +2197,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Ped",
     "category": "B",
     "nearestPharmacy": "القاضي للامومة والطفولة",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3129896,
+      "longitude": 44.2325868,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-144",
@@ -1729,7 +2213,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Psych",
     "category": "A",
     "nearestPharmacy": "القمه",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3260616,
+      "longitude": 44.226356,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-145",
@@ -1740,7 +2229,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Gyno",
     "category": "A",
     "nearestPharmacy": "الاوروبية",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3362637,
+      "longitude": 44.2213631,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-146",
@@ -1751,7 +2245,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Ortho",
     "category": "A",
     "nearestPharmacy": "الاوروبية",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3362637,
+      "longitude": 44.2213631,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-147",
@@ -1762,7 +2261,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Gyno",
     "category": "C",
     "nearestPharmacy": "ملك الدواء1",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3362637,
+      "longitude": 44.2213631,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-148",
@@ -1773,7 +2277,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Ortho",
     "category": "B",
     "nearestPharmacy": "الاوروبية",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3362637,
+      "longitude": 44.2213631,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-149",
@@ -1784,7 +2293,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Uro",
     "category": "A",
     "nearestPharmacy": "اوميجا",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3362637,
+      "longitude": 44.2213631,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-150",
@@ -1795,7 +2309,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Cardi",
     "category": "A",
     "nearestPharmacy": "الاوروبية",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3362637,
+      "longitude": 44.2213631,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-151",
@@ -1806,7 +2325,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "ENT",
     "category": "B",
     "nearestPharmacy": "الاوروبية",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3362637,
+      "longitude": 44.2213631,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-152",
@@ -1817,7 +2341,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "I.M",
     "category": "A",
     "nearestPharmacy": "الاوروبية",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3362637,
+      "longitude": 44.2213631,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-153",
@@ -1828,7 +2357,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "I.M",
     "category": "A",
     "nearestPharmacy": "الاوروبية",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3362637,
+      "longitude": 44.2213631,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-154",
@@ -1839,7 +2373,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Ped",
     "category": "C",
     "nearestPharmacy": "المتطور",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3796627,
+      "longitude": 44.2414917,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-155",
@@ -1850,7 +2389,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Cardi",
     "category": "A",
     "nearestPharmacy": "المتطور",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3796627,
+      "longitude": 44.2414917,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-156",
@@ -1861,7 +2405,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Gyno",
     "category": "B",
     "nearestPharmacy": "المتطور",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3796627,
+      "longitude": 44.2414917,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-157",
@@ -1872,7 +2421,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Gyno",
     "category": "C",
     "nearestPharmacy": "المتطور",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3796627,
+      "longitude": 44.2414917,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-158",
@@ -1883,7 +2437,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "I.M",
     "category": "A",
     "nearestPharmacy": "الوقاية الحديثة",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3464027,
+      "longitude": 44.2252992,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-159",
@@ -1894,7 +2453,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "I.M",
     "category": "A",
     "nearestPharmacy": "الملارياء",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3464027,
+      "longitude": 44.2252992,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-160",
@@ -1905,7 +2469,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Ped",
     "category": "A",
     "nearestPharmacy": "النعامي",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3407008,
+      "longitude": 44.2014953,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-161",
@@ -1916,7 +2485,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Ped",
     "category": "B",
     "nearestPharmacy": "النعامي",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3407008,
+      "longitude": 44.2014953,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-162",
@@ -1927,7 +2501,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Ped",
     "category": "B",
     "nearestPharmacy": "النعامي",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3407008,
+      "longitude": 44.2014953,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-163",
@@ -1938,7 +2517,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Ped",
     "category": "A",
     "nearestPharmacy": "النعامي",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3407008,
+      "longitude": 44.2014953,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-164",
@@ -2077,7 +2661,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "G.P",
     "category": "B",
     "nearestPharmacy": "اليسر",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.2962676,
+      "longitude": 44.1725952,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-173",
@@ -2088,7 +2677,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Gyno",
     "category": "C",
     "nearestPharmacy": "اليسر",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.2962676,
+      "longitude": 44.1725952,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-174",
@@ -2099,7 +2693,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "I.M",
     "category": "C",
     "nearestPharmacy": "اليسر",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.2962676,
+      "longitude": 44.1725952,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-175",
@@ -2110,7 +2709,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "ENT",
     "category": "B",
     "nearestPharmacy": "برج الطبيب",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.2860667,
+      "longitude": 44.2211958,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-176",
@@ -2121,7 +2725,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Ped",
     "category": "A",
     "nearestPharmacy": "برج الطبيب",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.2860667,
+      "longitude": 44.2211958,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-177",
@@ -2132,7 +2741,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Gyno",
     "category": "B",
     "nearestPharmacy": "برج الطبيب",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.2860667,
+      "longitude": 44.2211958,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-178",
@@ -2143,7 +2757,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "I.M",
     "category": "C",
     "nearestPharmacy": "برج الطبيب",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.2860667,
+      "longitude": 44.2211958,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-179",
@@ -2165,7 +2784,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Gyno",
     "category": "B",
     "nearestPharmacy": "توأم",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.2859723,
+      "longitude": 44.237108,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-181",
@@ -2176,7 +2800,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Cardi",
     "category": "A",
     "nearestPharmacy": "حياتي",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3410462,
+      "longitude": 44.2108103,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-182",
@@ -2187,7 +2816,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "I.M",
     "category": "A",
     "nearestPharmacy": "حياتي",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3410462,
+      "longitude": 44.2108103,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-183",
@@ -2198,7 +2832,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Onco",
     "category": "A",
     "nearestPharmacy": "د احمد البارده",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3437993,
+      "longitude": 44.1970925,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-184",
@@ -2209,7 +2848,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "G.P",
     "category": "B",
     "nearestPharmacy": "د احمد بن سلمان",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3379396,
+      "longitude": 44.2021411,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-185",
@@ -2220,7 +2864,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Surg",
     "category": "B",
     "nearestPharmacy": "د احمد بن سلمان",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3379396,
+      "longitude": 44.2021411,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-186",
@@ -2231,7 +2880,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "I.M",
     "category": "B",
     "nearestPharmacy": "د احمد بن سلمان",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3379396,
+      "longitude": 44.2021411,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-187",
@@ -2242,7 +2896,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Immu",
     "category": "A",
     "nearestPharmacy": "د احمد قائد سالم",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.2856356,
+      "longitude": 44.2434008,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-188",
@@ -2253,7 +2912,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "ENT",
     "category": "A",
     "nearestPharmacy": "الهزار, القدس",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.286505,
+      "longitude": 44.2421207,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-189",
@@ -2264,7 +2928,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "ENT",
     "category": "B",
     "nearestPharmacy": "الهزار",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.286505,
+      "longitude": 44.2421207,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-190",
@@ -2275,7 +2944,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Ped",
     "category": "B",
     "nearestPharmacy": "د سالم باناجه",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3322744,
+      "longitude": 44.1877812,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-191",
@@ -2286,7 +2960,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Gyno",
     "category": "A",
     "nearestPharmacy": "د سعاد الصنوي",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.2783305,
+      "longitude": 44.2155813,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-192",
@@ -2297,7 +2976,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Cardi",
     "category": "B",
     "nearestPharmacy": "د ضيف الله جيد",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3289274,
+      "longitude": 44.2189629,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-193",
@@ -2308,7 +2992,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Cardi",
     "category": "A",
     "nearestPharmacy": "د ضيف الله جيد",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3289274,
+      "longitude": 44.2189629,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-194",
@@ -2319,7 +3008,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Psych",
     "category": "B",
     "nearestPharmacy": "المرام الدوائية",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.2860406,
+      "longitude": 44.2143176,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-195",
@@ -2330,7 +3024,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Psych",
     "category": "A",
     "nearestPharmacy": "المرام الدوائية",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.2860406,
+      "longitude": 44.2143176,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-196",
@@ -2341,7 +3040,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Psych",
     "category": "B",
     "nearestPharmacy": "المرام الدوائية",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.2860406,
+      "longitude": 44.2143176,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-197",
@@ -2352,7 +3056,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Ped",
     "category": "A",
     "nearestPharmacy": "د مبروك مهناء",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.329576,
+      "longitude": 44.2198,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-198",
@@ -2363,7 +3072,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Neur",
     "category": "B",
     "nearestPharmacy": "د محمد سلام",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3411118,
+      "longitude": 44.1984912,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-199",
@@ -2385,7 +3099,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Hepa",
     "category": "A",
     "nearestPharmacy": "د منصور العمراني",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3248845,
+      "longitude": 44.1930343,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-201",
@@ -2407,7 +3126,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "ENT",
     "category": "B",
     "nearestPharmacy": "تاج فارما",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3112191,
+      "longitude": 44.2325915,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-203",
@@ -2418,7 +3142,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Gyno",
     "category": "B",
     "nearestPharmacy": "تاج فارما",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3112191,
+      "longitude": 44.2325915,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-204",
@@ -2525,7 +3254,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Ped",
     "category": "B",
     "nearestPharmacy": "سام الوطني",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3230883,
+      "longitude": 44.1983216,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-211",
@@ -2536,7 +3270,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Ped",
     "category": "A",
     "nearestPharmacy": "سام الوطني",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3230883,
+      "longitude": 44.1983216,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-212",
@@ -2547,7 +3286,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Endo",
     "category": "A",
     "nearestPharmacy": "سام اليمن",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3263073,
+      "longitude": 44.199889,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-213",
@@ -2633,7 +3377,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "I.M",
     "category": "A",
     "nearestPharmacy": "عالم الطب",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3269197,
+      "longitude": 44.1951261,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-219",
@@ -2644,7 +3393,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Gyno",
     "category": "B",
     "nearestPharmacy": "مفرح",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.2948932,
+      "longitude": 44.2240296,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-220",
@@ -2655,7 +3409,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Ped",
     "category": "B",
     "nearestPharmacy": "مفرح",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.2948932,
+      "longitude": 44.2240296,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-221",
@@ -2666,7 +3425,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "G.P",
     "category": "B",
     "nearestPharmacy": "مفرح",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.2948932,
+      "longitude": 44.2240296,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-222",
@@ -2677,7 +3441,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Ped",
     "category": "B",
     "nearestPharmacy": "مفرح",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.2948932,
+      "longitude": 44.2240296,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-223",
@@ -2710,7 +3479,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Gyno",
     "category": "B",
     "nearestPharmacy": "الطيف",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.313161,
+      "longitude": 44.2238794,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-226",
@@ -2721,7 +3495,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "G.P",
     "category": "B",
     "nearestPharmacy": "الطيف, النجري",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.313161,
+      "longitude": 44.2238794,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-227",
@@ -2732,7 +3511,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Gyno",
     "category": "B",
     "nearestPharmacy": "زهرة المدائن",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.308201,
+      "longitude": 44.1884661,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-228",
@@ -2743,7 +3527,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "G.P",
     "category": "B",
     "nearestPharmacy": "زهرة المدائن",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.308201,
+      "longitude": 44.1884661,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-229",
@@ -2754,7 +3543,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Ped",
     "category": "B",
     "nearestPharmacy": "زهرة المدائن",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.308201,
+      "longitude": 44.1884661,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-230",
@@ -2765,7 +3559,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "I.M",
     "category": "B",
     "nearestPharmacy": "البلسم الشافي",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3281695,
+      "longitude": 44.1893077,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-231",
@@ -2776,7 +3575,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Ped",
     "category": "B",
     "nearestPharmacy": "البلسم الشافي",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3281695,
+      "longitude": 44.1893077,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-232",
@@ -2787,7 +3591,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Ped",
     "category": "B",
     "nearestPharmacy": "البلسم الشافي",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3281695,
+      "longitude": 44.1893077,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-233",
@@ -2798,7 +3607,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "I.M",
     "category": "B",
     "nearestPharmacy": "البلسم الشافي",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3281695,
+      "longitude": 44.1893077,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-234",
@@ -2809,7 +3623,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Gyno",
     "category": "B",
     "nearestPharmacy": "كليوباترا",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.2851774,
+      "longitude": 44.2228692,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-235",
@@ -2820,7 +3639,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Gyno",
     "category": "A",
     "nearestPharmacy": "ماري ستوبس الدائري",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3426107,
+      "longitude": 44.1912352,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-236",
@@ -2831,7 +3655,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Ped",
     "category": "B",
     "nearestPharmacy": "ماري ستوبس الدائري",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3426107,
+      "longitude": 44.1912352,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-237",
@@ -2842,7 +3671,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Gyno",
     "category": "B",
     "nearestPharmacy": "ماري ستوبس الدائري",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3426107,
+      "longitude": 44.1912352,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-238",
@@ -2853,7 +3687,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Gyno",
     "category": "B",
     "nearestPharmacy": "ماري ستوبس الدائري",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3426107,
+      "longitude": 44.1912352,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-239",
@@ -2864,7 +3703,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Ped",
     "category": "B",
     "nearestPharmacy": "ماري ستوبس حدة",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3329055,
+      "longitude": 44.1973956,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-240",
@@ -2875,7 +3719,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Ped",
     "category": "B",
     "nearestPharmacy": "ماري ستوبس حدة",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3329055,
+      "longitude": 44.1973956,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-241",
@@ -2886,7 +3735,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Gyno",
     "category": "A",
     "nearestPharmacy": "ماري ستوبس حدة",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3329055,
+      "longitude": 44.1973956,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-242",
@@ -3009,7 +3863,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "I.M",
     "category": "B",
     "nearestPharmacy": "يمن لاب",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3361735,
+      "longitude": 44.2172077,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-250",
@@ -3020,7 +3879,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Ped",
     "category": "C",
     "nearestPharmacy": "يمن لاب",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3361735,
+      "longitude": 44.2172077,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-251",
@@ -3031,7 +3895,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Gyno",
     "category": "C",
     "nearestPharmacy": "يمن لاب",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3361735,
+      "longitude": 44.2172077,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-252",
@@ -3042,7 +3911,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Gyno",
     "category": "B",
     "nearestPharmacy": "يمن لاب",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3361735,
+      "longitude": 44.2172077,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-253",
@@ -3053,7 +3927,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Ped",
     "category": "A",
     "nearestPharmacy": "الطارق",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3294111,
+      "longitude": 44.2226439,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-254",
@@ -3064,7 +3943,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "ENT",
     "category": "A",
     "nearestPharmacy": "مستوصف صنعاء",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3345691,
+      "longitude": 44.184007,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-255",
@@ -3075,7 +3959,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "ENT",
     "category": "A",
     "nearestPharmacy": "مستوصف صنعاء",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3345691,
+      "longitude": 44.184007,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-256",
@@ -3086,7 +3975,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Gyno",
     "category": "B",
     "nearestPharmacy": "الموده",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3388624,
+      "longitude": 44.1775683,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-257",
@@ -3097,7 +3991,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Gyno",
     "category": "B",
     "nearestPharmacy": "الوسام",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3431248,
+      "longitude": 44.1980131,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-258",
@@ -3130,7 +4029,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "I.M",
     "category": "B",
     "nearestPharmacy": "الارتقاء",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3297636,
+      "longitude": 44.2185776,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-261",
@@ -3141,7 +4045,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "I.M",
     "category": "B",
     "nearestPharmacy": "الارتقاء",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3297636,
+      "longitude": 44.2185776,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-262",
@@ -3152,7 +4061,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Emer",
     "category": "B",
     "nearestPharmacy": "الالماني الحديث",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.321499,
+      "longitude": 44.2283603,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-263",
@@ -3163,7 +4077,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "I.M",
     "category": "B",
     "nearestPharmacy": "الالماني الحديث",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.321499,
+      "longitude": 44.2283603,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-264",
@@ -3602,7 +4521,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "ENT",
     "category": "B",
     "nearestPharmacy": "الاهلي",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3352818,
+      "longitude": 44.17452,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-293",
@@ -3613,7 +4537,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Neur",
     "category": "C",
     "nearestPharmacy": "الاهلي",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3352818,
+      "longitude": 44.17452,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-294",
@@ -3624,7 +4553,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Ped",
     "category": "C",
     "nearestPharmacy": "الاهلي",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3352818,
+      "longitude": 44.17452,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-295",
@@ -3635,7 +4569,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "I.M",
     "category": "A",
     "nearestPharmacy": "الاهلي",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3352818,
+      "longitude": 44.17452,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-296",
@@ -3790,7 +4729,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Cardi",
     "category": "B",
     "nearestPharmacy": "الجزائر",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3355753,
+      "longitude": 44.1848311,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-306",
@@ -3801,7 +4745,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Psych",
     "category": "A",
     "nearestPharmacy": "الحياة للطب النفسي",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.2831887,
+      "longitude": 44.2302114,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-307",
@@ -3812,7 +4761,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Psych",
     "category": "A",
     "nearestPharmacy": "الحياة للطب النفسي",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.2831887,
+      "longitude": 44.2302114,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-308",
@@ -4066,7 +5020,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "ENT",
     "category": "B",
     "nearestPharmacy": "العاقل",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3415709,
+      "longitude": 44.1680854,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-327",
@@ -4077,7 +5036,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "ENT",
     "category": "A",
     "nearestPharmacy": "العاقل",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3415709,
+      "longitude": 44.1680854,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-328",
@@ -4088,7 +5052,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "ENT",
     "category": "B",
     "nearestPharmacy": "العاقل",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3415709,
+      "longitude": 44.1680854,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-329",
@@ -4782,7 +5751,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Gyno",
     "category": "B",
     "nearestPharmacy": "النخبة",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.2990647,
+      "longitude": 44.2375284,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-373",
@@ -4793,7 +5767,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "I.M",
     "category": "B",
     "nearestPharmacy": "النخبة",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.2990647,
+      "longitude": 44.2375284,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-374",
@@ -4804,7 +5783,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Ped",
     "category": "B",
     "nearestPharmacy": "النخبة",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.2990647,
+      "longitude": 44.2375284,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-375",
@@ -4815,7 +5799,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Emer",
     "category": "B",
     "nearestPharmacy": "الوسام",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3431248,
+      "longitude": 44.1980131,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-376",
@@ -5153,7 +6142,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "ENT",
     "category": "B",
     "nearestPharmacy": "اليمني الاردني",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3048453,
+      "longitude": 44.2321915,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-399",
@@ -5164,7 +6158,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Gyno",
     "category": "B",
     "nearestPharmacy": "اليمني الاردني",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3048453,
+      "longitude": 44.2321915,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-400",
@@ -5527,7 +6526,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Gyno",
     "category": "B",
     "nearestPharmacy": "د هاشم العراقي",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3092019,
+      "longitude": 44.2410257,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-423",
@@ -5538,7 +6542,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Gyno",
     "category": "B",
     "nearestPharmacy": "د هاشم العراقي",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3092019,
+      "longitude": 44.2410257,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-424",
@@ -5549,7 +6558,12 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "specialty": "Cardi",
     "category": "A",
     "nearestPharmacy": "د هاشم العراقي",
-    "createdAt": "2026-08-18T00:00:00.000Z"
+    "createdAt": "2026-08-18T00:00:00.000Z",
+    "geographicCoordinates": {
+      "latitude": 15.3092019,
+      "longitude": 44.2410257,
+      "accuracy": null
+    }
   },
   {
     "id": "excel-entity-425",
@@ -13144,6 +14158,289 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
     "geographicCoordinates": {
       "latitude": 30.0848394233382,
       "longitude": 31.3393196170802,
+      "accuracy": null
+    }
+  },
+  {
+    "id": "excel-entity-907",
+    "name": "زيد المراني",
+    "kind": "عيادة",
+    "createdAt": "2026-08-26T15:56:52.409264Z",
+    "specialty": "ENT",
+    "category": "B",
+    "region": "south",
+    "nearestPharmacy": "قصر العين",
+    "address": "برج صنعاء الجديدة- بعد جولة دار سلم",
+    "geographicCoordinates": {
+      "latitude": 15.2727947841747,
+      "longitude": 44.2470931653835,
+      "accuracy": null
+    }
+  },
+  {
+    "id": "excel-entity-908",
+    "name": "بشرى الرميمه",
+    "kind": "عيادة",
+    "createdAt": "2026-08-26T15:56:52.416749Z",
+    "specialty": "Gyno",
+    "category": "B",
+    "region": "south",
+    "nearestPharmacy": "الربيعي",
+    "address": "مركز الربيعي- ش الرماح",
+    "geographicCoordinates": {
+      "latitude": 15.3464027,
+      "longitude": 44.2252992,
+      "accuracy": null
+    }
+  },
+  {
+    "id": "excel-entity-909",
+    "name": "البراق عباد",
+    "kind": "عيادة",
+    "createdAt": "2026-08-26T15:56:52.429711Z",
+    "specialty": "ped",
+    "category": "B",
+    "region": "south",
+    "nearestPharmacy": "سام الوطني",
+    "address": "مركز سام الوطني- ش حدة",
+    "geographicCoordinates": {
+      "latitude": 15.3230883,
+      "longitude": 44.1983216,
+      "accuracy": null
+    }
+  },
+  {
+    "id": "excel-entity-910",
+    "name": "سماح السماوي",
+    "kind": "عيادة",
+    "createdAt": "2026-08-26T15:56:52.454687Z",
+    "specialty": "Surg",
+    "category": "B",
+    "region": "south",
+    "nearestPharmacy": "الرياده",
+    "address": "مركز الرياده ش الستين",
+    "geographicCoordinates": {
+      "latitude": 15.334658,
+      "longitude": 44.1754048,
+      "accuracy": null
+    }
+  },
+  {
+    "id": "excel-entity-911",
+    "name": "فهمي باتيس",
+    "kind": "عيادة",
+    "createdAt": "2026-08-26T15:56:52.540105Z",
+    "specialty": "ENT",
+    "category": "B",
+    "region": "south",
+    "nearestPharmacy": "السمع الوطني",
+    "address": "مركز السمع الوطني- جولة كنتاكي",
+    "geographicCoordinates": {
+      "latitude": 15.3438439,
+      "longitude": 44.1900932,
+      "accuracy": null
+    }
+  },
+  {
+    "id": "excel-entity-912",
+    "name": "امال المتوكل",
+    "kind": "عيادة",
+    "createdAt": "2026-08-26T15:56:52.621073Z",
+    "specialty": "I.M",
+    "category": "C",
+    "region": "south",
+    "nearestPharmacy": "بن سيناء",
+    "address": "مش بن سيناء- جولة عصر",
+    "geographicCoordinates": {
+      "latitude": 15.3409818,
+      "longitude": 44.1688223,
+      "accuracy": null
+    }
+  },
+  {
+    "id": "excel-entity-913",
+    "name": "بسام عاطف",
+    "kind": "عيادة",
+    "createdAt": "2026-08-26T15:56:52.626036Z",
+    "specialty": "ENT",
+    "category": "B",
+    "region": "south",
+    "nearestPharmacy": "بن سيناء",
+    "address": "مش بن سيناء- جولة عصر",
+    "geographicCoordinates": {
+      "latitude": 15.3409818,
+      "longitude": 44.1688223,
+      "accuracy": null
+    }
+  },
+  {
+    "id": "excel-entity-914",
+    "name": "عبدالله حمدان",
+    "kind": "عيادة",
+    "createdAt": "2026-08-26T15:56:52.674002Z",
+    "specialty": "ENT",
+    "category": "B",
+    "region": "south",
+    "nearestPharmacy": "العين والانف",
+    "address": "مش العين والانف التخصصي- ش تعز مدخل حديقة الحيوان",
+    "geographicCoordinates": {
+      "latitude": 15.2880185,
+      "longitude": 44.2418522,
+      "accuracy": null
+    }
+  },
+  {
+    "id": "excel-entity-915",
+    "name": "عبدالعزيز قاسم",
+    "kind": "عيادة",
+    "createdAt": "2026-08-26T15:56:52.679341Z",
+    "specialty": "ENT",
+    "category": "B",
+    "region": "south",
+    "nearestPharmacy": "العين والانف",
+    "address": "مش العين والانف التخصصي- ش تعز مدخل حديقة الحيوان",
+    "geographicCoordinates": {
+      "latitude": 15.2880185,
+      "longitude": 44.2418522,
+      "accuracy": null
+    }
+  },
+  {
+    "id": "excel-entity-916",
+    "name": "ماهر العسيلي",
+    "kind": "عيادة",
+    "createdAt": "2026-08-26T15:56:52.684305Z",
+    "specialty": "ENT",
+    "category": "A",
+    "region": "south",
+    "nearestPharmacy": "العين والانف",
+    "address": "مش العين والانف التخصصي- ش تعز مدخل حديقة الحيوان",
+    "geographicCoordinates": {
+      "latitude": 15.2880185,
+      "longitude": 44.2418522,
+      "accuracy": null
+    }
+  },
+  {
+    "id": "excel-entity-917",
+    "name": "ضيف الله النهاري",
+    "kind": "عيادة",
+    "createdAt": "2026-08-26T15:56:52.689718Z",
+    "specialty": "ENT",
+    "category": "B",
+    "region": "south",
+    "nearestPharmacy": "العين والانف",
+    "address": "مش العين والانف التخصصي- ش تعز مدخل حديقة الحيوان",
+    "geographicCoordinates": {
+      "latitude": 15.2880185,
+      "longitude": 44.2418522,
+      "accuracy": null
+    }
+  },
+  {
+    "id": "excel-entity-918",
+    "name": "حسين الفراصي",
+    "kind": "عيادة",
+    "createdAt": "2026-08-26T15:56:53.018583Z",
+    "specialty": "I.M",
+    "category": "B",
+    "region": "south",
+    "nearestPharmacy": "د هاشم العراقي",
+    "address": "مش د هاشم العراقي- شميلة",
+    "geographicCoordinates": {
+      "latitude": 15.3092019,
+      "longitude": 44.2410257,
+      "accuracy": null
+    }
+  },
+  {
+    "id": "excel-entity-919",
+    "name": "اشوق كواتي",
+    "kind": "عيادة",
+    "createdAt": "2026-08-26T15:56:53.419797Z",
+    "specialty": "Gyno",
+    "category": "A",
+    "region": "north",
+    "nearestPharmacy": "الاشواق",
+    "address": "ش الستين- جولة الثلاثين"
+  },
+  {
+    "id": "excel-entity-920",
+    "name": "مقبل العامري 1",
+    "kind": "عيادة",
+    "createdAt": "2026-08-26T15:56:53.490383Z",
+    "specialty": "Ped",
+    "category": "B",
+    "region": "north",
+    "nearestPharmacy": "اطباء صنعاء",
+    "address": "مجمع اطباء صنعاء الاستشاري- ش الوايتات",
+    "geographicCoordinates": {
+      "latitude": 15.479284251740074,
+      "longitude": 44.23166849226923,
+      "accuracy": null
+    }
+  },
+  {
+    "id": "excel-entity-921",
+    "name": "يحيى الجبوبي",
+    "kind": "عيادة",
+    "createdAt": "2026-08-26T15:56:53.521738Z",
+    "specialty": "Ortho",
+    "category": "B",
+    "region": "north",
+    "nearestPharmacy": "اطباء صنعاء",
+    "address": "مجمع اطباء صنعاء الاستشاري- ش الوايتات",
+    "geographicCoordinates": {
+      "latitude": 15.479284251740074,
+      "longitude": 44.23166849226923,
+      "accuracy": null
+    }
+  },
+  {
+    "id": "excel-entity-922",
+    "name": "عبدالله الشرفي",
+    "kind": "عيادة",
+    "createdAt": "2026-08-26T15:56:53.537143Z",
+    "specialty": "I.M",
+    "category": "B",
+    "region": "north",
+    "nearestPharmacy": "اريج",
+    "address": "مركز اريج الطبي- ش التلفزيون",
+    "geographicCoordinates": {
+      "latitude": 15.405172664539,
+      "longitude": 44.204584530263,
+      "accuracy": null
+    }
+  },
+  {
+    "id": "excel-entity-923",
+    "name": "نجود محمد المحاميد",
+    "kind": "عيادة",
+    "createdAt": "2026-08-26T15:56:53.560052Z",
+    "specialty": "Gyno",
+    "category": "C",
+    "region": "north",
+    "nearestPharmacy": "نور التميز",
+    "address": "مركز نور التميز ش الأربعين- سعوان",
+    "geographicCoordinates": {
+      "latitude": 15.378543615777,
+      "longitude": 44.2392147673261,
+      "accuracy": null
+    }
+  },
+  {
+    "id": "excel-entity-924",
+    "name": "فائزه نصار",
+    "kind": "عيادة",
+    "createdAt": "2026-08-26T15:56:53.787403Z",
+    "specialty": "I.M",
+    "category": "B",
+    "region": "north",
+    "nearestPharmacy": "أيلول",
+    "address": "مركز الشرق الطبي- ش القاهرة",
+    "geographicCoordinates": {
+      "latitude": 15.370950208379,
+      "longitude": 44.1984974879672,
       "accuracy": null
     }
   }
