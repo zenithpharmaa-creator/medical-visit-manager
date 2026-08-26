@@ -15,9 +15,9 @@ function ReportsTabButton({ style: tabStyle, accessibilityState }: BottomTabBarB
   const isActive = accessibilityState?.selected === true;
   const iconColor = isActive ? "#1257A6" : "#64748B";
   const [visible, setVisible] = useState(false);
-  const open = (period: "daily" | "monthly") => {
+  const open = (route: string) => {
     setVisible(false);
-    router.push(`/(tabs)/reports?period=${period}` as never);
+    router.push(`/(tabs)/${route}` as never);
   };
   return <>
     <Pressable onPress={() => setVisible(true)} accessibilityState={accessibilityState} style={({ pressed }) => [tabStyle, { flex: 1, height: "100%", minWidth: 0, paddingTop: 0, paddingBottom: 0, alignItems: "center", justifyContent: "center", borderRadius: 14, backgroundColor: pressed ? "rgba(21,101,192,0.18)" : "transparent" }, isActive && { shadowColor: "#1257A6", shadowOpacity: Platform.OS === "web" ? 0.16 : 0.24, shadowRadius: 5, shadowOffset: { width: 0, height: 2 }, elevation: Platform.OS === "android" ? 4 : 0 }]}>
@@ -26,10 +26,9 @@ function ReportsTabButton({ style: tabStyle, accessibilityState }: BottomTabBarB
     </Pressable>
     <Modal visible={visible} transparent animationType="fade" onRequestClose={() => setVisible(false)}>
       <Pressable onPress={() => setVisible(false)} style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.28)", justifyContent: "flex-end" }}>
-        <Pressable onPress={(event) => event.stopPropagation()} style={{ margin: 16, width: "52%", alignSelf: "flex-end", borderRadius: 18, overflow: "hidden", backgroundColor: "#FFFFFF", borderWidth: 1, borderColor: "#D8E0EA" }}>
-          <Text style={{ padding: 14, textAlign: "right", fontWeight: "700", color: "#64748B", backgroundColor: "#F1F5F9" }}>التقارير</Text>
-          <Pressable onPress={() => open("daily")} style={{ padding: 12, flexDirection: "row-reverse", alignItems: "center", justifyContent: "space-between", borderBottomWidth: 1, borderBottomColor: "#E2E8F0" }}><Text style={{ fontWeight: "700", color: "#102A43" }}>تقرير الزيارات اليومية</Text><MaterialIcons name="today" size={21} color="#1257A6" /></Pressable>
-          <Pressable onPress={() => open("monthly")} style={{ padding: 12, flexDirection: "row-reverse", alignItems: "center", justifyContent: "space-between" }}><Text style={{ fontWeight: "700", color: "#102A43" }}>تقرير الزيارات الشهرية</Text><MaterialIcons name="date-range" size={21} color="#1257A6" /></Pressable>
+        <Pressable onPress={(event) => event.stopPropagation()} style={{ margin: 16, width: "33%", minWidth: 220, maxWidth: 360, alignSelf: "flex-end", borderRadius: 18, overflow: "hidden", backgroundColor: "#FFFFFF", borderWidth: 1, borderColor: "#D8E0EA" }}>
+          <Text style={{ padding: 12, textAlign: "right", fontWeight: "700", color: "#64748B", backgroundColor: "#F1F5F9", fontSize: 12 }}>التقارير</Text>
+          {([["report-search", "بحث شامل", "search"], ["report-calendar", "تقويم", "calendar-month"], ["report-representatives", "للمندوبين متنوع", "people"], ["report-print", "طباعة", "print"], ["report-monthly", "شهري حسب المندوب", "date-range"], ["report-total", "إجمالي للمندوبين", "summarize"], ["report-daily-analysis", "تحليلي يومي", "analytics"]] as const).map(([route, label, icon], index) => <Pressable key={route} onPress={() => open(route)} style={{ padding: 9, flexDirection: "row-reverse", alignItems: "center", justifyContent: "space-between", borderBottomWidth: index === 6 ? 0 : 1, borderBottomColor: "#E2E8F0" }}><Text style={{ fontWeight: "700", color: "#102A43", fontSize: 11, textAlign: "right" }}>{label}</Text><MaterialIcons name={icon} size={18} color="#1257A6" /></Pressable>)}
         </Pressable>
       </Pressable>
     </Modal>
@@ -65,6 +64,13 @@ export default function TabLayout() {
       <Tabs.Screen name="sync-history" options={{ href: null }} />
       <Tabs.Screen name="representative-scope" options={{ href: null }} />
       <Tabs.Screen name="missing-coordinates" options={{ href: null }} />
+      <Tabs.Screen name="report-search" options={{ href: null, title: "بحث شامل" }} />
+      <Tabs.Screen name="report-calendar" options={{ href: null, title: "تقويم" }} />
+      <Tabs.Screen name="report-representatives" options={{ href: null, title: "للمندوبين متنوع" }} />
+      <Tabs.Screen name="report-print" options={{ href: null, title: "طباعة" }} />
+      <Tabs.Screen name="report-monthly" options={{ href: null, title: "شهري حسب المندوب" }} />
+      <Tabs.Screen name="report-total" options={{ href: null, title: "إجمالي للمندوبين" }} />
+      <Tabs.Screen name="report-daily-analysis" options={{ href: null, title: "تحليلي يومي" }} />
     </Tabs>
   );
 }
