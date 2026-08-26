@@ -24,6 +24,7 @@ const options = [
   { label: "اعتماد الخطط الأسبوعية", subtitle: "مراجعة خطط المندوبين واعتمادها أو رفضها", icon: "fact-check" as const, route: "/plan-approvals" },
   { label: "إعدادات التقارير", subtitle: "البريد والتذكير والنسخة الاحتياطية", icon: "settings" as const, route: "/settings" },
   { label: "خريطة الزيارات", subtitle: "عرض مواقع الزيارات الموثقة حسب المندوب والجهة", icon: "map" as const, route: "/map" },
+  { label: "جهات بلا إحداثيات", subtitle: "متابعة وتصدير الجهات التي تحتاج خط الطول والعرض", icon: "location-off" as const, route: "/missing-coordinates" },
   { label: "تقرير تجاوزات الموقع", subtitle: "مراجعة زيارات تجاوز النطاق وأسبابها", icon: "gpp-maybe" as const, route: "/override-reports" },
   { label: "موقع المندوب الحالي", subtitle: "تحديد موقع المندوب على الخريطة وتحديثه", icon: "person-pin-circle" as const, route: "/rep-location" },
 ];

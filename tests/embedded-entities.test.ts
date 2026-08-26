@@ -7,6 +7,7 @@ describe("embedded Excel entities", () => {
     expect(EMBEDDED_ENTITIES).toHaveLength(924);
     expect(EMBEDDED_ENTITIES.filter((entity) => entity.geographicCoordinates)).toHaveLength(856);
     expect(EMBEDDED_ENTITIES.filter((entity) => !entity.geographicCoordinates)).toHaveLength(68);
+    expect(EMBEDDED_ENTITIES.filter((entity) => entity.coordinatesAddedAt === "2026-08-26-map-xlsx")).toHaveLength(220);
     expect(new Set(EMBEDDED_ENTITIES.map((entity) => `${entity.name}|${entity.address ?? ""}|${entity.specialty ?? ""}|${entity.category ?? ""}`)).size).toBe(924);
     expect(EMBEDDED_ENTITIES.every((entity) => entity.geographicCoordinates ? Number.isFinite(entity.geographicCoordinates.latitude) && Number.isFinite(entity.geographicCoordinates.longitude) : true)).toBe(true);
   });

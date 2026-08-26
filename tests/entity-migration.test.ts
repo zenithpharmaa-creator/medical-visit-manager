@@ -16,12 +16,13 @@ describe("embedded entity migration", () => {
     expect(merged[2].id).toBe("embedded-3");
   });
 
-  it("restores embedded coordinates when the saved record is missing them", () => {
+  it("restores embedded coordinates and the recent batch marker", () => {
     const saved = [entity("saved-1", "طبيب موجود")];
-    const embedded = [entity("embedded-1", "طبيب موجود", { latitude: 15.4, longitude: 44.2, accuracy: null })];
+    const embedded = [{ ...entity("embedded-1", "طبيب موجود", { latitude: 15.4, longitude: 44.2, accuracy: null }), coordinatesAddedAt: "2026-08-26-map-xlsx" }];
     const merged = mergeEmbeddedEntities(saved, embedded, true);
     expect(merged[0].geographicCoordinates?.latitude).toBe(15.4);
     expect(merged[0].geographicCoordinates?.longitude).toBe(44.2);
+    expect(merged[0].coordinatesAddedAt).toBe("2026-08-26-map-xlsx");
   });
 
   it("preserves existing coordinates when an update omits them", () => {

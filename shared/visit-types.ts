@@ -32,6 +32,7 @@ export type MedicalEntity = {
   category?: string;
   geographicLocation?: string;
   geographicCoordinates?: VisitLocation;
+  coordinatesAddedAt?: string;
   sharedLocationId?: string;
   region?: RepresentativeRegion;
   nearestPharmacy?: string;

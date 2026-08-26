@@ -64,6 +64,7 @@ export default function TabLayout() {
       <Tabs.Screen name="device-activation" options={{ href: null }} />
       <Tabs.Screen name="sync-history" options={{ href: null }} />
       <Tabs.Screen name="representative-scope" options={{ href: null }} />
+      <Tabs.Screen name="missing-coordinates" options={{ href: null }} />
     </Tabs>
   );
 }

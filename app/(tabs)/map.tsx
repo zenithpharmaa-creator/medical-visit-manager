@@ -15,6 +15,7 @@ import type { Visit, VisitLocation } from "@/shared/visit-types";
 
 const ALL = "الكل";
 type Filter = typeof ALL | string;
+type CoordinateFilter = "all" | "recent";
 
 export default function MapScreen() {
   const { data } = useVisitStore();
@@ -23,6 +24,7 @@ export default function MapScreen() {
   const scopedEntities = session?.role === "manager" ? data.entities : getEntitiesForRepresentative(data.entities, currentRepresentative);
   const [representativeFilter, setRepresentativeFilter] = useState<Filter>(ALL);
   const [kindFilter, setKindFilter] = useState<Filter>(ALL);
+  const [coordinateFilter, setCoordinateFilter] = useState<CoordinateFilter>("all");
   const [representativeModal, setRepresentativeModal] = useState(false);
   const [kindModal, setKindModal] = useState(false);
   const [currentLocation, setCurrentLocation] = useState<VisitLocation | null>(null);
@@ -30,7 +32,11 @@ export default function MapScreen() {
   const [selectedEntity, setSelectedEntity] = useState<(typeof data.entities)[number] | null>(null);
 
   const mappedEntities = useMemo(() => scopedEntities.filter((entity) => entity.geographicCoordinates && Number.isFinite(entity.geographicCoordinates.latitude) && Number.isFinite(entity.geographicCoordinates.longitude)), [scopedEntities]);
-  const visibleEntities = useMemo(() => mappedEntities.filter((entity) => kindFilter === ALL || entity.kind === kindFilter), [kindFilter, mappedEntities]);
+  const visibleEntities = useMemo(() => mappedEntities.filter((entity) => {
+    const kindMatches = kindFilter === ALL || entity.kind === kindFilter;
+    const coordinateMatches = coordinateFilter === "all" || Boolean(entity.coordinatesAddedAt);
+    return kindMatches && coordinateMatches;
+  }), [coordinateFilter, kindFilter, mappedEntities]);
   const mappedVisits = useMemo(() => data.visits.filter((visit) => visit.location && (session?.role === "manager" || scopedEntities.some((entity) => entity.id === visit.entityId))), [data.visits, scopedEntities, session?.role]);
   const visibleVisits = useMemo(() => mappedVisits.filter((visit) => {
     const representativeMatches = representativeFilter === ALL || visit.representativeId === representativeFilter;
@@ -61,11 +67,12 @@ export default function MapScreen() {
     <ScreenContainer className="px-5" containerClassName="bg-background">
       <ScrollView contentContainerStyle={{ paddingTop: 18, paddingBottom: 28 }} showsVerticalScrollIndicator={false}>
         <ScreenHeader title="خريطة الزيارات" subtitle="تتبّع مواقع الجهات الطبية الموثقة" icon="map" />
-        <View className="flex-row-reverse gap-3 mb-4">
+        <View className="flex-row-reverse gap-3 mb-3">
           <Pressable onPress={() => setRepresentativeModal(true)} className="flex-1 h-12 rounded-2xl border border-border bg-surface px-3 flex-row-reverse items-center justify-between"><Text className="text-foreground font-bold text-xs" numberOfLines={1}>{selectedRepresentativeLabel}</Text><MaterialIcons name="person" size={18} color="#102A43" /></Pressable>
           <Pressable onPress={() => setKindModal(true)} className="flex-1 h-12 rounded-2xl border border-border bg-surface px-3 flex-row-reverse items-center justify-between"><Text className="text-foreground font-bold text-xs" numberOfLines={1}>{kindFilter}</Text><MaterialIcons name="category" size={18} color="#102A43" /></Pressable>
         </View>
-        <View className="rounded-2xl bg-primary/10 border border-primary/20 p-3 mb-4 flex-row-reverse items-center gap-2"><MaterialIcons name="location-on" size={20} color="#1565C0" /><Text className="flex-1 text-right text-primary text-sm font-semibold">{visibleEntities.length} جهة طبية بإحداثيات · {visibleVisits.length} زيارة موثّقة</Text></View>
+        <Pressable onPress={() => setCoordinateFilter((value) => value === "all" ? "recent" : "all")} className={`h-12 rounded-2xl border px-4 flex-row-reverse items-center justify-between mb-4 ${coordinateFilter === "recent" ? "bg-primary border-primary" : "bg-surface border-border"}`} style={({ pressed }) => [{ opacity: pressed ? 0.8 : 1 }]}><View className="flex-row-reverse items-center gap-2"><MaterialIcons name="new-releases" size={19} color={coordinateFilter === "recent" ? "#FFFFFF" : "#1565C0"} /><Text className={coordinateFilter === "recent" ? "text-white font-bold text-sm" : "text-foreground font-bold text-sm"}>الإحداثيات المضافة حديثاً فقط</Text></View><MaterialIcons name={coordinateFilter === "recent" ? "toggle-on" : "toggle-off"} size={27} color={coordinateFilter === "recent" ? "#FFFFFF" : "#64748B"} /></Pressable>
+        <View className="rounded-2xl bg-primary/10 border border-primary/20 p-3 mb-4 flex-row-reverse items-center gap-2"><MaterialIcons name="location-on" size={20} color="#1565C0" /><Text className="flex-1 text-right text-primary text-sm font-semibold">{visibleEntities.length} جهة طبية بإحداثيات{coordinateFilter === "recent" ? " مضافة حديثاً" : ""} · {visibleVisits.length} زيارة موثّقة</Text></View>
         <View className="flex-row-reverse gap-2 mb-3"><Pressable onPress={locateRepresentative} className="flex-1 h-11 rounded-xl bg-foreground items-center justify-center flex-row-reverse gap-2"><MaterialIcons name="my-location" size={18} color="#FFFFFF" /><Text className="text-white font-bold text-xs">عرض موقع المندوب</Text></Pressable><View className="flex-1 h-11 rounded-xl bg-success/10 border border-success/30 items-center justify-center"><Text className="text-success font-bold text-xs">النطاق: {data.settings.geofenceRadiusMeters}م</Text></View></View>
         <View className="h-[430px] overflow-hidden rounded-2xl border border-border mb-4"><InteractiveMap visits={visibleVisits} entities={visibleEntities} representatives={data.representatives} initialRegion={initialRegion} currentLocation={currentLocation} targetLocation={selectedEntity?.geographicCoordinates ?? selectedVisit?.geographicCoordinates ?? null} allowedRadiusMeters={data.settings.geofenceRadiusMeters} targetTitle={selectedEntity?.name ?? selectedVisit?.entityName} /></View>
         {visibleEntities.length > 0 || visibleVisits.length > 0 ? (

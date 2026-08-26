@@ -26,7 +26,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.330001057765,
       "longitude": 44.1926310160837,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-3",
@@ -42,7 +43,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3330906525118,
       "longitude": 44.1939158519894,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-4",
@@ -58,7 +60,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3330906525118,
       "longitude": 44.1939158519894,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-5",
@@ -330,7 +333,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.2727947841747,
       "longitude": 44.2470931653835,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-22",
@@ -346,7 +350,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.2727947841747,
       "longitude": 44.2470931653835,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-23",
@@ -394,7 +399,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.2804944274242,
       "longitude": 44.2156431538713,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-26",
@@ -410,7 +416,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.2816666,
       "longitude": 44.2127975,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-27",
@@ -426,7 +433,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.2816666,
       "longitude": 44.2127975,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-28",
@@ -442,7 +450,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.2788939,
       "longitude": 44.2196401,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-29",
@@ -458,7 +467,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3417588,
       "longitude": 44.1689028,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-30",
@@ -474,7 +484,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.2337204,
       "longitude": 44.2525344,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-31",
@@ -490,7 +501,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.2339355,
       "longitude": 44.2521465,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-32",
@@ -506,7 +518,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.2477147,
       "longitude": 44.2540911,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-33",
@@ -522,7 +535,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3382619,
       "longitude": 44.2107774,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-34",
@@ -538,7 +552,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3470564,
       "longitude": 44.2084161,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-35",
@@ -565,7 +580,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3348423,
       "longitude": 44.2177472,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-37",
@@ -581,7 +597,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.335855,
       "longitude": 44.2171034,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-38",
@@ -608,7 +625,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3326407,
       "longitude": 44.2174913,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-40",
@@ -624,7 +642,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.2924987,
       "longitude": 44.2300649,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-41",
@@ -640,7 +659,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.2815143,
       "longitude": 44.2202842,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-42",
@@ -656,7 +676,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.2908953,
       "longitude": 44.2208008,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-43",
@@ -672,7 +693,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.2866405,
       "longitude": 44.2376156,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-44",
@@ -688,7 +710,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.2858161,
       "longitude": 44.2227827,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-45",
@@ -704,7 +727,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.2861343,
       "longitude": 44.2217614,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-46",
@@ -720,7 +744,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.2806712,
       "longitude": 44.2447905,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-47",
@@ -736,7 +761,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.2806712,
       "longitude": 44.2447905,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-48",
@@ -752,7 +778,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3401732,
       "longitude": 44.1920801,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-49",
@@ -790,7 +817,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3187653,
       "longitude": 44.2296937,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-52",
@@ -806,7 +834,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3267813,
       "longitude": 44.2263249,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-53",
@@ -822,7 +851,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3190631,
       "longitude": 44.2300025,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-54",
@@ -838,7 +868,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3198104,
       "longitude": 44.229578,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-55",
@@ -854,7 +885,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3218346,
       "longitude": 44.2286473,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-56",
@@ -870,7 +902,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3289833,
       "longitude": 44.2252422,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-57",
@@ -886,7 +919,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3271238,
       "longitude": 44.2262296,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-58",
@@ -902,7 +936,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.332762,
       "longitude": 44.2235833,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-59",
@@ -918,7 +953,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3271238,
       "longitude": 44.2262296,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-60",
@@ -934,7 +970,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3299149,
       "longitude": 44.2245023,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-61",
@@ -950,7 +987,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3194663,
       "longitude": 44.229681,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-62",
@@ -966,7 +1004,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3193593,
       "longitude": 44.2298389,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-63",
@@ -982,7 +1021,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.2875257,
       "longitude": 44.2413278,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-64",
@@ -998,7 +1038,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.2856515,
       "longitude": 44.2434112,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-65",
@@ -1025,7 +1066,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3309451,
       "longitude": 44.2275516,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-67",
@@ -1041,7 +1083,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3406766,
       "longitude": 44.2190732,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-68",
@@ -1057,7 +1100,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3445306,
       "longitude": 44.2179027,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-69",
@@ -1084,7 +1128,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3407985,
       "longitude": 44.2195154,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-71",
@@ -1111,7 +1156,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3396701,
       "longitude": 44.1987155,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-73",
@@ -1127,7 +1173,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3403122,
       "longitude": 44.1989606,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-74",
@@ -1154,7 +1201,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3066812,
       "longitude": 44.188558,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-76",
@@ -1170,7 +1218,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3220733,
       "longitude": 44.1988004,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-77",
@@ -1186,7 +1235,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3220733,
       "longitude": 44.1988004,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-78",
@@ -1202,7 +1252,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3212924,
       "longitude": 44.1996003,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-79",
@@ -1218,7 +1269,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.2891029,
       "longitude": 44.2631979,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-80",
@@ -1234,7 +1286,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3418755,
       "longitude": 44.2228299,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-81",
@@ -1283,7 +1336,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.2891029,
       "longitude": 44.2631979,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-85",
@@ -1299,7 +1353,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3318825,
       "longitude": 44.1888966,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-86",
@@ -1315,7 +1370,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3318825,
       "longitude": 44.1888966,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-87",
@@ -1331,7 +1387,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3381358,
       "longitude": 44.2022011,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-88",
@@ -1347,7 +1404,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3381358,
       "longitude": 44.2022011,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-89",
@@ -1363,7 +1421,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3381358,
       "longitude": 44.2022011,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-90",
@@ -1379,7 +1438,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.340524,
       "longitude": 44.1903159,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-91",
@@ -1395,7 +1455,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3069282,
       "longitude": 44.2341686,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-92",
@@ -1411,7 +1472,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3079281,
       "longitude": 44.2392846,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-93",
@@ -1427,7 +1489,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3079281,
       "longitude": 44.2392846,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-94",
@@ -1454,7 +1517,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.312554,
       "longitude": 44.2320983,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-96",
@@ -1470,7 +1534,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3121773,
       "longitude": 44.2323079,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-97",
@@ -1486,7 +1551,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3121773,
       "longitude": 44.2323079,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-98",
@@ -1535,7 +1601,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3321237,
       "longitude": 44.2064893,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-102",
@@ -1551,7 +1618,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.2721048,
       "longitude": 44.2540743,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-103",
@@ -1674,7 +1742,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.2698925,
       "longitude": 44.229797,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-111",
@@ -1690,7 +1759,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.2698925,
       "longitude": 44.229797,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-112",
@@ -1706,7 +1776,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.2698925,
       "longitude": 44.229797,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-113",
@@ -1722,7 +1793,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.2698925,
       "longitude": 44.229797,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-114",
@@ -1738,7 +1810,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.2698925,
       "longitude": 44.229797,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-115",
@@ -1754,7 +1827,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.2902957,
       "longitude": 44.2473648,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-116",
@@ -1770,7 +1844,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3377284,
       "longitude": 44.1221274,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-117",
@@ -1786,7 +1861,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3464027,
       "longitude": 44.2252992,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-118",
@@ -1882,7 +1958,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3324606,
       "longitude": 44.2219542,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-124",
@@ -1898,7 +1975,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3324606,
       "longitude": 44.2219542,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-125",
@@ -1914,7 +1992,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3324606,
       "longitude": 44.2219542,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-126",
@@ -1930,7 +2009,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3324606,
       "longitude": 44.2219542,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-127",
@@ -1946,7 +2026,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3324606,
       "longitude": 44.2219542,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-128",
@@ -1962,7 +2043,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3324606,
       "longitude": 44.2219542,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-129",
@@ -1978,7 +2060,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3324606,
       "longitude": 44.2219542,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-130",
@@ -1994,7 +2077,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3324606,
       "longitude": 44.2219542,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-131",
@@ -2010,7 +2094,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3324606,
       "longitude": 44.2219542,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-132",
@@ -2026,7 +2111,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3324606,
       "longitude": 44.2219542,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-133",
@@ -2042,7 +2128,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3207701,
       "longitude": 44.2240859,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-134",
@@ -2058,7 +2145,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3207701,
       "longitude": 44.2240859,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-135",
@@ -2074,7 +2162,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3207701,
       "longitude": 44.2240859,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-136",
@@ -2090,7 +2179,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.291057,
       "longitude": 44.2009414,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-137",
@@ -2106,7 +2196,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.291057,
       "longitude": 44.2009414,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-138",
@@ -2122,7 +2213,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3365952,
       "longitude": 44.2170028,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-139",
@@ -2138,7 +2230,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.2968779,
       "longitude": 44.1718116,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-140",
@@ -2154,7 +2247,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3309713,
       "longitude": 44.1865484,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-141",
@@ -2170,7 +2264,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3294111,
       "longitude": 44.2226439,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-142",
@@ -2186,7 +2281,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3129896,
       "longitude": 44.2325868,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-143",
@@ -2202,7 +2298,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3129896,
       "longitude": 44.2325868,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-144",
@@ -2218,7 +2315,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3260616,
       "longitude": 44.226356,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-145",
@@ -2234,7 +2332,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3362637,
       "longitude": 44.2213631,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-146",
@@ -2250,7 +2349,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3362637,
       "longitude": 44.2213631,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-147",
@@ -2266,7 +2366,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3362637,
       "longitude": 44.2213631,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-148",
@@ -2282,7 +2383,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3362637,
       "longitude": 44.2213631,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-149",
@@ -2298,7 +2400,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3362637,
       "longitude": 44.2213631,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-150",
@@ -2314,7 +2417,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3362637,
       "longitude": 44.2213631,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-151",
@@ -2330,7 +2434,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3362637,
       "longitude": 44.2213631,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-152",
@@ -2346,7 +2451,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3362637,
       "longitude": 44.2213631,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-153",
@@ -2362,7 +2468,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3362637,
       "longitude": 44.2213631,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-154",
@@ -2378,7 +2485,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3796627,
       "longitude": 44.2414917,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-155",
@@ -2394,7 +2502,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3796627,
       "longitude": 44.2414917,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-156",
@@ -2410,7 +2519,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3796627,
       "longitude": 44.2414917,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-157",
@@ -2426,7 +2536,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3796627,
       "longitude": 44.2414917,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-158",
@@ -2442,7 +2553,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3464027,
       "longitude": 44.2252992,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-159",
@@ -2458,7 +2570,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3464027,
       "longitude": 44.2252992,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-160",
@@ -2474,7 +2587,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3407008,
       "longitude": 44.2014953,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-161",
@@ -2490,7 +2604,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3407008,
       "longitude": 44.2014953,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-162",
@@ -2506,7 +2621,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3407008,
       "longitude": 44.2014953,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-163",
@@ -2522,7 +2638,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3407008,
       "longitude": 44.2014953,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-164",
@@ -2666,7 +2783,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.2962676,
       "longitude": 44.1725952,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-173",
@@ -2682,7 +2800,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.2962676,
       "longitude": 44.1725952,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-174",
@@ -2698,7 +2817,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.2962676,
       "longitude": 44.1725952,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-175",
@@ -2714,7 +2834,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.2860667,
       "longitude": 44.2211958,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-176",
@@ -2730,7 +2851,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.2860667,
       "longitude": 44.2211958,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-177",
@@ -2746,7 +2868,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.2860667,
       "longitude": 44.2211958,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-178",
@@ -2762,7 +2885,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.2860667,
       "longitude": 44.2211958,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-179",
@@ -2789,7 +2913,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.2859723,
       "longitude": 44.237108,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-181",
@@ -2805,7 +2930,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3410462,
       "longitude": 44.2108103,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-182",
@@ -2821,7 +2947,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3410462,
       "longitude": 44.2108103,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-183",
@@ -2837,7 +2964,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3437993,
       "longitude": 44.1970925,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-184",
@@ -2853,7 +2981,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3379396,
       "longitude": 44.2021411,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-185",
@@ -2869,7 +2998,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3379396,
       "longitude": 44.2021411,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-186",
@@ -2885,7 +3015,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3379396,
       "longitude": 44.2021411,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-187",
@@ -2901,7 +3032,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.2856356,
       "longitude": 44.2434008,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-188",
@@ -2917,7 +3049,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.286505,
       "longitude": 44.2421207,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-189",
@@ -2933,7 +3066,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.286505,
       "longitude": 44.2421207,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-190",
@@ -2949,7 +3083,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3322744,
       "longitude": 44.1877812,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-191",
@@ -2965,7 +3100,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.2783305,
       "longitude": 44.2155813,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-192",
@@ -2981,7 +3117,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3289274,
       "longitude": 44.2189629,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-193",
@@ -2997,7 +3134,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3289274,
       "longitude": 44.2189629,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-194",
@@ -3013,7 +3151,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.2860406,
       "longitude": 44.2143176,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-195",
@@ -3029,7 +3168,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.2860406,
       "longitude": 44.2143176,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-196",
@@ -3045,7 +3185,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.2860406,
       "longitude": 44.2143176,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-197",
@@ -3061,7 +3202,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.329576,
       "longitude": 44.2198,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-198",
@@ -3077,7 +3219,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3411118,
       "longitude": 44.1984912,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-199",
@@ -3104,7 +3247,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3248845,
       "longitude": 44.1930343,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-201",
@@ -3131,7 +3275,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3112191,
       "longitude": 44.2325915,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-203",
@@ -3147,7 +3292,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3112191,
       "longitude": 44.2325915,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-204",
@@ -3259,7 +3405,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3230883,
       "longitude": 44.1983216,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-211",
@@ -3275,7 +3422,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3230883,
       "longitude": 44.1983216,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-212",
@@ -3291,7 +3439,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3263073,
       "longitude": 44.199889,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-213",
@@ -3382,7 +3531,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3269197,
       "longitude": 44.1951261,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-219",
@@ -3398,7 +3548,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.2948932,
       "longitude": 44.2240296,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-220",
@@ -3414,7 +3565,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.2948932,
       "longitude": 44.2240296,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-221",
@@ -3430,7 +3582,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.2948932,
       "longitude": 44.2240296,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-222",
@@ -3446,7 +3599,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.2948932,
       "longitude": 44.2240296,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-223",
@@ -3484,7 +3638,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.313161,
       "longitude": 44.2238794,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-226",
@@ -3500,7 +3655,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.313161,
       "longitude": 44.2238794,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-227",
@@ -3516,7 +3672,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.308201,
       "longitude": 44.1884661,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-228",
@@ -3532,7 +3689,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.308201,
       "longitude": 44.1884661,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-229",
@@ -3548,7 +3706,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.308201,
       "longitude": 44.1884661,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-230",
@@ -3564,7 +3723,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3281695,
       "longitude": 44.1893077,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-231",
@@ -3580,7 +3740,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3281695,
       "longitude": 44.1893077,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-232",
@@ -3596,7 +3757,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3281695,
       "longitude": 44.1893077,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-233",
@@ -3612,7 +3774,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3281695,
       "longitude": 44.1893077,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-234",
@@ -3628,7 +3791,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.2851774,
       "longitude": 44.2228692,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-235",
@@ -3644,7 +3808,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3426107,
       "longitude": 44.1912352,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-236",
@@ -3660,7 +3825,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3426107,
       "longitude": 44.1912352,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-237",
@@ -3676,7 +3842,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3426107,
       "longitude": 44.1912352,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-238",
@@ -3692,7 +3859,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3426107,
       "longitude": 44.1912352,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-239",
@@ -3708,7 +3876,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3329055,
       "longitude": 44.1973956,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-240",
@@ -3724,7 +3893,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3329055,
       "longitude": 44.1973956,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-241",
@@ -3740,7 +3910,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3329055,
       "longitude": 44.1973956,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-242",
@@ -3868,7 +4039,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3361735,
       "longitude": 44.2172077,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-250",
@@ -3884,7 +4056,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3361735,
       "longitude": 44.2172077,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-251",
@@ -3900,7 +4073,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3361735,
       "longitude": 44.2172077,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-252",
@@ -3916,7 +4090,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3361735,
       "longitude": 44.2172077,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-253",
@@ -3932,7 +4107,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3294111,
       "longitude": 44.2226439,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-254",
@@ -3948,7 +4124,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3345691,
       "longitude": 44.184007,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-255",
@@ -3964,7 +4141,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3345691,
       "longitude": 44.184007,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-256",
@@ -3980,7 +4158,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3388624,
       "longitude": 44.1775683,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-257",
@@ -3996,7 +4175,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3431248,
       "longitude": 44.1980131,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-258",
@@ -4034,7 +4214,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3297636,
       "longitude": 44.2185776,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-261",
@@ -4050,7 +4231,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3297636,
       "longitude": 44.2185776,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-262",
@@ -4066,7 +4248,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.321499,
       "longitude": 44.2283603,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-263",
@@ -4082,7 +4265,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.321499,
       "longitude": 44.2283603,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-264",
@@ -4526,7 +4710,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3352818,
       "longitude": 44.17452,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-293",
@@ -4542,7 +4727,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3352818,
       "longitude": 44.17452,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-294",
@@ -4558,7 +4744,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3352818,
       "longitude": 44.17452,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-295",
@@ -4574,7 +4761,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3352818,
       "longitude": 44.17452,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-296",
@@ -4734,7 +4922,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3355753,
       "longitude": 44.1848311,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-306",
@@ -4750,7 +4939,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.2831887,
       "longitude": 44.2302114,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-307",
@@ -4766,7 +4956,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.2831887,
       "longitude": 44.2302114,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-308",
@@ -5025,7 +5216,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3415709,
       "longitude": 44.1680854,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-327",
@@ -5041,7 +5233,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3415709,
       "longitude": 44.1680854,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-328",
@@ -5057,7 +5250,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3415709,
       "longitude": 44.1680854,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-329",
@@ -5756,7 +5950,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.2990647,
       "longitude": 44.2375284,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-373",
@@ -5772,7 +5967,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.2990647,
       "longitude": 44.2375284,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-374",
@@ -5788,7 +5984,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.2990647,
       "longitude": 44.2375284,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-375",
@@ -5804,7 +6001,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3431248,
       "longitude": 44.1980131,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-376",
@@ -6147,7 +6345,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3048453,
       "longitude": 44.2321915,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-399",
@@ -6163,7 +6362,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3048453,
       "longitude": 44.2321915,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-400",
@@ -6531,7 +6731,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3092019,
       "longitude": 44.2410257,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-423",
@@ -6547,7 +6748,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3092019,
       "longitude": 44.2410257,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-424",
@@ -6563,7 +6765,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3092019,
       "longitude": 44.2410257,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-425",
@@ -14175,7 +14378,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.2727947841747,
       "longitude": 44.2470931653835,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-908",
@@ -14191,7 +14395,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3464027,
       "longitude": 44.2252992,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-909",
@@ -14207,7 +14412,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3230883,
       "longitude": 44.1983216,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-910",
@@ -14223,7 +14429,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.334658,
       "longitude": 44.1754048,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-911",
@@ -14239,7 +14446,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3438439,
       "longitude": 44.1900932,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-912",
@@ -14255,7 +14463,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3409818,
       "longitude": 44.1688223,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-913",
@@ -14271,7 +14480,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3409818,
       "longitude": 44.1688223,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-914",
@@ -14287,7 +14497,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.2880185,
       "longitude": 44.2418522,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-915",
@@ -14303,7 +14514,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.2880185,
       "longitude": 44.2418522,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-916",
@@ -14319,7 +14531,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.2880185,
       "longitude": 44.2418522,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-917",
@@ -14335,7 +14548,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.2880185,
       "longitude": 44.2418522,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-918",
@@ -14351,7 +14565,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.3092019,
       "longitude": 44.2410257,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-919",
@@ -14378,7 +14593,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.479284251740074,
       "longitude": 44.23166849226923,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-921",
@@ -14394,7 +14610,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.479284251740074,
       "longitude": 44.23166849226923,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-922",
@@ -14410,7 +14627,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.405172664539,
       "longitude": 44.204584530263,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-923",
@@ -14426,7 +14644,8 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.378543615777,
       "longitude": 44.2392147673261,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   },
   {
     "id": "excel-entity-924",
@@ -14442,6 +14661,7 @@ export const EMBEDDED_ENTITIES: MedicalEntity[] = [
       "latitude": 15.370950208379,
       "longitude": 44.1984974879672,
       "accuracy": null
-    }
+    },
+    "coordinatesAddedAt": "2026-08-26-map-xlsx"
   }
 ];

@@ -1,7 +1,7 @@
 import type { MedicalEntity } from "@/shared/visit-types";
 import { normalizeEntityKind } from "./visit-utils";
 
-export const EMBEDDED_COORDINATES_MIGRATION_VERSION = 2;
+export const EMBEDDED_COORDINATES_MIGRATION_VERSION = 3;
 
 const normalizeName = (value: string) => value
   .normalize("NFKC")
@@ -33,7 +33,7 @@ export function mergeEmbeddedEntities(
     savedNames.add(key);
     const embedded = embeddedByName.get(key);
     if (!applyEmbeddedCoordinates || saved.geographicCoordinates || !embedded?.geographicCoordinates) return saved;
-    return { ...saved, geographicCoordinates: embedded.geographicCoordinates };
+    return { ...saved, geographicCoordinates: embedded.geographicCoordinates, coordinatesAddedAt: embedded.coordinatesAddedAt };
   });
 
   for (const embedded of normalizedEmbeddedEntities) {

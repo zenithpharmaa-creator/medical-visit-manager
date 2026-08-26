@@ -7,7 +7,7 @@ import * as XLSX from "xlsx";
 export { buildEntityExportRows, buildEntitiesPdfHtml } from "./entity-export-format";
 import { buildEntitiesPdfHtml, buildEntityExportRows, type EntityExportRow } from "./entity-export-format";
 
-export async function createEntitiesExcelFile(rows: EntityExportRow[]) {
+export async function createEntitiesExcelFile(rows: EntityExportRow[], filePrefix = "جهات-الزيارة") {
   const worksheet = XLSX.utils.json_to_sheet(rows);
   worksheet["!cols"] = Object.keys(rows[0] ?? {}).map((key) => ({ wch: Math.max(16, Math.min(32, key.length + 4)) }));
   const workbook = XLSX.utils.book_new();
@@ -15,7 +15,7 @@ export async function createEntitiesExcelFile(rows: EntityExportRow[]) {
   const base64 = XLSX.write(workbook, { type: "base64", bookType: "xlsx" });
   const directory = FileSystem.cacheDirectory ?? FileSystem.documentDirectory;
   if (!directory) throw new Error("تعذر الوصول إلى مساحة تخزين الهاتف");
-  const uri = `${directory}جهات-الزيارة-${Date.now()}.xlsx`;
+  const uri = `${directory}${filePrefix}-${Date.now()}.xlsx`;
   await FileSystem.writeAsStringAsync(uri, base64, { encoding: FileSystem.EncodingType.Base64 });
   return uri;
 }
