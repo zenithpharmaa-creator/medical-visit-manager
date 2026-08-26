@@ -7,6 +7,34 @@ import { getBiometricStatus, type BiometricStatus } from "@/lib/biometric-auth";
 import { useAccountSession } from "@/lib/account-session";
 import { useVisitStore } from "@/lib/visit-store";
 
+function AccountRecoveryScreen({ onBack }: { onBack: () => void }) {
+  const [accountType, setAccountType] = useState<"manager" | "representative">("manager");
+
+  return (
+    <View className="flex-1 bg-background">
+      <ScrollView contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 20, paddingTop: 40, paddingBottom: 60 }} showsVerticalScrollIndicator={false}>
+        <View className="w-full max-w-xl self-center rounded-[28px] bg-surface border border-border p-5">
+          <View className="w-14 h-14 rounded-2xl bg-primary items-center justify-center self-center mb-3"><MaterialIcons name="lock-reset" size={30} color="#FFFFFF" /></View>
+          <Text className="text-xl font-bold text-foreground text-center">استعادة الحساب</Text>
+          <Text className="text-xs text-muted text-center mt-2 mb-5 leading-5">اختر نوع الحساب لعرض خطوات الاستعادة المناسبة. كلمات المرور محلية ومشفرة ولا يتم عرضها أو إرسالها تلقائياً.</Text>
+          <View className="flex-row-reverse gap-2 mb-5">
+            <Pressable onPress={() => setAccountType("manager")} accessibilityRole="radio" accessibilityState={{ selected: accountType === "manager" }} style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]} className={`flex-1 h-11 rounded-xl items-center justify-center ${accountType === "manager" ? "bg-primary" : "bg-background border border-border"}`}><Text className={accountType === "manager" ? "text-white font-bold" : "text-foreground font-bold"}>مدير النظام</Text></Pressable>
+            <Pressable onPress={() => setAccountType("representative")} accessibilityRole="radio" accessibilityState={{ selected: accountType === "representative" }} style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]} className={`flex-1 h-11 rounded-xl items-center justify-center ${accountType === "representative" ? "bg-primary" : "bg-background border border-border"}`}><Text className={accountType === "representative" ? "text-white font-bold" : "text-foreground font-bold"}>مندوب</Text></Pressable>
+          </View>
+          <View className="rounded-2xl bg-primary/10 border border-primary/25 p-4">
+            <Text className="font-bold text-primary text-right">{accountType === "manager" ? "استعادة حساب مدير النظام" : "استعادة حساب المندوب"}</Text>
+            <Text className="text-sm text-foreground text-right mt-3 leading-6">{accountType === "manager" ? "لأمان التطبيق المحلي، لا يمكن تجاوز كلمة مرور المدير من شاشة الدخول. استخدم كلمة المرور التي تم تعيينها أو اطلب من مسؤول موثوق إعادة تعيينها من إعدادات التطبيق على جهاز إداري." : "اطلب من مدير النظام فتح الإعدادات ثم إدارة المندوبين، واختيار تعديل حسابك وتعيين كلمة مرور جديدة. بعد الحفظ، استخدم كلمة المرور الجديدة هنا."}</Text>
+          </View>
+          <View className="rounded-2xl bg-warning/10 border border-warning/25 p-4 mt-3">
+            <View className="flex-row-reverse items-start gap-2"><MaterialIcons name="info-outline" size={20} color="#B45309" /><Text className="flex-1 text-xs text-warning text-right leading-5">لا تحذف التطبيق أو تمسح بياناته قبل التأكد من وجود نسخة احتياطية، لأن بيانات الحسابات المحلية قد تكون محفوظة على الجهاز.</Text></View>
+          </View>
+          <Pressable onPress={onBack} accessibilityRole="button" accessibilityLabel="العودة إلى تسجيل الدخول" className="h-14 rounded-2xl bg-foreground items-center justify-center flex-row-reverse gap-2 mt-5" style={({ pressed }) => [{ opacity: pressed ? 0.78 : 1 }]}><MaterialIcons name="arrow-forward" size={21} color="#FFFFFF" /><Text className="text-white font-bold">عودة إلى تسجيل الدخول</Text></Pressable>
+        </View>
+      </ScrollView>
+    </View>
+  );
+}
+
 export function LocalLoginScreen() {
   const { data } = useVisitStore();
   const { loginManager, loginRepresentative, loginWithBiometric, biometricEnabled } = useAccountSession();
@@ -20,6 +48,7 @@ export function LocalLoginScreen() {
   const [busy, setBusy] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [biometricStatus, setBiometricStatus] = useState<BiometricStatus | null>(null);
+  const [recoveryVisible, setRecoveryVisible] = useState(false);
 
   useEffect(() => {
     getBiometricStatus().then(setBiometricStatus).catch(() => setBiometricStatus({ kind: "none", hasHardware: false, isEnrolled: false, available: false }));
@@ -50,6 +79,8 @@ export function LocalLoginScreen() {
   const biometricLabel = biometricStatus?.kind === "face" ? "التعرف على الوجه" : biometricStatus?.kind === "fingerprint" ? "بصمة الإصبع" : "المصادقة الحيوية";
   const biometricIcon = biometricStatus?.kind === "face" ? "face" : "fingerprint";
   const biometricHint = biometricStatus?.kind === "face" ? "استخدم التعرف على الوجه المسجل في جهازك" : biometricStatus?.kind === "fingerprint" ? "استخدم بصمة الإصبع المسجلة في جهازك" : "استخدم المصادقة الحيوية المسجلة في جهازك";
+
+  if (recoveryVisible) return <AccountRecoveryScreen onBack={() => setRecoveryVisible(false)} />;
 
   const biometricSubmit = async () => {
     if (busy) return;
@@ -84,6 +115,7 @@ export function LocalLoginScreen() {
           <View className="flex-row-reverse items-center gap-2 mb-4"><TextInput value={password} onChangeText={setPassword} secureTextEntry={!visible} autoCapitalize="none" placeholder="أدخل كلمة المرور" placeholderTextColor="#7C8798" textAlign="right" className="h-13 rounded-2xl border border-border bg-background px-4 text-foreground flex-1" /><Pressable onPress={() => setVisible((value) => !value)} className="w-13 h-13 rounded-2xl bg-foreground items-center justify-center"><MaterialIcons name={visible ? "visibility-off" : "visibility"} size={20} color="#FFFFFF" /></Pressable></View>
           {feedback ? <View className="rounded-xl bg-error/10 border border-error/30 px-3 py-2 mb-3"><Text className="text-error text-sm font-bold text-right">{feedback}</Text></View> : null}
           <Pressable testID="local-login-submit" disabled={busy} onPress={() => void submit()} accessibilityRole="button" accessibilityLabel="دخول إلى الحساب" accessibilityHint="اضغط للتحقق من رمز المرور وفتح الحساب" style={({ pressed }) => [{ height: 56, borderRadius: 14, backgroundColor: "#16835B", alignItems: "center", justifyContent: "center", flexDirection: "row-reverse", gap: 8, opacity: busy ? 0.55 : pressed ? 0.8 : 1 }]}><MaterialIcons name="login" size={21} color="#FFFFFF" /><Text className="text-white font-bold text-base">{busy ? "جارٍ التحقق..." : "دخول"}</Text></Pressable>
+          <Pressable onPress={() => setRecoveryVisible(true)} disabled={busy} accessibilityRole="link" accessibilityLabel="نسيت كلمة المرور" className="self-center mt-3 px-3 py-2" style={({ pressed }) => [{ opacity: busy ? 0.5 : pressed ? 0.6 : 1 }]}><Text className="text-primary font-bold text-sm underline">نسيت كلمة المرور؟</Text></Pressable>
           {biometricEnabled ? <Pressable disabled={busy} onPress={biometricSubmit} accessibilityRole="button" accessibilityLabel={`الدخول باستخدام ${biometricLabel}`} className="mt-3 min-h-[72px] rounded-2xl bg-primary border-2 border-[#0D4F8B] px-4 py-3 flex-row-reverse items-center gap-3" style={({ pressed }) => [{ opacity: busy ? 0.65 : pressed ? 0.82 : 1, transform: [{ scale: pressed && !busy ? 0.98 : 1 }] }]}><View className="w-11 h-11 rounded-full bg-white/20 items-center justify-center"><MaterialIcons name={biometricIcon} size={28} color="#FFFFFF" /></View><View className="flex-1 items-end"><Text className="text-white font-bold text-base">{busy ? "جارٍ التحقق..." : `دخول باستخدام ${biometricLabel}`}</Text><Text className="text-white/85 text-xs mt-1">{busy ? "انتظر لحظة وأكمل التحقق على جهازك" : biometricHint}</Text></View>{busy ? <ActivityIndicator size="small" color="#FFFFFF" /> : <MaterialIcons name="chevron-left" size={25} color="#FFFFFF" />}</Pressable> : null}
           {biometricEnabled && biometricStatus && !biometricStatus.available ? <Text className="text-xs text-warning text-right mt-2">المصادقة الحيوية مفعلة للحساب، لكنها غير جاهزة حالياً على هذا الجهاز. فعّل بصمة أو وجهاً من إعدادات الهاتف أو استخدم رمز المرور.</Text> : null}
           {biometricEnabled ? <Text className="text-xs text-muted text-right mt-2">إذا لم تنجح المصادقة، استخدم زر الدخول برمز المرور. يمكنك إيقافها من إعدادات الحساب.</Text> : null}
