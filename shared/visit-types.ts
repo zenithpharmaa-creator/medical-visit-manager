@@ -130,6 +130,16 @@ export type NotificationTestRecord = {
   testedAt: string;
   status: "passed" | "failed";
 };
+export type PasswordResetRequest = {
+  id: string;
+  accountType: "manager" | "representative";
+  representativeId?: string;
+  accountLabel: string;
+  requestedAt: string;
+  status: "pending" | "approved" | "dismissed";
+  resolvedAt?: string;
+  resolutionNote?: string;
+};
 export type SyncLogEntry = {
   id: string;
   status: SyncLogStatus;
@@ -183,6 +193,7 @@ export type AppData = {
   syncConflicts?: SyncConflict[];
   syncHistory?: SyncLogEntry[];
   notificationTests?: NotificationTestRecord[];
+  passwordResetRequests?: PasswordResetRequest[];
   syncVersions?: Record<string, number>;
   lastSuccessfulSyncAt?: string;
 };

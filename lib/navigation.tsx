@@ -2,13 +2,16 @@ import { router, usePathname } from "expo-router";
 import { ActivityIndicator, Animated, StyleSheet, Text, View } from "react-native";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
+type LoadingOperation = { id: string; label: string; startedAt: number };
 type NavigationContextValue = {
   goBack: () => void;
+  startLoading: (label?: string) => () => void;
 };
 
 const NavigationContext = createContext<NavigationContextValue | null>(null);
 let globalGoBack: (() => void) | null = null;
 let globalNavigate: ((href: string) => void) | null = null;
+let globalStartLoading: ((label?: string) => () => void) | null = null;
 
 /**
  * Keeps the last route opened by the user so tab-to-tab navigation can return
@@ -22,6 +25,7 @@ export function NavigationHistoryProvider({ children }: { children: ReactNode })
   const navigationStartedAtRef = useRef(0);
   const navigationFallbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [isNavigating, setIsNavigating] = useState(false);
+  const [loadingOperations, setLoadingOperations] = useState<LoadingOperation[]>([]);
   const progress = useRef(new Animated.Value(0)).current;
 
   const finishNavigation = useCallback(() => {
@@ -49,6 +53,21 @@ export function NavigationHistoryProvider({ children }: { children: ReactNode })
     }
     currentPathRef.current = pathname;
   }, [finishNavigation, pathname]);
+
+  const startLoading = useCallback((label = "جاري تنفيذ العملية...") => {
+    const operation: LoadingOperation = { id: `operation-${Date.now()}-${Math.random().toString(36).slice(2)}`, label, startedAt: Date.now() };
+    let stopped = false;
+    setLoadingOperations((current) => [...current, operation]);
+    return () => {
+      if (stopped) return;
+      stopped = true;
+      const elapsed = Date.now() - operation.startedAt;
+      const minimumVisibleMs = 280;
+      const remove = () => setLoadingOperations((current) => current.filter((item) => item.id !== operation.id));
+      if (elapsed < minimumVisibleMs) setTimeout(remove, minimumVisibleMs - elapsed);
+      else remove();
+    };
+  }, []);
 
   const navigate = useCallback((href: string) => {
     if (navigationRequestRef.current) return;
@@ -90,24 +109,31 @@ export function NavigationHistoryProvider({ children }: { children: ReactNode })
     return () => animation.stop();
   }, [isNavigating, progress]);
 
-  const value = useMemo(() => ({ goBack }), [goBack]);
   globalGoBack = goBack;
   globalNavigate = navigate;
   useEffect(() => () => {
     if (globalGoBack === goBack) globalGoBack = null;
     if (globalNavigate === navigate) globalNavigate = null;
+    if (globalStartLoading === startLoading) globalStartLoading = null;
     finishNavigation();
-  }, [finishNavigation, goBack, navigate]);
+  }, [finishNavigation, goBack, navigate, startLoading]);
+
+  const activeLoading = loadingOperations[0];
+  const showLoading = isNavigating || loadingOperations.length > 0;
+  const loadingLabel = activeLoading?.label ?? "جاري فتح الشاشة";
+  const loadingSubtitle = activeLoading ? "يرجى الانتظار حتى تكتمل العملية" : "يرجى الانتظار حتى تكتمل عملية الفتح";
+  const value = useMemo(() => ({ goBack, startLoading }), [goBack, startLoading]);
+  globalStartLoading = startLoading;
 
   return (
     <NavigationContext.Provider value={value}>
       {children}
-      {isNavigating ? (
-        <View pointerEvents="auto" style={styles.loadingOverlay} accessibilityRole="progressbar" accessibilityLabel="جاري فتح الشاشة، يرجى الانتظار">
+      {showLoading ? (
+        <View pointerEvents="auto" style={styles.loadingOverlay} accessibilityRole="progressbar" accessibilityLabel={`${loadingLabel}، ${loadingSubtitle}`}>
           <View style={styles.loadingCard}>
             <ActivityIndicator size="small" color="#1565C0" />
-            <Text style={styles.loadingTitle}>جاري فتح الشاشة</Text>
-            <Text style={styles.loadingSubtitle}>يرجى الانتظار حتى تكتمل عملية الفتح</Text>
+            <Text style={styles.loadingTitle}>{loadingLabel}</Text>
+            <Text style={styles.loadingSubtitle}>{loadingSubtitle}</Text>
             <View style={styles.progressTrack}>
               <Animated.View style={[styles.progressSegment, { transform: [{ translateX: progress.interpolate({ inputRange: [0, 1], outputRange: [-150, 300] }) }] }]} />
             </View>
@@ -171,6 +197,11 @@ const styles = StyleSheet.create({
     backgroundColor: "#1565C0",
   },
 });
+
+export function startGlobalLoading(label?: string) {
+  if (globalStartLoading) return globalStartLoading(label);
+  return () => undefined;
+}
 
 export function navigateWithLoading(href: string) {
   if (globalNavigate) {

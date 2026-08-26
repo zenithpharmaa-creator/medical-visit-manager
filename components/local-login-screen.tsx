@@ -1,4 +1,5 @@
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import * as MailComposer from "expo-mail-composer";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Alert, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 
@@ -6,9 +7,14 @@ import { SelectionModal } from "@/components/selection-modal";
 import { getBiometricStatus, type BiometricStatus } from "@/lib/biometric-auth";
 import { useAccountSession } from "@/lib/account-session";
 import { useVisitStore } from "@/lib/visit-store";
+import { startGlobalLoading } from "@/lib/navigation";
+import type { PasswordResetRequest } from "@/shared/visit-types";
 
-function AccountRecoveryScreen({ onBack }: { onBack: () => void }) {
-  const [accountType, setAccountType] = useState<"manager" | "representative">("manager");
+function AccountRecoveryScreen({ onBack, defaultAccountType, defaultRepresentativeId }: { onBack: () => void; defaultAccountType: "manager" | "representative"; defaultRepresentativeId?: string }) {
+  const { data, addPasswordResetRequest } = useVisitStore();
+  const [accountType, setAccountType] = useState<"manager" | "representative">(defaultAccountType);
+  const [representativeId, setRepresentativeId] = useState(defaultRepresentativeId ?? data.representatives.find((item) => item.active)?.id ?? "");
+  const [requestBusy, setRequestBusy] = useState(false);
 
   return (
     <View className="flex-1 bg-background">
@@ -21,14 +27,16 @@ function AccountRecoveryScreen({ onBack }: { onBack: () => void }) {
             <Pressable onPress={() => setAccountType("manager")} accessibilityRole="radio" accessibilityState={{ selected: accountType === "manager" }} style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]} className={`flex-1 h-11 rounded-xl items-center justify-center ${accountType === "manager" ? "bg-primary" : "bg-background border border-border"}`}><Text className={accountType === "manager" ? "text-white font-bold" : "text-foreground font-bold"}>مدير النظام</Text></Pressable>
             <Pressable onPress={() => setAccountType("representative")} accessibilityRole="radio" accessibilityState={{ selected: accountType === "representative" }} style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]} className={`flex-1 h-11 rounded-xl items-center justify-center ${accountType === "representative" ? "bg-primary" : "bg-background border border-border"}`}><Text className={accountType === "representative" ? "text-white font-bold" : "text-foreground font-bold"}>مندوب</Text></Pressable>
           </View>
+          {accountType === "representative" ? <View className="mb-3"><Text className="font-bold text-foreground text-right mb-2">حساب المندوب</Text><Pressable onPress={() => { const active = data.representatives.filter((item) => item.active); const currentIndex = Math.max(0, active.findIndex((item) => item.id === representativeId)); const next = active[(currentIndex + 1) % Math.max(active.length, 1)]; if (next) setRepresentativeId(next.id); }} className="h-13 rounded-2xl border border-border bg-background px-4 flex-row-reverse items-center justify-between" accessibilityRole="button" accessibilityLabel="اختيار المندوب"><Text className="font-bold text-foreground flex-1 text-right">{data.representatives.find((item) => item.id === representativeId)?.name ?? "اختر المندوب"}</Text><MaterialIcons name="keyboard-arrow-down" size={22} color="#102A43" /></Pressable><Text className="text-[11px] text-muted text-right mt-1">اضغط لاختيار الحساب التالي من المندوبين النشطين.</Text></View> : null}
           <View className="rounded-2xl bg-primary/10 border border-primary/25 p-4">
-            <Text className="font-bold text-primary text-right">{accountType === "manager" ? "استعادة حساب مدير النظام" : "استعادة حساب المندوب"}</Text>
-            <Text className="text-sm text-foreground text-right mt-3 leading-6">{accountType === "manager" ? "لأمان التطبيق المحلي، لا يمكن تجاوز كلمة مرور المدير من شاشة الدخول. استخدم كلمة المرور التي تم تعيينها أو اطلب من مسؤول موثوق إعادة تعيينها من إعدادات التطبيق على جهاز إداري." : "اطلب من مدير النظام فتح الإعدادات ثم إدارة المندوبين، واختيار تعديل حسابك وتعيين كلمة مرور جديدة. بعد الحفظ، استخدم كلمة المرور الجديدة هنا."}</Text>
+            <Text className="font-bold text-primary text-right">{accountType === "manager" ? "استعادة حساب مدير النظام" : `استعادة حساب ${data.representatives.find((item) => item.id === representativeId)?.name ?? "المندوب"}`}</Text>
+            <Text className="text-sm text-foreground text-right mt-3 leading-6">سيُحفظ طلب استعادة باسم الحساب ليظهر في إعدادات مدير النظام. عند اعتماد الطلب، تُعاد كلمة المرور إلى الرمز الأولي 123، ثم يمكن تسجيل الدخول وتعيين كلمة مرور جديدة من الإعدادات.</Text>
           </View>
           <View className="rounded-2xl bg-warning/10 border border-warning/25 p-4 mt-3">
             <View className="flex-row-reverse items-start gap-2"><MaterialIcons name="info-outline" size={20} color="#B45309" /><Text className="flex-1 text-xs text-warning text-right leading-5">لا تحذف التطبيق أو تمسح بياناته قبل التأكد من وجود نسخة احتياطية، لأن بيانات الحسابات المحلية قد تكون محفوظة على الجهاز.</Text></View>
           </View>
-          <Pressable onPress={onBack} accessibilityRole="button" accessibilityLabel="العودة إلى تسجيل الدخول" className="h-14 rounded-2xl bg-foreground items-center justify-center flex-row-reverse gap-2 mt-5" style={({ pressed }) => [{ opacity: pressed ? 0.78 : 1 }]}><MaterialIcons name="arrow-forward" size={21} color="#FFFFFF" /><Text className="text-white font-bold">عودة إلى تسجيل الدخول</Text></Pressable>
+          <Pressable disabled={requestBusy} onPress={async () => { if (accountType === "representative" && !representativeId) { Alert.alert("اختر المندوب", "اختر حساب المندوب المطلوب استعادته أولاً."); return; } setRequestBusy(true); const stopLoading = startGlobalLoading("جاري إرسال طلب الاستعادة..."); try { const representative = data.representatives.find((item) => item.id === representativeId); const request: PasswordResetRequest = { id: `reset-${Date.now()}`, accountType, representativeId: accountType === "representative" ? representativeId : undefined, accountLabel: accountType === "manager" ? "مدير النظام" : representative?.name ?? "مندوب", requestedAt: new Date().toISOString(), status: "pending" }; addPasswordResetRequest(request); const managerEmail = data.settings.reportEmail.trim(); let emailMessage = "حُفظ الطلب على الجهاز وسيظهر في إعدادات مدير النظام."; if (managerEmail && await MailComposer.isAvailableAsync()) { await MailComposer.composeAsync({ recipients: [managerEmail], subject: `طلب استعادة حساب: ${request.accountLabel}`, body: `طلب استعادة كلمة مرور الحساب: ${request.accountLabel}\nوقت الطلب: ${new Date(request.requestedAt).toLocaleString("ar-YE")}\nالإجراء المطلوب: إعادة ضبط كلمة المرور إلى 123 من إعدادات مدير النظام.` }); emailMessage = `حُفظ الطلب وفتح نموذج بريد المدير على العنوان ${managerEmail}. أكمل إرسال الرسالة من تطبيق البريد.`; } Alert.alert("تم إرسال طلب الاستعادة", emailMessage); } catch { Alert.alert("تم حفظ الطلب", "تعذر فتح البريد حالياً، لكن الطلب محفوظ وسيظهر لمدير النظام داخل الإعدادات."); } finally { stopLoading(); setRequestBusy(false); } }} accessibilityRole="button" accessibilityLabel="إرسال طلب استعادة كلمة المرور" className="h-14 rounded-2xl bg-success items-center justify-center flex-row-reverse gap-2 mt-5" style={({ pressed }) => [{ opacity: requestBusy ? 0.6 : pressed ? 0.78 : 1 }]}><MaterialIcons name={requestBusy ? "hourglass-top" : "send"} size={21} color="#FFFFFF" /><Text className="text-white font-bold">{requestBusy ? "جارٍ إرسال الطلب..." : "إرسال طلب لمدير النظام"}</Text></Pressable>
+          <Pressable onPress={onBack} disabled={requestBusy} accessibilityRole="button" accessibilityLabel="العودة إلى تسجيل الدخول" className="h-14 rounded-2xl bg-foreground items-center justify-center flex-row-reverse gap-2 mt-3" style={({ pressed }) => [{ opacity: requestBusy ? 0.55 : pressed ? 0.78 : 1 }]}><MaterialIcons name="arrow-forward" size={21} color="#FFFFFF" /><Text className="text-white font-bold">عودة إلى تسجيل الدخول</Text></Pressable>
         </View>
       </ScrollView>
     </View>
@@ -80,7 +88,7 @@ export function LocalLoginScreen() {
   const biometricIcon = biometricStatus?.kind === "face" ? "face" : "fingerprint";
   const biometricHint = biometricStatus?.kind === "face" ? "استخدم التعرف على الوجه المسجل في جهازك" : biometricStatus?.kind === "fingerprint" ? "استخدم بصمة الإصبع المسجلة في جهازك" : "استخدم المصادقة الحيوية المسجلة في جهازك";
 
-  if (recoveryVisible) return <AccountRecoveryScreen onBack={() => setRecoveryVisible(false)} />;
+  if (recoveryVisible) return <AccountRecoveryScreen onBack={() => setRecoveryVisible(false)} defaultAccountType={mode} defaultRepresentativeId={mode === "representative" ? selectedRep : undefined} />;
 
   const biometricSubmit = async () => {
     if (busy) return;

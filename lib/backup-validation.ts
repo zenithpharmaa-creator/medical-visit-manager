@@ -45,6 +45,15 @@ const representativeKeys = (item: Representative) => [item.id, `name:${clean(ite
 const entityKeys = (item: MedicalEntity) => [item.id, `entity:${entityKey(item)}`];
 const sharedLocationKey = (item: SharedLocation) => `location:${item.coordinates.latitude.toFixed(6)}:${item.coordinates.longitude.toFixed(6)}`;
 
+function mergePasswordResetRequests(current: AppData, incoming: AppData) {
+  const merged = new Map<string, NonNullable<AppData["passwordResetRequests"]>[number]>();
+  for (const request of [...(current.passwordResetRequests ?? []), ...(incoming.passwordResetRequests ?? [])]) {
+    const existing = merged.get(request.id);
+    if (!existing || (existing.status === "pending" && request.status !== "pending")) merged.set(request.id, request);
+  }
+  return [...merged.values()].sort((a, b) => b.requestedAt.localeCompare(a.requestedAt)).slice(0, 50);
+}
+
 function mergeSharedLocations(current: AppData, incoming: AppData): SharedLocation[] {
   const merged = new Map<string, SharedLocation>();
   for (const item of [...normalizeSharedLocations(current.savedLocations, current.entities), ...normalizeSharedLocations(incoming.savedLocations, incoming.entities)]) {
@@ -87,6 +96,7 @@ export function mergeAppData(current: AppData, incoming: AppData): { data: AppDa
       savedLocations: mergeSharedLocations(current, incoming),
       representativeLocations: { ...incoming.representativeLocations, ...current.representativeLocations },
       settings: current.settings,
+      passwordResetRequests: mergePasswordResetRequests(current, incoming),
     },
     summary: { representatives: representatives.values.length, entities: entities.values.length, visits: visits.values.length, plannedVisits: plannedVisits.values.length, skippedRepresentatives: representatives.skipped, skippedEntities: entities.skipped, skippedVisits: visits.skipped, skippedPlannedVisits: plannedVisits.skipped },
   };

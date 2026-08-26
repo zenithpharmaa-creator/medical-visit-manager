@@ -2,7 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { PropsWithChildren, createContext, useContext, useEffect, useMemo, useState } from "react";
 import { useNetworkState } from "expo-network";
 
-import { AppData, AppSettings, MedicalEntity, Representative, Visit, PlanApprovalAudit, SharedLocation, SyncOperation, SyncRecordType, SyncLogEntry } from "@/shared/visit-types";
+import { AppData, AppSettings, MedicalEntity, Representative, Visit, PlanApprovalAudit, SharedLocation, SyncOperation, SyncRecordType, SyncLogEntry, PasswordResetRequest } from "@/shared/visit-types";
 import { normalizeEntityKind } from "@/lib/visit-utils";
 import { synchronizePendingVisits } from "@/lib/visit-sync";
 import { EMBEDDED_ENTITIES } from "@/data/embedded-entities";
@@ -13,6 +13,7 @@ import { createTRPCClient } from "@/lib/trpc";
 import { getActivatedDevice } from "@/lib/sync-device";
 import { notifySyncStatus } from "@/lib/sync-notifications";
 import { appendSyncLog } from "@/lib/sync-history";
+import { startGlobalLoading } from "@/lib/navigation";
 
 const STORAGE_KEY = "medical-visit-manager-data-v1";
 const EMBEDDED_COORDINATES_MIGRATION_KEY = "medical-visit-manager-embedded-coordinates-version";
@@ -37,6 +38,7 @@ const INITIAL_DATA: AppData = {
   visits: [],
   settings: { managerName: "مدير النظام", reportEmail: "", reminderTime: "18:00", geofenceRadiusMeters: 200, managerPin: "", visitedItems: [] },
   planApprovalHistory: [],
+  passwordResetRequests: [],
 };
 
 type VisitStoreValue = {
@@ -66,6 +68,8 @@ type VisitStoreValue = {
   syncPendingVisits: () => Promise<{ processed: number; syncedAt?: string; error?: string }>;
   resolveSyncConflict: (id: string, choice: "local" | "server", note: string) => void;
   recordNotificationTest: (status: "passed" | "failed") => Promise<void>;
+  addPasswordResetRequest: (request: PasswordResetRequest) => void;
+  resolvePasswordResetRequest: (id: string, status: "approved" | "dismissed", note?: string) => void;
 };
 
 const VisitStore = createContext<VisitStoreValue | null>(null);
@@ -102,6 +106,7 @@ export function VisitProvider({ children }: PropsWithChildren) {
             syncConflicts: parsed.syncConflicts ?? [],
             syncHistory: parsed.syncHistory ?? [],
             notificationTests: parsed.notificationTests ?? [],
+            passwordResetRequests: parsed.passwordResetRequests ?? [],
             syncVersions: parsed.syncVersions ?? {},
             lastSuccessfulSyncAt: parsed.lastSuccessfulSyncAt,
             settings: { ...INITIAL_DATA.settings, ...(parsed.settings ?? {}), geofenceRadiusMeters: Number(parsed.settings?.geofenceRadiusMeters) || INITIAL_DATA.settings.geofenceRadiusMeters, managerPin: String(parsed.settings?.managerPin ?? INITIAL_DATA.settings.managerPin), visitedItems: Array.isArray(parsed.settings?.visitedItems) ? parsed.settings.visitedItems.filter((item): item is string => typeof item === "string") : [] },
@@ -117,7 +122,7 @@ export function VisitProvider({ children }: PropsWithChildren) {
     void loadStoredData();
   }, []);
 
-  const syncPendingVisits = async () => {
+  const syncPendingVisitsInternal = async () => {
     const startedAt = new Date().toISOString();
     if (networkState.isInternetReachable !== true) {
       const completedAt = new Date().toISOString();
@@ -180,16 +185,27 @@ export function VisitProvider({ children }: PropsWithChildren) {
     }
   };
 
+  const syncPendingVisits = async () => {
+    const shouldShowLoading = (data.syncQueue?.length ?? 0) > 0;
+    const stopLoading = shouldShowLoading ? startGlobalLoading("جاري مزامنة البيانات...") : () => undefined;
+    try {
+      return await syncPendingVisitsInternal();
+    } finally {
+      stopLoading();
+    }
+  };
+
   useEffect(() => {
     if (networkState.isInternetReachable === true) void syncPendingVisits();
   }, [networkState.isInternetReachable]);
 
   const save = (updater: (current: AppData) => AppData, change?: { recordType: SyncRecordType; recordId: string; operation?: SyncOperation; payload?: unknown }) => {
+    const stopLoading = startGlobalLoading(change?.recordType === "entity" ? "جاري حفظ جهة الزيارة..." : change?.recordType === "visit" ? "جاري حفظ الزيارة..." : "جاري حفظ البيانات...");
     setData((current) => {
       const next = updater(current);
       const queued = change ? enqueueSyncChange(next.syncQueue ?? [], createSyncChange({ recordType: change.recordType, recordId: change.recordId, operation: change.operation ?? "upsert", baseVersion: next.syncVersions?.[syncKey(change.recordType, change.recordId)] ?? 0, payload: change.payload })) : next.syncQueue;
       const persisted = queued ? { ...next, syncQueue: queued } : next;
-      AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(persisted)).catch(() => undefined);
+      AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(persisted)).catch(() => undefined).finally(stopLoading);
       return persisted;
     });
   };
@@ -249,6 +265,8 @@ export function VisitProvider({ children }: PropsWithChildren) {
           return next;
         });
       },
+      addPasswordResetRequest: (request) => save((current) => ({ ...current, passwordResetRequests: [request, ...(current.passwordResetRequests ?? [])].slice(0, 50) })),
+      resolvePasswordResetRequest: (id, status, note) => save((current) => ({ ...current, passwordResetRequests: (current.passwordResetRequests ?? []).map((request) => request.id === id ? { ...request, status, resolvedAt: new Date().toISOString(), resolutionNote: note?.trim() || undefined } : request) })),
     }),
     [data, loading, networkState.isInternetReachable],
   );
