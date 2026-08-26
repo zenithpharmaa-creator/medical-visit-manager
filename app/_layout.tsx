@@ -8,6 +8,7 @@ import { LocalLoginScreen } from "@/components/local-login-screen";
 import { ThemeProvider } from "@/lib/theme-provider";
 import { VisitProvider } from "@/lib/visit-store";
 import { AccountSessionProvider, useAccountSession } from "@/lib/account-session";
+import { NavigationHistoryProvider } from "@/lib/navigation";
 
 function AppNavigation() {
   const { session, loading } = useAccountSession();
@@ -21,10 +22,12 @@ export default function RootLayout() {
     <ThemeProvider>
       <VisitProvider>
         <AccountSessionProvider>
-          <LocationConsentGate>
+          <NavigationHistoryProvider>
+            <LocationConsentGate>
             <StatusBar style="dark" />
             <AppNavigation />
-          </LocationConsentGate>
+            </LocationConsentGate>
+          </NavigationHistoryProvider>
         </AccountSessionProvider>
       </VisitProvider>
     </ThemeProvider>
