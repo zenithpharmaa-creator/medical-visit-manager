@@ -1,5 +1,5 @@
 import { MaterialIcons } from "@expo/vector-icons";
-import { router } from "expo-router";
+import { goBackToPreviousScreen } from "@/lib/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { Alert, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 
@@ -66,7 +66,7 @@ export default function RepresentativeScopeScreen() {
   }, [selectedRepId, selectedRepresentative]);
 
   if (!isManager) {
-    return <ScreenContainer className="px-5" containerClassName="bg-background"><View className="flex-1 items-center justify-center"><MaterialIcons name="lock" size={40} color="#C0392B" /><Text className="font-bold text-foreground text-center mt-3">هذه الشاشة متاحة لمدير النظام فقط</Text><Pressable onPress={() => router.back()} className="h-12 rounded-xl bg-primary px-6 items-center justify-center mt-4"><Text className="text-white font-bold">رجوع</Text></Pressable></View></ScreenContainer>;
+    return <ScreenContainer className="px-5" containerClassName="bg-background"><View className="flex-1 items-center justify-center"><MaterialIcons name="lock" size={40} color="#C0392B" /><Text className="font-bold text-foreground text-center mt-3">هذه الشاشة متاحة لمدير النظام فقط</Text><Pressable onPress={goBackToPreviousScreen} className="h-12 rounded-xl bg-primary px-6 items-center justify-center mt-4"><Text className="text-white font-bold">رجوع</Text></Pressable></View></ScreenContainer>;
   }
 
   const toggle = <T,>(values: T[], value: T, setValues: (next: T[]) => void) => setValues(values.includes(value) ? values.filter((item) => item !== value) : [...values, value]);
@@ -97,7 +97,7 @@ export default function RepresentativeScopeScreen() {
 
         <View className="rounded-2xl bg-warning/10 border border-warning/25 p-4 mb-4 flex-row-reverse items-start gap-3"><MaterialIcons name="info-outline" size={22} color="#B45309" /><Text className="flex-1 text-right text-warning text-xs leading-5">إذا اخترت جهات محددة أو مواقع مشتركة، فلن تظهر لل مندوب إلا العناصر المحددة منها، بالإضافة إلى قيود المنطقة والنوع والصنف.</Text></View>
         <Pressable onPress={save} disabled={!selectedRepresentative} className="h-14 rounded-2xl bg-primary items-center justify-center flex-row-reverse gap-2" style={({ pressed }) => [{ opacity: pressed ? 0.78 : 1 }]}><MaterialIcons name="save" size={21} color="#FFFFFF" /><Text className="text-white font-bold">حفظ تخصيص المندوب</Text></Pressable>
-        <Pressable onPress={() => router.back()} className="h-12 rounded-xl bg-surface border border-border items-center justify-center mt-3"><Text className="font-bold text-foreground">رجوع</Text></Pressable>
+        <Pressable onPress={goBackToPreviousScreen} className="h-12 rounded-xl bg-surface border border-border items-center justify-center mt-3"><Text className="font-bold text-foreground">رجوع</Text></Pressable>
       </ScrollView>
       <SelectionModal visible={representativeModal} title="اختر المندوب" options={data.representatives.filter((item) => item.active).map((item) => ({ label: item.name, value: item.id, helper: item.region === "north" ? "المنطقة الشمالية" : item.region === "south" ? "المنطقة الجنوبية" : "صنعاء كاملة" }))} selected={selectedRepId} onClose={() => setRepresentativeModal(false)} onSelect={(option) => { setSelectedRepId(option.value); setRepresentativeModal(false); }} />
       <SelectionModal visible={regionModal} title="اختر المنطقة" options={regionOptions} selected={region} onClose={() => setRegionModal(false)} onSelect={(option) => { setRegion(option.value as RepresentativeRegion); setRegionModal(false); }} />
