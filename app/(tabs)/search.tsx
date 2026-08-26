@@ -18,6 +18,7 @@ export default function SearchScreen() {
   const { session } = useAccountSession();
   const currentRepresentative = session?.representativeId ? data.representatives.find((item) => item.id === session.representativeId) : undefined;
   const scopedEntities = session?.role === "manager" ? data.entities : getEntitiesForRepresentative(data.entities, currentRepresentative);
+  const representativeRegion = currentRepresentative?.region === "north" || currentRepresentative?.region === "south" ? currentRepresentative.region : "all";
   const [query, setQuery] = useState("");
   const [selectedEntity, setSelectedEntity] = useState<MedicalEntity | null>(null);
   const [kindFilter, setKindFilter] = useState("الكل");
@@ -33,9 +34,10 @@ export default function SearchScreen() {
   );
   const filteredEntities = useMemo(() => scopedEntities.filter((entity) => {
     const kindMatches = kindFilter === "الكل" || entity.kind === kindFilter;
-    const regionMatches = regionFilter === "all" || entity.region === regionFilter;
+    const effectiveRegion = session?.role === "manager" ? regionFilter : representativeRegion;
+    const regionMatches = effectiveRegion === "all" || entity.region === effectiveRegion;
     return kindMatches && regionMatches;
-  }), [scopedEntities, kindFilter, regionFilter]);
+  }), [scopedEntities, kindFilter, regionFilter, representativeRegion, session?.role]);
   const suggestions = useMemo(() => rankEntitiesForSearch(filteredEntities, query), [filteredEntities, query]);
   const entityPickerOptions = useMemo(() => suggestions.map((entity) => ({
     label: entity.name,
@@ -77,7 +79,7 @@ export default function SearchScreen() {
           </Pressable>
           <Text className="text-xs text-muted text-right mt-2">ستظهر النتائج في قائمة منسدلة أثناء الكتابة باسم الجهة أو العنوان أو أقرب صيدلية.</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ flexDirection: "row-reverse", gap: 7, paddingTop: 10 }} keyboardShouldPersistTaps="handled"><Pressable onPress={() => setKindFilter("الكل")} className={`rounded-full px-3 py-2 ${kindFilter === "الكل" ? "bg-primary" : "bg-background border border-border"}`}><Text className={kindFilter === "الكل" ? "text-white text-xs font-bold" : "text-foreground text-xs font-bold"}>كل الأنواع</Text></Pressable>{ENTITY_KINDS.map((kind) => <Pressable key={kind} onPress={() => setKindFilter(kind)} className={`rounded-full px-3 py-2 ${kindFilter === kind ? "bg-primary" : "bg-background border border-border"}`}><Text className={kindFilter === kind ? "text-white text-xs font-bold" : "text-foreground text-xs font-bold"}>{kind}</Text></Pressable>)}</ScrollView>
-          <View className="flex-row-reverse gap-2 mt-2"><Pressable onPress={() => setRegionFilter("all")} className={`flex-1 h-10 rounded-xl items-center justify-center ${regionFilter === "all" ? "bg-foreground" : "bg-background border border-border"}`}><Text className={regionFilter === "all" ? "text-white text-xs font-bold" : "text-foreground text-xs font-bold"}>كل المناطق</Text></Pressable><Pressable onPress={() => setRegionFilter("north")} className={`flex-1 h-10 rounded-xl items-center justify-center ${regionFilter === "north" ? "bg-primary" : "bg-background border border-border"}`}><Text className={regionFilter === "north" ? "text-white text-xs font-bold" : "text-foreground text-xs font-bold"}>شمال صنعاء</Text></Pressable><Pressable onPress={() => setRegionFilter("south")} className={`flex-1 h-10 rounded-xl items-center justify-center ${regionFilter === "south" ? "bg-warning" : "bg-background border border-border"}`}><Text className={regionFilter === "south" ? "text-white text-xs font-bold" : "text-foreground text-xs font-bold"}>جنوب صنعاء</Text></Pressable></View>
+          {session?.role === "manager" ? <View className="flex-row-reverse gap-2 mt-2"><Pressable onPress={() => setRegionFilter("all")} className={`flex-1 h-10 rounded-xl items-center justify-center ${regionFilter === "all" ? "bg-foreground" : "bg-background border border-border"}`}><Text className={regionFilter === "all" ? "text-white text-xs font-bold" : "text-foreground text-xs font-bold"}>كل المناطق</Text></Pressable><Pressable onPress={() => setRegionFilter("north")} className={`flex-1 h-10 rounded-xl items-center justify-center ${regionFilter === "north" ? "bg-primary" : "bg-background border border-border"}`}><Text className={regionFilter === "north" ? "text-white text-xs font-bold" : "text-foreground text-xs font-bold"}>شمال صنعاء</Text></Pressable><Pressable onPress={() => setRegionFilter("south")} className={`flex-1 h-10 rounded-xl items-center justify-center ${regionFilter === "south" ? "bg-warning" : "bg-background border border-border"}`}><Text className={regionFilter === "south" ? "text-white text-xs font-bold" : "text-foreground text-xs font-bold"}>جنوب صنعاء</Text></Pressable></View> : <View className="mt-2 rounded-xl bg-primary/10 border border-primary/20 px-3 py-2"><Text className="text-xs text-primary font-bold text-right">نطاق البحث: {representativeRegion === "north" ? "شمال صنعاء" : representativeRegion === "south" ? "جنوب صنعاء" : "الجهات المخصصة لحسابك"}</Text></View>}
         </View>
         <View className="rounded-2xl overflow-hidden border border-border bg-surface mb-3" style={{ height: 330 }}>
           {selectedEntity?.geographicCoordinates ? <InteractiveMap key={selectedEntity.id} visits={[]} entities={mappedEntities} representatives={data.representatives} initialRegion={initialRegion} targetLocation={selectedEntity.geographicCoordinates} targetTitle={selectedEntity.name} /> : <View className="flex-1 items-center justify-center px-6"><MaterialIcons name="map" size={42} color="#7C8798" /><Text className="font-bold text-foreground text-center mt-3">اختر جهة لعرض موقعها</Text><Text className="text-sm text-muted text-center mt-1">ستنتقل الخريطة تلقائياً إلى إحداثيات الجهة عند اختيارها.</Text></View>}

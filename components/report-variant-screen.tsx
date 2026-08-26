@@ -1,4 +1,5 @@
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { useEffect, useMemo, useRef, useState, type ComponentProps } from "react";
 import { ActivityIndicator, Animated, Easing, Modal, PanResponder, Pressable, ScrollView, Text, TextInput, View } from "react-native";
@@ -36,6 +37,7 @@ const REPORT_ROUTES: Array<{ route: string; variant: ReportVariant }> = [
   { route: "report-daily-analysis", variant: "daily-analysis" },
 ];
 
+const REPORT_SELECTIONS_KEY = "medical-visit-manager:report-selection-preferences";
 const REGION_OPTIONS = [
   { value: "all", label: "كل المناطق" },
   { value: "north", label: "شمال صنعاء" },
@@ -106,6 +108,7 @@ export function ReportVariantScreen({ variant }: { variant: ReportVariant }) {
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const [region, setRegion] = useState<"all" | "north" | "south">("all");
+  const [selectionHydrated, setSelectionHydrated] = useState(false);
   const [datePickerTarget, setDatePickerTarget] = useState<"from" | "to" | null>(null);
   const [loading, setLoading] = useState(false);
   const [sortKey, setSortKey] = useState<SortKey>("third");
@@ -113,6 +116,25 @@ export function ReportVariantScreen({ variant }: { variant: ReportVariant }) {
   const progress = useRef(new Animated.Value(0)).current;
   const reportIndex = REPORT_ROUTES.findIndex((item) => item.variant === variant);
   const representativeOptions = useMemo<SelectOption[]>(() => [{ value: "all", label: "كل المندوبين" }, ...data.representatives.filter((rep) => rep.active).sort((left, right) => left.name.localeCompare(right.name, "ar")).map((rep) => ({ value: rep.id, label: rep.name }))], [data.representatives]);
+
+  useEffect(() => {
+    if (session?.role !== "manager") return;
+    let active = true;
+    void AsyncStorage.getItem(REPORT_SELECTIONS_KEY).then((raw) => {
+      if (!active) return;
+      try {
+        const saved = raw ? JSON.parse(raw) as { representativeId?: string; region?: "all" | "north" | "south" } : {};
+        if (saved.region === "all" || saved.region === "north" || saved.region === "south") setRegion(saved.region);
+        if (saved.representativeId === "all" || data.representatives.some((rep) => rep.id === saved.representativeId)) setRepresentativeId(saved.representativeId || "all");
+      } catch { /* ignore malformed local preferences */ }
+      setSelectionHydrated(true);
+    }).catch(() => { if (active) setSelectionHydrated(true); });
+    return () => { active = false; };
+  }, [data.representatives, session?.role]);
+  useEffect(() => {
+    if (session?.role !== "manager" || !selectionHydrated) return;
+    void AsyncStorage.setItem(REPORT_SELECTIONS_KEY, JSON.stringify({ representativeId, region }));
+  }, [representativeId, region, selectionHydrated, session?.role]);
 
   function showLoading(duration = 650) { setLoading(true); setTimeout(() => setLoading(false), duration); }
   function triggerFilter<T>(setter: (value: T) => void, value: T) { setter(value); showLoading(500); }
