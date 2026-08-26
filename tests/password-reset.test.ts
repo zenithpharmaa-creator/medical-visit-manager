@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import { mergeAppData } from "../lib/backup-validation";
+import { createPasswordResetRequest, resolvePasswordResetRequest } from "../lib/password-reset";
+import { createSyncChange, enqueueSyncChange } from "../lib/sync-queue";
 import type { AppData, PasswordResetRequest } from "../shared/visit-types";
 
 const emptyData = (): AppData => ({
@@ -14,6 +16,27 @@ const emptyData = (): AppData => ({
 });
 
 describe("password reset requests", () => {
+  it("creates a pending request and resolves it to the default password flow", () => {
+    const request = createPasswordResetRequest({ accountType: "representative", representativeId: "rep-1", accountLabel: "علي الشعيبي", requestedAt: "2026-08-27T07:00:00.000Z" });
+    const resolved = resolvePasswordResetRequest(request, "approved", "اعتمد المدير إعادة الضبط إلى 123.", "2026-08-27T07:01:00.000Z");
+
+    expect(request.status).toBe("pending");
+    expect(resolved.status).toBe("approved");
+    expect(resolved.resolutionNote).toContain("123");
+    expect(resolved).not.toHaveProperty("password");
+  });
+
+  it("prevents duplicate save queue entries for the same visit", () => {
+    const first = createSyncChange({ recordType: "visit", recordId: "visit-1", operation: "upsert", baseVersion: 0, payload: { id: "visit-1" } });
+    const second = createSyncChange({ recordType: "visit", recordId: "visit-1", operation: "upsert", baseVersion: 0, payload: { id: "visit-1", notes: "updated" } });
+
+    const queue = enqueueSyncChange(enqueueSyncChange([], first), second);
+
+    expect(queue).toHaveLength(1);
+    expect(queue[0].recordId).toBe("visit-1");
+    expect(queue[0].payload).toEqual({ id: "visit-1", notes: "updated" });
+  });
+
   it("keeps the newest request when backup data is merged", () => {
     const current = emptyData();
     const incoming = emptyData();

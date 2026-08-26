@@ -14,6 +14,7 @@ import { getActivatedDevice } from "@/lib/sync-device";
 import { notifySyncStatus } from "@/lib/sync-notifications";
 import { appendSyncLog } from "@/lib/sync-history";
 import { startGlobalLoading } from "@/lib/navigation";
+import { resolvePasswordResetRequest as buildResolvedPasswordResetRequest } from "@/lib/password-reset";
 
 const STORAGE_KEY = "medical-visit-manager-data-v1";
 const EMBEDDED_COORDINATES_MIGRATION_KEY = "medical-visit-manager-embedded-coordinates-version";
@@ -266,7 +267,7 @@ export function VisitProvider({ children }: PropsWithChildren) {
         });
       },
       addPasswordResetRequest: (request) => save((current) => ({ ...current, passwordResetRequests: [request, ...(current.passwordResetRequests ?? [])].slice(0, 50) })),
-      resolvePasswordResetRequest: (id, status, note) => save((current) => ({ ...current, passwordResetRequests: (current.passwordResetRequests ?? []).map((request) => request.id === id ? { ...request, status, resolvedAt: new Date().toISOString(), resolutionNote: note?.trim() || undefined } : request) })),
+      resolvePasswordResetRequest: (id, status, note) => save((current) => ({ ...current, passwordResetRequests: (current.passwordResetRequests ?? []).map((request) => request.id === id ? buildResolvedPasswordResetRequest(request, status, note ?? "") : request) })),
     }),
     [data, loading, networkState.isInternetReachable],
   );
