@@ -1,7 +1,7 @@
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import * as Location from "expo-location";
 import { useMemo, useState } from "react";
-import { Alert, Pressable, ScrollView, Text, View } from "react-native";
+import { Alert, Platform, Pressable, ScrollView, Text, View } from "react-native";
 
 import { InteractiveMap } from "@/components/interactive-map";
 import { ScreenContainer } from "@/components/screen-container";
@@ -28,6 +28,7 @@ export default function MapScreen() {
   const [representativeModal, setRepresentativeModal] = useState(false);
   const [kindModal, setKindModal] = useState(false);
   const [currentLocation, setCurrentLocation] = useState<VisitLocation | null>(null);
+  const [simulationEnabled, setSimulationEnabled] = useState(false);
   const [selectedVisit, setSelectedVisit] = useState<Visit | null>(null);
   const [selectedEntity, setSelectedEntity] = useState<(typeof data.entities)[number] | null>(null);
 
@@ -49,6 +50,9 @@ export default function MapScreen() {
     if (!first) return { latitude: 15.3694, longitude: 44.191, latitudeDelta: 0.18, longitudeDelta: 0.18 };
     return { latitude: first.latitude, longitude: first.longitude, latitudeDelta: 0.08, longitudeDelta: 0.08 };
   }, [visibleEntities, visibleVisits]);
+
+  const simulatedLocation: VisitLocation = { latitude: initialRegion.latitude, longitude: initialRegion.longitude, accuracy: 5 };
+  const effectiveCurrentLocation = simulationEnabled ? simulatedLocation : currentLocation;
 
   const representativeOptions = [{ label: ALL, value: ALL }, ...data.representatives.map((item) => ({ label: item.name, value: item.id }))];
   const kindOptions = [{ label: ALL, value: ALL }, ...ENTITY_KINDS.map((item) => ({ label: item, value: item }))];
@@ -74,7 +78,8 @@ export default function MapScreen() {
         <Pressable onPress={() => setCoordinateFilter((value) => value === "all" ? "recent" : "all")} className={`h-12 rounded-2xl border px-4 flex-row-reverse items-center justify-between mb-4 ${coordinateFilter === "recent" ? "bg-primary border-primary" : "bg-surface border-border"}`} style={({ pressed }) => [{ opacity: pressed ? 0.8 : 1 }]}><View className="flex-row-reverse items-center gap-2"><MaterialIcons name="new-releases" size={19} color={coordinateFilter === "recent" ? "#FFFFFF" : "#1565C0"} /><Text className={coordinateFilter === "recent" ? "text-white font-bold text-sm" : "text-foreground font-bold text-sm"}>الإحداثيات المضافة حديثاً فقط</Text></View><MaterialIcons name={coordinateFilter === "recent" ? "toggle-on" : "toggle-off"} size={27} color={coordinateFilter === "recent" ? "#FFFFFF" : "#64748B"} /></Pressable>
         <View className="rounded-2xl bg-primary/10 border border-primary/20 p-3 mb-4 flex-row-reverse items-center gap-2"><MaterialIcons name="location-on" size={20} color="#1565C0" /><Text className="flex-1 text-right text-primary text-sm font-semibold">{visibleEntities.length} جهة طبية بإحداثيات{coordinateFilter === "recent" ? " مضافة حديثاً" : ""} · {visibleVisits.length} زيارة موثّقة</Text></View>
         <View className="flex-row-reverse gap-2 mb-3"><Pressable onPress={locateRepresentative} className="flex-1 h-11 rounded-xl bg-foreground items-center justify-center flex-row-reverse gap-2"><MaterialIcons name="my-location" size={18} color="#FFFFFF" /><Text className="text-white font-bold text-xs">عرض موقع المندوب</Text></Pressable><View className="flex-1 h-11 rounded-xl bg-success/10 border border-success/30 items-center justify-center"><Text className="text-success font-bold text-xs">النطاق: {data.settings.geofenceRadiusMeters}م</Text></View></View>
-        <View className="h-[430px] overflow-hidden rounded-2xl border border-border mb-4"><InteractiveMap visits={visibleVisits} entities={visibleEntities} representatives={data.representatives} initialRegion={initialRegion} currentLocation={currentLocation} targetLocation={selectedEntity?.geographicCoordinates ?? selectedVisit?.geographicCoordinates ?? null} allowedRadiusMeters={data.settings.geofenceRadiusMeters} targetTitle={selectedEntity?.name ?? selectedVisit?.entityName} /></View>
+        {Platform.OS === "web" ? <Pressable onPress={() => setSimulationEnabled((value) => !value)} className={`h-11 rounded-xl border px-4 mb-3 flex-row-reverse items-center justify-between ${simulationEnabled ? "bg-warning border-warning" : "bg-surface border-border"}`}><View className="flex-row-reverse items-center gap-2"><MaterialIcons name="science" size={18} color={simulationEnabled ? "#FFFFFF" : "#D97706"} /><Text className={simulationEnabled ? "text-white font-bold text-xs" : "text-foreground font-bold text-xs"}>محاكاة GPS والخريطة دون اتصال</Text></View><Text className={simulationEnabled ? "text-white font-bold text-xs" : "text-warning font-bold text-xs"}>{simulationEnabled ? "مفعّلة" : "تفعيل"}</Text></Pressable> : null}
+        <View className="h-[430px] overflow-hidden rounded-2xl border border-border mb-4"><InteractiveMap visits={visibleVisits} entities={visibleEntities} representatives={data.representatives} initialRegion={initialRegion} currentLocation={effectiveCurrentLocation} targetLocation={selectedEntity?.geographicCoordinates ?? selectedVisit?.geographicCoordinates ?? null} allowedRadiusMeters={data.settings.geofenceRadiusMeters} targetTitle={selectedEntity?.name ?? selectedVisit?.entityName} /></View>
         {visibleEntities.length > 0 || visibleVisits.length > 0 ? (
           <View className="rounded-2xl bg-surface border border-border p-4">
             {visibleEntities.length > 0 ? <><Text className="font-bold text-foreground text-right mb-3">الجهات الطبية ذات الإحداثيات</Text>{visibleEntities.slice(0, 30).map((entity) => <Pressable key={entity.id} onPress={() => { setSelectedEntity(entity); setSelectedVisit(null); }} style={{ paddingVertical: 12, flexDirection: "row-reverse", alignItems: "center", gap: 12, borderBottomWidth: 1, borderBottomColor: "#E5E7EB" }}><View className={`w-9 h-9 rounded-xl items-center justify-center ${entity.kind === "صيدلية" ? "bg-warning" : "bg-primary"}`}><MaterialIcons name={entity.kind === "صيدلية" ? "local-pharmacy" : "local-hospital"} size={18} color="#FFFFFF" /></View><View className="flex-1 items-end"><Text className="font-bold text-foreground text-right">{entity.name}</Text><Text className="text-xs text-muted mt-1 text-right">{entity.kind} · {entity.region === "south" ? "جنوب صنعاء" : entity.region === "north" ? "شمال صنعاء" : "صنعاء"}{entity.nearestPharmacy ? ` · ${entity.nearestPharmacy}` : ""}</Text></View></Pressable>)}</> : null}
