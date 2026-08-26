@@ -29,15 +29,32 @@ export function AccountSessionProvider({ children }: { children: ReactNode }) {
   const [biometricEnabled, setBiometricEnabled] = useState(false);
 
   useEffect(() => {
-    Promise.all([AsyncStorage.getItem(SESSION_KEY), getBiometricSession()]).then(([value, biometricSession]) => {
-      if (value) setSession(JSON.parse(value) as Session);
-      setBiometricEnabled(Boolean(biometricSession));
-    }).finally(() => setLoading(false));
+    let cancelled = false;
+    Promise.all([AsyncStorage.getItem(SESSION_KEY), getBiometricSession()])
+      .then(([value, biometricSession]) => {
+        if (cancelled) return;
+        if (value) {
+          try {
+            const parsed = JSON.parse(value) as Session;
+            if (parsed && (parsed.role === "manager" || (parsed.role === "representative" && parsed.representativeId))) setSession(parsed);
+          } catch {
+            void AsyncStorage.removeItem(SESSION_KEY);
+          }
+        }
+        setBiometricEnabled(Boolean(biometricSession));
+      })
+      .catch(() => undefined)
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
   }, []);
 
   const persist = async (next: Session | null, rememberMe = true) => {
-    if (next && rememberMe) await AsyncStorage.setItem(SESSION_KEY, JSON.stringify(next));
-    else await AsyncStorage.removeItem(SESSION_KEY);
+    try {
+      if (next && rememberMe) await AsyncStorage.setItem(SESSION_KEY, JSON.stringify(next));
+      else await AsyncStorage.removeItem(SESSION_KEY);
+    } catch {
+      // Keep the active session in memory even if device storage is temporarily unavailable.
+    }
     setSession(next);
   };
 
@@ -78,7 +95,7 @@ export function AccountSessionProvider({ children }: { children: ReactNode }) {
       setBiometricEnabled(false);
     },
     logout: async () => {
-      await AsyncStorage.removeItem(SESSION_KEY);
+      try { await AsyncStorage.removeItem(SESSION_KEY); } catch { /* session is still cleared in memory */ }
       setSession(null);
     },
   }), [biometricEnabled, data.representatives, loading, session]);

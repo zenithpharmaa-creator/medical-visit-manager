@@ -25,12 +25,18 @@ export function LocalLoginScreen() {
   }, []);
 
   const submit = async () => {
+    if (busy) return;
     setBusy(true);
-    const ok = mode === "manager"
-      ? await loginManager(password, managerTarget === "manager" ? undefined : managerTarget, rememberMe)
-      : await loginRepresentative(selectedRep, password, rememberMe);
-    setBusy(false);
-    if (!ok) Alert.alert("رمز مرور غير صحيح", "تعذر الدخول. تحقق من الحساب ورمز المرور ثم حاول مرة أخرى.");
+    try {
+      const ok = mode === "manager"
+        ? await loginManager(password, managerTarget === "manager" ? undefined : managerTarget, rememberMe)
+        : await loginRepresentative(selectedRep, password, rememberMe);
+      if (!ok) Alert.alert("رمز مرور غير صحيح", "تعذر الدخول. تحقق من الحساب ورمز المرور ثم حاول مرة أخرى.");
+    } catch {
+      Alert.alert("تعذر فتح الحساب", "حدث خطأ مؤقت أثناء تسجيل الدخول. حاول مرة أخرى، وستبقى بياناتك محفوظة محلياً.");
+    } finally {
+      setBusy(false);
+    }
   };
 
   const biometricLabel = biometricStatus?.kind === "face" ? "التعرف على الوجه" : biometricStatus?.kind === "fingerprint" ? "بصمة الإصبع" : "المصادقة الحيوية";
@@ -38,10 +44,16 @@ export function LocalLoginScreen() {
   const biometricHint = biometricStatus?.kind === "face" ? "استخدم التعرف على الوجه المسجل في جهازك" : biometricStatus?.kind === "fingerprint" ? "استخدم بصمة الإصبع المسجلة في جهازك" : "استخدم المصادقة الحيوية المسجلة في جهازك";
 
   const biometricSubmit = async () => {
+    if (busy) return;
     setBusy(true);
-    const ok = await loginWithBiometric();
-    setBusy(false);
-    if (!ok) Alert.alert("تعذر التحقق الحيوي", "لم يتم التعرف على البصمة أو الوجه. يمكنك استخدام رمز المرور بدلاً من ذلك.");
+    try {
+      const ok = await loginWithBiometric();
+      if (!ok) Alert.alert("تعذر التحقق الحيوي", "لم يتم التعرف على البصمة أو الوجه. يمكنك استخدام رمز المرور بدلاً من ذلك.");
+    } catch {
+      Alert.alert("تعذر التحقق الحيوي", "حدث خطأ مؤقت. استخدم رمز المرور للدخول ثم حاول تفعيل المصادقة لاحقاً.");
+    } finally {
+      setBusy(false);
+    }
   };
 
   const options = mode === "manager"
