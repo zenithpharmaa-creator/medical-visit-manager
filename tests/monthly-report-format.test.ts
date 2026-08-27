@@ -21,7 +21,7 @@ describe("monthly report format", () => {
     const rows = buildMonthlyReportRows(visits, 2026);
     expect(monthlyReportTotals(rows)).toEqual([2, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
     const excel = buildMonthlyVisitExcelRows(rows, 2026).rows;
-    expect(excel.at(-1)).toEqual(["الإجمالي", 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2]);
+    expect(excel.at(-1)).toEqual(["الإجمالي", 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 4]);
   });
 
   it("uses the same two header rows and total in PDF and Excel", () => {
