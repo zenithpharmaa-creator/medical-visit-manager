@@ -11,7 +11,7 @@ describe("daily visit PDF export", () => {
         category: "A",
         specialty: "Gyno",
         entityAddress: "صنعاء",
-        nearestPharmacy: "صيدلية قريبة",
+        geographicLocation: "شارع الجامعة (15.36944, 44.19102)",
         shift: "صباح",
         visitedItems: "منتج 1، منتج 2",
         notes: "ملاحظة صباحية",
@@ -22,7 +22,7 @@ describe("daily visit PDF export", () => {
         category: "B",
         specialty: "Cardiology",
         entityAddress: "صنعاء",
-        nearestPharmacy: "صيدلية أخرى",
+        geographicLocation: "مستشفى العلوم (15.37000, 44.19200)",
         shift: "مساء",
         visitedItems: "منتج 3",
         notes: "ملاحظة مسائية",
@@ -33,7 +33,8 @@ describe("daily visit PDF export", () => {
     expect(html).toContain("@page { size: A4 landscape;");
     expect(html).toContain("التقرير اليومي");
     expect(html).toContain("عنوان الطبيب");
-    expect(html).toContain("أقرب صيدلية");
+    expect(html).toContain("الموقع الجغرافي");
+    expect(html).not.toContain("أقرب صيدلية");
     expect(html).toContain("الأصناف المزارة");
     expect(html).toContain("الفترة");
     expect(html).toContain("صباح");
@@ -60,6 +61,8 @@ describe("daily visit PDF export", () => {
     ], "2026-08-24");
     expect(report.summary).toEqual({ total: 3, morning: 1, evening: 2 });
     expect(report.columns).toContain("الكلاس");
+    expect(report.columns).toContain("الموقع الجغرافي");
+    expect(report.columns).not.toContain("أقرب صيدلية");
   });
 
   it("renders an explicit empty-state message", () => {

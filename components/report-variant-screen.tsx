@@ -71,9 +71,8 @@ const DAILY_HEADERS: Array<{ key: SortKey; label: string; width?: number }> = [
   { key: "third", label: "التخصص", width: 140 },
   { key: "fourth", label: "الفترة", width: 88 },
   { key: "fifth", label: "الملاحظات", width: 220 },
-  { key: "sixth", label: "التاريخ", width: 112 },
-  { key: "seventh", label: "المندوب", width: 140 },
-  { key: "eighth", label: "الأصناف", width: 180 },
+  { key: "sixth", label: "الموقع الجغرافي", width: 260 },
+  { key: "seventh", label: "الأصناف", width: 180 },
 ];
 
 const dateText = (iso: string) => {
@@ -84,6 +83,13 @@ const dateText = (iso: string) => {
 const visitShiftText = (iso: string) => {
   const hour = new Date(iso).getHours();
   return hour >= 16 && hour < 21 ? "مساء" : "صباح";
+};
+
+const visitLocationText = (visit: Visit) => {
+  const label = visit.geographicLocation || visit.entityAddress || "غير محدد";
+  const coordinates = visit.geographicCoordinates || visit.location;
+  if (!coordinates || !Number.isFinite(coordinates.latitude) || !Number.isFinite(coordinates.longitude)) return label;
+  return `${label} (${coordinates.latitude.toFixed(5)}, ${coordinates.longitude.toFixed(5)})`;
 };
 
 const compareValues = (left: string, right: string) => {
@@ -97,10 +103,11 @@ function DailyTotalsRow({ rows }: { rows: ReportRow[] }) {
   const morning = rows.filter((row) => row.fourth === "صباح").length;
   const evening = rows.filter((row) => row.fourth === "مساء").length;
   return <View style={{ minHeight: 46, flexDirection: "row-reverse", borderTopWidth: 2, borderTopColor: "#4B78A8", backgroundColor: "#DBEAFE" }}>
-    <View style={{ width: 708, paddingHorizontal: 10, paddingVertical: 12, justifyContent: "center" }}><Text style={{ color: "#123B68", fontSize: 12, fontWeight: "800", textAlign: "right" }}>إجمالي الزيارات</Text></View>
-    <View style={{ width: 112, paddingHorizontal: 6, paddingVertical: 12, justifyContent: "center", borderRightWidth: 1, borderRightColor: "#9DB5CF" }}><Text style={{ color: "#123B68", fontSize: 11, fontWeight: "800", textAlign: "center" }}>صباح: {morning}</Text></View>
-    <View style={{ width: 140, paddingHorizontal: 6, paddingVertical: 12, justifyContent: "center", borderRightWidth: 1, borderRightColor: "#9DB5CF" }}><Text style={{ color: "#123B68", fontSize: 11, fontWeight: "800", textAlign: "center" }}>مساء: {evening}</Text></View>
-    <View style={{ width: 180, paddingHorizontal: 6, paddingVertical: 12, justifyContent: "center", borderRightWidth: 1, borderRightColor: "#9DB5CF" }}><Text style={{ color: "#123B68", fontSize: 11, fontWeight: "800", textAlign: "center" }}>الكل: {rows.length}</Text></View>
+    <View style={{ width: 400, paddingHorizontal: 10, paddingVertical: 12, justifyContent: "center" }}><Text style={{ color: "#123B68", fontSize: 12, fontWeight: "800", textAlign: "right" }}>إجمالي الزيارات</Text></View>
+    <View style={{ width: 88, paddingHorizontal: 6, paddingVertical: 12, justifyContent: "center", borderRightWidth: 1, borderRightColor: "#9DB5CF" }}><Text style={{ color: "#123B68", fontSize: 11, fontWeight: "800", textAlign: "center" }}>صباح: {morning}</Text></View>
+    <View style={{ width: 220, paddingHorizontal: 6, paddingVertical: 12, justifyContent: "center", borderRightWidth: 1, borderRightColor: "#9DB5CF" }}><Text style={{ color: "#123B68", fontSize: 11, fontWeight: "800", textAlign: "center" }}>مساء: {evening}</Text></View>
+    <View style={{ width: 260, paddingHorizontal: 6, paddingVertical: 12, justifyContent: "center", borderRightWidth: 1, borderRightColor: "#9DB5CF" }}><Text style={{ color: "#123B68", fontSize: 11, fontWeight: "800", textAlign: "center" }}>الكل: {rows.length}</Text></View>
+    <View style={{ width: 180 }} />
   </View>;
 }
 
@@ -273,7 +280,7 @@ export function ReportVariantScreen({ variant }: { variant: ReportVariant }) {
       category: visit.category,
       specialty: visit.specialty,
       entityAddress: visit.entityAddress,
-      nearestPharmacy: visit.nearestPharmacy,
+      geographicLocation: visitLocationText(visit),
       shift: hour >= 16 && hour < 21 ? "مساء" : "صباح",
       visitedItems: visit.visitedItems?.join("، ") || "—",
       notes: visit.notes,
@@ -345,9 +352,8 @@ export function ReportVariantScreen({ variant }: { variant: ReportVariant }) {
       third: visit.specialty || "—",
       fourth: visitShiftText(visit.recordedAt),
       fifth: visit.notes || "—",
-      sixth: dateText(visit.recordedAt),
-      seventh: data.representatives.find((rep) => rep.id === visit.representativeId)?.name || "غير محدد",
-      eighth: visit.visitedItems?.join("، ") || "—",
+      sixth: visitLocationText(visit),
+      seventh: visit.visitedItems?.join("، ") || "—",
     }));
     return filteredVisits.map((visit) => ({ id: visit.id, first: visit.entityName, second: data.representatives.find((rep) => rep.id === visit.representativeId)?.name || "غير محدد", third: dateText(visit.recordedAt), fourth: visit.visitedItems?.join("، ") || "—", fifth: visit.entityAddress || visit.geographicLocation || "—" }));
   }, [data.representatives, filteredVisits, variant]);
