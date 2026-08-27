@@ -9,7 +9,7 @@ export type ReportActionContact = { id: string; name: string; email?: string; wh
 
 const CONTACTS_KEY = "medical-visit-manager:report-action-contacts";
 const TEMPLATE_KEY = "medical-visit-manager:report-action-template";
-const formatOptions: Array<{ value: ReportActionFormat; label: string; icon: keyof typeof MaterialIcons.glyphMap }> = [
+const formatOptions: { value: ReportActionFormat; label: string; icon: keyof typeof MaterialIcons.glyphMap }[] = [
   { value: "xlsx", label: "Excel", icon: "table-view" },
   { value: "pdf", label: "PDF", icon: "picture-as-pdf" },
   { value: "csv", label: "CSV", icon: "grid-on" },
@@ -108,17 +108,17 @@ export function ReportActionSheet({
           <MaterialIcons name="pending-actions" size={25} color="#1257A6" />
         </View>
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-          <Text style={styles.sectionTitle}>تحميل</Text>
-          {formatOptions.map((option) => <Pressable key={option.value} onPress={() => { setFormat(option.value); onExport(option.value); }} accessibilityRole="button" accessibilityLabel={`تصدير ${option.label}`} style={({ pressed }) => [styles.option, format === option.value && styles.optionActive, pressed && styles.pressed]}><MaterialIcons name={option.icon} size={20} color={format === option.value ? "#1257A6" : "#40566F"} /><Text style={[styles.optionText, format === option.value && styles.optionTextActive]}>{option.label}</Text>{format === option.value ? <MaterialIcons name="check-circle" size={18} color="#16835B" /> : null}</Pressable>)}
+          <View style={styles.sectionHeader}><View style={styles.sectionIcon}><MaterialIcons name="file-download" size={18} color="#1257A6" /></View><Text style={styles.sectionTitle}>تحميل</Text></View>
+          {formatOptions.map((option) => <Pressable key={option.value} onPress={() => { setFormat(option.value); onExport(option.value); }} accessibilityRole="button" accessibilityLabel={`تصدير ${option.label}`} style={({ pressed }) => [styles.option, format === option.value && styles.optionActive, pressed && styles.pressed]}><View style={[styles.optionIcon, format === option.value && styles.optionIconActive]}><MaterialIcons name={option.icon} size={20} color={format === option.value ? "#1257A6" : "#40566F"} /></View><Text style={[styles.optionText, format === option.value && styles.optionTextActive]}>{option.label}</Text>{format === option.value ? <MaterialIcons name="check-circle" size={18} color="#16835B" /> : null}</Pressable>)}
           <View style={styles.divider} />
-          <Text style={styles.sectionTitle}>إرسال</Text>
-          <Text style={styles.helperTitle}>بحث جهات الاتصال</Text>
+          <View style={styles.sectionHeader}><View style={[styles.sectionIcon, styles.sectionIconGreen]}><MaterialIcons name="send" size={18} color="#16835B" /></View><Text style={styles.sectionTitle}>إرسال</Text></View>
+          <View style={styles.helperHeading}><MaterialIcons name="contact-mail" size={18} color="#1257A6" /><Text style={styles.helperTitle}>بحث جهات الاتصال</Text></View>
           <Text style={styles.helperText}>ابحث بالاسم أو البريد أو رقم WhatsApp ثم حدد جهة أو أكثر.</Text>
           <TextInput value={contactQuery} onChangeText={setContactQuery} placeholder="الاسم أو البريد أو رقم WhatsApp" placeholderTextColor="#7C8798" textAlign="right" style={styles.input} />
           <View style={styles.contactsBox}>{filteredContacts.length ? filteredContacts.map((contact) => { const selected = selectedContactIds.includes(contact.id); return <Pressable key={contact.id} onPress={() => setSelectedContactIds((current) => selected ? current.filter((id) => id !== contact.id) : [...current, contact.id])} style={({ pressed }) => [styles.contactRow, selected && styles.contactSelected, pressed && styles.pressed]}><MaterialIcons name={selected ? "check-box" : "check-box-outline-blank"} size={20} color={selected ? "#16835B" : "#7C8798"} /><View style={styles.contactText}><Text style={styles.contactName}>{contact.name}</Text><Text style={styles.contactDetails}>{[contact.email, contact.whatsapp].filter(Boolean).join(" · ")}</Text></View></Pressable>; }) : <Text style={styles.emptyContacts}>لا توجد جهات مطابقة محفوظة حالياً</Text>}</View>
           <Pressable onPress={() => setContactModalVisible(true)} style={({ pressed }) => [styles.outlineButton, pressed && styles.pressed]}><MaterialIcons name="person-add" size={19} color="#1257A6" /><Text style={styles.outlineButtonText}>إضافة جهة اتصال</Text></Pressable>
           <Pressable onPress={() => { setTemplateDraft(template); setTemplateModalVisible(true); }} style={({ pressed }) => [styles.outlineButton, pressed && styles.pressed]}><MaterialIcons name="edit-note" size={19} color="#1257A6" /><Text style={styles.outlineButtonText}>حفظ قالب رسالة</Text></Pressable>
-          <View style={styles.templatePreview}><Text style={styles.templateLabel}>القالب الحالي</Text><Text style={styles.templateText}>{template}</Text></View>
+          <View style={styles.templatePreview}><View style={styles.helperHeading}><MaterialIcons name="description" size={17} color="#1257A6" /><Text style={styles.templateLabel}>القالب الحالي</Text></View><Text style={styles.templateText}>{template}</Text></View>
           <View style={styles.sendRow}>
             <Pressable onPress={() => onSend("whatsapp", format, selectedContacts, template)} style={({ pressed }) => [styles.whatsappButton, pressed && styles.pressed]}><MaterialIcons name="share" size={18} color="#FFFFFF" /><Text style={styles.sendText}>WhatsApp</Text></Pressable>
             <Pressable onPress={() => onSend("email", format, selectedContacts, template)} style={({ pressed }) => [styles.emailButton, pressed && styles.pressed]}><MaterialIcons name="email" size={18} color="#FFFFFF" /><Text style={styles.sendText}>البريد</Text></Pressable>
@@ -141,13 +141,19 @@ const styles = StyleSheet.create({
   subtitle: { color: "#7C8798", fontSize: 11, marginTop: 3 },
   closeButton: { width: 38, height: 38, borderRadius: 12, backgroundColor: "#F1F5F9", alignItems: "center", justifyContent: "center" },
   content: { padding: 18, gap: 9 },
-  sectionTitle: { color: "#102A43", fontSize: 15, fontWeight: "800", textAlign: "right", marginTop: 2 },
+  sectionHeader: { flexDirection: "row-reverse", alignItems: "center", justifyContent: "flex-start", gap: 8, marginTop: 2 },
+  sectionIcon: { width: 30, height: 30, borderRadius: 10, alignItems: "center", justifyContent: "center", backgroundColor: "#EAF3FB", borderWidth: 1, borderColor: "#B8D1EA" },
+  sectionIconGreen: { backgroundColor: "#ECFDF3", borderColor: "#A7E0C2" },
+  sectionTitle: { flex: 1, color: "#102A43", fontSize: 15, fontWeight: "800", textAlign: "right" },
   option: { minHeight: 46, borderRadius: 13, borderWidth: 1, borderColor: "#E2E8F0", paddingHorizontal: 13, flexDirection: "row-reverse", alignItems: "center", gap: 10, backgroundColor: "#FFFFFF" },
   optionActive: { borderColor: "#A9C7E8", backgroundColor: "#EFF6FF" },
+  optionIcon: { width: 34, height: 34, borderRadius: 11, alignItems: "center", justifyContent: "center", backgroundColor: "#F1F5F9", borderWidth: 1, borderColor: "#E2E8F0" },
+  optionIconActive: { backgroundColor: "#DCEEFF", borderColor: "#A9C7E8" },
   optionText: { flex: 1, color: "#40566F", fontSize: 14, fontWeight: "700", textAlign: "right" },
   optionTextActive: { color: "#1257A6" },
   divider: { height: 1, backgroundColor: "#E2E8F0", marginVertical: 5 },
-  helperTitle: { color: "#102A43", fontSize: 14, fontWeight: "800", textAlign: "right" },
+  helperHeading: { flexDirection: "row-reverse", alignItems: "center", justifyContent: "flex-start", gap: 6 },
+  helperTitle: { flex: 1, color: "#102A43", fontSize: 14, fontWeight: "800", textAlign: "right" },
   helperText: { color: "#7C8798", fontSize: 11, textAlign: "right" },
   input: { minHeight: 46, borderRadius: 13, borderWidth: 1, borderColor: "#D8E0EA", backgroundColor: "#F8FAFC", paddingHorizontal: 13, color: "#102A43", fontSize: 13 },
   contactsBox: { maxHeight: 170, borderRadius: 13, borderWidth: 1, borderColor: "#E2E8F0", overflow: "hidden" },
