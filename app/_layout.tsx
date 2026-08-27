@@ -4,6 +4,7 @@ import { ActivityIndicator, Text, View } from "react-native";
 
 import "../global.css";
 import { LocationConsentGate } from "@/components/location-consent-gate";
+import { AutoRotateProvider } from "@/components/auto-rotate-provider";
 import { LocalLoginScreen } from "@/components/local-login-screen";
 import { ThemeProvider } from "@/lib/theme-provider";
 import { VisitProvider } from "@/lib/visit-store";
@@ -23,10 +24,12 @@ export default function RootLayout() {
       <VisitProvider>
         <AccountSessionProvider>
           <NavigationHistoryProvider>
+            <AutoRotateProvider>
             <LocationConsentGate>
             <StatusBar style="dark" />
             <AppNavigation />
             </LocationConsentGate>
+            </AutoRotateProvider>
           </NavigationHistoryProvider>
         </AccountSessionProvider>
       </VisitProvider>
