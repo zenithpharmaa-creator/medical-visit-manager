@@ -2,7 +2,7 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Print from "expo-print";
 import { useRouter } from "expo-router";
-import { useEffect, useMemo, useRef, useState, type ComponentProps } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ComponentProps } from "react";
 import { ActivityIndicator, Alert, Animated, Easing, Linking, Modal, PanResponder, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 
 import { ScreenContainer } from "@/components/screen-container";
@@ -39,7 +39,7 @@ const CONFIG: Record<ReportVariant, Config> = {
   "daily-analysis": { title: "تحليلي يومي", subtitle: "تحليل يومي للزيارات والأطباء والفترات", icon: "analytics" },
 };
 
-const REPORT_ROUTES: Array<{ route: string; variant: ReportVariant }> = [
+const REPORT_ROUTES: { route: string; variant: ReportVariant }[] = [
   { route: "report-print", variant: "daily" },
   { route: "report-daily-analysis", variant: "daily-analysis" },
   { route: "report-search", variant: "search" },
@@ -59,20 +59,20 @@ const MONTH_OPTIONS = ["يناير", "فبراير", "مارس", "أبريل", "
 const REPORT_TABLE_MIN_WIDTH = 780;
 const MONTH_ABBR = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"] as const;
 
-const DETAIL_HEADERS: Array<{ key: SortKey; label: string; width?: number }> = [
+const DETAIL_HEADERS: { key: SortKey; label: string; width?: number }[] = [
   { key: "first", label: "الطبيب" },
   { key: "second", label: "المندوب" },
   { key: "third", label: "التاريخ", width: 112 },
   { key: "fourth", label: "الأصناف", width: 144 },
   { key: "fifth", label: "العنوان", width: 160 },
 ];
-const SUMMARY_HEADERS: Array<{ key: SortKey; label: string; width?: number }> = [
+const SUMMARY_HEADERS: { key: SortKey; label: string; width?: number }[] = [
   { key: "first", label: "المندوب" },
   { key: "second", label: "عدد الزيارات", width: 96 },
   { key: "third", label: "عدد الأيام", width: 96 },
   { key: "fourth", label: "آخر زيارة", width: 112 },
 ];
-const DAILY_HEADERS: Array<{ key: SortKey; label: string; width?: number }> = [
+const DAILY_HEADERS: { key: SortKey; label: string; width?: number }[] = [
   { key: "first", label: "الطبيب", width: 150 },
   { key: "second", label: "الكلاس", width: 110 },
   { key: "third", label: "التخصص", width: 140 },
@@ -193,7 +193,7 @@ function SelectField({ title, value, options, onChange }: { title: string; value
   </>;
 }
 
-function CalendarReport({ visits, leaves, holidays, representatives }: { visits: Array<Pick<Visit, "recordedAt" | "entityName" | "representativeId">>; leaves: RepresentativeLeave[]; holidays: OfficialHoliday[]; representatives: Representative[] }) {
+function CalendarReport({ visits, leaves, holidays, representatives }: { visits: Pick<Visit, "recordedAt" | "entityName" | "representativeId">[]; leaves: RepresentativeLeave[]; holidays: OfficialHoliday[]; representatives: Representative[] }) {
   const [month, setMonth] = useState(() => new Date(new Date().getFullYear(), new Date().getMonth(), 1));
   const [hoveredHolidayDay, setHoveredHolidayDay] = useState<number | null>(null);
   const cells = useMemo(() => { const first = new Date(month.getFullYear(), month.getMonth(), 1).getDay(); const total = new Date(month.getFullYear(), month.getMonth() + 1, 0).getDate(); return [...Array(first).fill(null), ...Array.from({ length: total }, (_, index) => index + 1)]; }, [month]);
@@ -328,9 +328,9 @@ export function ReportVariantScreen({ variant }: { variant: ReportVariant }) {
 
   function showLoading(duration = 650) { setLoading(true); setTimeout(() => setLoading(false), duration); }
   function triggerFilter<T>(setter: (value: T) => void, value: T) { setter(value); showLoading(500); }
-  function goToReport(offset: number) { if (session?.role !== "manager") return; const nextIndex = (reportIndex + offset + REPORT_ROUTES.length) % REPORT_ROUTES.length; router.replace(`/(tabs)/${REPORT_ROUTES[nextIndex].route}` as never); }
+  const goToReport = useCallback((offset: number) => { if (session?.role !== "manager") return; const nextIndex = (reportIndex + offset + REPORT_ROUTES.length) % REPORT_ROUTES.length; router.replace(`/(tabs)/${REPORT_ROUTES[nextIndex].route}` as never); }, [reportIndex, router, session?.role]);
   useEffect(() => { if (!loading) { progress.stopAnimation(); progress.setValue(0); return; } const loop = Animated.loop(Animated.sequence([Animated.timing(progress, { toValue: 1, duration: 700, easing: Easing.inOut(Easing.ease), useNativeDriver: false }), Animated.timing(progress, { toValue: 0, duration: 700, easing: Easing.inOut(Easing.ease), useNativeDriver: false })])); loop.start(); return () => loop.stop(); }, [loading, progress]);
-  const reportPanResponder = useMemo(() => PanResponder.create({ onMoveShouldSetPanResponder: (_, gesture) => Math.abs(gesture.dx) > 18 && Math.abs(gesture.dx) > Math.abs(gesture.dy) * 1.25, onPanResponderRelease: (_, gesture) => { if (gesture.dx < -70) goToReport(1); else if (gesture.dx > 70) goToReport(-1); } }), [goToReport, reportIndex, session?.role]);
+  const reportPanResponder = useMemo(() => PanResponder.create({ onMoveShouldSetPanResponder: (_, gesture) => Math.abs(gesture.dx) > 18 && Math.abs(gesture.dx) > Math.abs(gesture.dy) * 1.25, onPanResponderRelease: (_, gesture) => { if (gesture.dx < -70) goToReport(1); else if (gesture.dx > 70) goToReport(-1); } }), [goToReport]);
 
   const filteredVisits = useMemo(() => {
     const normalized = search.trim().toLowerCase();

@@ -1,6 +1,6 @@
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useMemo, useState } from "react";
-import { Alert, FlatList, Modal, Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { Alert, FlatList, Modal, Pressable, Text, View } from "react-native";
 
 import { FormField } from "@/components/form-field";
 import { LocationPicker } from "@/components/location-picker";

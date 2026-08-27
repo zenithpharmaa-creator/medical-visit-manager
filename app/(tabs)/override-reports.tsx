@@ -1,23 +1,22 @@
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import * as FileSystem from "expo-file-system/legacy";
 import * as Print from "expo-print";
-import * as Location from "expo-location";
 import * as Sharing from "expo-sharing";
-import { useMemo, useState } from "react";
-import { Alert, FlatList, Modal, Pressable, Text, TextInput, View } from "react-native";
+import { useCallback, useMemo, useState } from "react";
+import { Alert, FlatList, Modal, Pressable, Text, View } from "react-native";
 import * as XLSX from "xlsx";
-
-const pad2 = (value: number) => String(value).padStart(2, "0");
-const toDateKey = (date: Date) => `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
-const calendarTitle = (date: Date) => date.toLocaleDateString("ar-YE", { month: "long", year: "numeric" });
 
 import { ScreenContainer } from "@/components/screen-container";
 import { LocationPicker } from "@/components/location-picker";
 import { ScreenHeader } from "@/components/screen-header";
-import { buildOverrideReportHtml, overrideRows } from "@/lib/override-report";
+import { buildOverrideReportHtml } from "@/lib/override-report";
 import { buildRejectedVisitReportHtml, rejectedVisitRows } from "@/lib/rejected-visit-report";
 import { useVisitStore } from "@/lib/visit-store";
 import { distanceBetweenMeters, formatArabicDate, isWithinGeofence } from "@/lib/visit-utils";
+
+const pad2 = (value: number) => String(value).padStart(2, "0");
+const toDateKey = (date: Date) => `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
+const calendarTitle = (date: Date) => date.toLocaleDateString("ar-YE", { month: "long", year: "numeric" });
 
 export default function OverrideReportsScreen() {
   const { data, updateVisit, updateEntity } = useVisitStore();
@@ -32,16 +31,16 @@ export default function OverrideReportsScreen() {
   const [calendarVisible, setCalendarVisible] = useState(false);
   const [calendarMonth, setCalendarMonth] = useState(() => new Date());
   const calendarDays = useMemo(() => { const year = calendarMonth.getFullYear(); const month = calendarMonth.getMonth(); const firstDay = new Date(year, month, 1).getDay(); const count = new Date(year, month + 1, 0).getDate(); return [...Array(firstDay).fill(null), ...Array.from({ length: count }, (_, index) => new Date(year, month, index + 1))]; }, [calendarMonth]);
-  const matchesFilters = (visit: (typeof data.visits)[number]) => {
+  const matchesFilters = useCallback((visit: (typeof data.visits)[number]) => {
     const entity = data.entities.find((item) => item.id === visit.entityId);
     const dateMatches = !dateFilter.trim() || visit.recordedAt.slice(0, 10) === dateFilter.trim();
     const representativeMatches = representativeFilter === "all" || visit.representativeId === representativeFilter;
     const regionMatches = regionFilter === "all" || entity?.region === regionFilter;
     return dateMatches && representativeMatches && regionMatches;
-  };
-  const filteredRejectedVisits = useMemo(() => rejectedVisits.filter(matchesFilters), [rejectedVisits, representativeFilter, regionFilter, dateFilter, data.entities]);
-  const filteredOverrides = useMemo(() => overrides.filter(matchesFilters), [overrides, representativeFilter, regionFilter, dateFilter, data.entities]);
-  const filteredAllVisits = useMemo(() => data.visits.filter(matchesFilters), [data.visits, representativeFilter, regionFilter, dateFilter, data.entities]);
+  }, [data, dateFilter, regionFilter, representativeFilter]);
+  const filteredRejectedVisits = useMemo(() => rejectedVisits.filter(matchesFilters), [rejectedVisits, matchesFilters]);
+  const filteredOverrides = useMemo(() => overrides.filter(matchesFilters), [overrides, matchesFilters]);
+  const filteredAllVisits = useMemo(() => data.visits.filter(matchesFilters), [data.visits, matchesFilters]);
   const summaryRows = useMemo(() => data.representatives.filter((item) => item.active).map((rep) => {
     const visits = filteredAllVisits.filter((visit) => visit.representativeId === rep.id && (visit.verificationStatus === "verified" || visit.verificationStatus === "rejected"));
     const accepted = visits.filter((visit) => visit.verificationStatus === "verified").length;

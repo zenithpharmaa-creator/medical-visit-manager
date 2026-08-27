@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import { Alert, Keyboard, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 
 import { SANAA_NEIGHBORHOODS } from "@/data/sanaa-neighborhoods";
-import type { MapRegion } from "@/shared/map-types";
 import type { VisitLocation } from "@/shared/visit-types";
 
 type Props = {
@@ -15,11 +14,8 @@ type Props = {
   onConfirm: (value: { label: string; coordinates: VisitLocation }) => void;
 };
 
-const FALLBACK_REGION: MapRegion = { latitude: 15.3694, longitude: 44.191, latitudeDelta: 0.12, longitudeDelta: 0.12 };
-
 export function LocationPicker({ visible, value, onClose, onConfirm }: Props) {
   const [selected, setSelected] = useState(value);
-  const [region, setRegion] = useState<MapRegion>(value ? { latitude: value.coordinates.latitude, longitude: value.coordinates.longitude, latitudeDelta: 0.04, longitudeDelta: 0.04 } : FALLBACK_REGION);
   const [query, setQuery] = useState("");
   const [busy, setBusy] = useState(false);
   const [locationSettingsNeeded, setLocationSettingsNeeded] = useState(false);
@@ -27,13 +23,11 @@ export function LocationPicker({ visible, value, onClose, onConfirm }: Props) {
   useEffect(() => {
     setSelected(value);
     setLocationSettingsNeeded(false);
-    if (value) setRegion({ latitude: value.coordinates.latitude, longitude: value.coordinates.longitude, latitudeDelta: 0.04, longitudeDelta: 0.04 });
   }, [value, visible]);
 
   const selectCoordinate = (latitude: number, longitude: number, label: string, accuracy: number | null = null) => {
     Keyboard.dismiss();
     setSelected({ label, coordinates: { latitude, longitude, accuracy } });
-    setRegion({ latitude, longitude, latitudeDelta: 0.04, longitudeDelta: 0.04 });
   };
 
   const useCurrentLocation = async () => {

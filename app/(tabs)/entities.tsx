@@ -1,8 +1,8 @@
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import * as DocumentPicker from "expo-document-picker";
 import { File } from "expo-file-system";
-import { useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, Alert, FlatList, Modal, Platform, Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { useMemo, useState } from "react";
+import { ActivityIndicator, Alert, FlatList, Modal, Platform, Pressable, ScrollView, Text, View } from "react-native";
 import * as XLSX from "xlsx";
 import * as Location from "expo-location";
 
@@ -93,7 +93,6 @@ export default function EntitiesScreen() {
   const [showOfflineMap, setShowOfflineMap] = useState(Platform.OS === "android");
   const [incompleteModalVisible, setIncompleteModalVisible] = useState(false);
   const [missingFieldFilter, setMissingFieldFilter] = useState("all");
-  const [entityLimit, setEntityLimit] = useState(25);
   const [entityDropdownVisible, setEntityDropdownVisible] = useState(false);
   const [entityDropdownQuery, setEntityDropdownQuery] = useState("");
   const [entityPreviewVisible, setEntityPreviewVisible] = useState(true);
@@ -121,11 +120,6 @@ export default function EntitiesScreen() {
   const duplicateGroups = useMemo(() => duplicateEntityGroups(data.entities), [data.entities]);
   const failedLocationEntities = useMemo(() => data.entities.filter((entity) => getSanaaLocationFailureReason(entity.geographicCoordinates?.latitude, entity.geographicCoordinates?.longitude)), [data.entities]);
   const visibleEntities = useMemo(() => data.entities.filter((entity) => regionFilter === "all" || entity.region === regionFilter), [data.entities, regionFilter]);
-  const representativesForRegion = (entityRegion?: RepresentativeRegion) => data.representatives.filter((representative) => representative.active && (representative.region === "sanaa" || representative.region === entityRegion));
-  const displayedEntities = useMemo(() => visibleEntities.slice(0, entityLimit), [visibleEntities, entityLimit]);
-  const hasMoreEntities = displayedEntities.length < visibleEntities.length;
-  useEffect(() => { setEntityLimit(25); }, [regionFilter, data.entities.length]);
-  const loadMoreEntities = () => { if (hasMoreEntities) setEntityLimit((current) => Math.min(current + 25, visibleEntities.length)); };
   const dropdownEntities = useMemo(() => rankEntitiesForSearch(visibleEntities, entityDropdownQuery, 50), [visibleEntities, entityDropdownQuery]);
   const entityDropdownOptions = useMemo(() => dropdownEntities.map((entity) => ({
     label: entity.name,

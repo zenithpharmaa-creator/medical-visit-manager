@@ -66,7 +66,6 @@ export default function WeeklyPlanScreen() {
   const [repModal, setRepModal] = useState(false);
   const [entityModal, setEntityModal] = useState(false);
   const [shiftModal, setShiftModal] = useState(false);
-  const [selectedDayIndex, setSelectedDayIndex] = useState(0);
   const [selectedRep, setSelectedRep] = useState(
     session?.representativeId ?? data.representatives[0]?.id ?? "",
   );
@@ -83,9 +82,6 @@ export default function WeeklyPlanScreen() {
   const [weekOffset, setWeekOffset] = useState(0);
   const [filterModal, setFilterModal] = useState(false);
   const [statusPlan, setStatusPlan] = useState<PlannedVisit | null>(null);
-  const [approvalPlan, setApprovalPlan] = useState<PlannedVisit | null>(null);
-  const [approvalModalVisible, setApprovalModalVisible] = useState(false);
-  const [approvalReason, setApprovalReason] = useState("");
   const lastRepApprovalSnapshot = useRef<Record<string, string>>({});
   const lastAssignmentSnapshot = useRef<Record<string, boolean>>({});
   const [statusModalVisible, setStatusModalVisible] = useState(false);
@@ -212,7 +208,6 @@ export default function WeeklyPlanScreen() {
     }
     setEditingPlan(null);
     if (!isManager) setSelectedRep(currentRepId);
-    setSelectedDayIndex(index);
     const plannedDate = new Date(week[index].date);
     plannedDate.setHours(selectedShift === "morning" ? 8 : 16, 0, 0, 0);
     setScheduledDateTime(plannedDate);
@@ -220,8 +215,6 @@ export default function WeeklyPlanScreen() {
   };
   const openEditPlan = (plan: PlannedVisit) => { if (!isManager && plan.representativeId !== currentRepId) { Alert.alert("لا تملك الصلاحية", "يمكنك تعديل خطتك الأسبوعية الخاصة فقط."); return; } if (!isManager && (plan.approvalStatus === "approved" || plan.planStatus === "cancelled")) { Alert.alert("الخطة مقفلة", "لا يمكن تعديل الخطة بعد اعتمادها أو إلغائها."); return; } setEditingPlan(plan); setSelectedRep(plan.representativeId); setSelectedEntity(plan.entityId); setSelectedShift(plan.shift); setNotes(plan.notes ?? ""); setScheduledDateTime(new Date(plan.scheduledTime ?? `${plan.scheduledDate}T${plan.shift === "morning" ? "08:00" : "16:00"}:00`)); setModalVisible(true); };
   const approvePlan = (plan: PlannedVisit) => { updatePlannedVisit({ ...plan, approvalStatus: "approved", responseReason: undefined }); };
-  const openRejectPlan = (plan: PlannedVisit) => { setApprovalPlan(plan); setApprovalReason(""); setApprovalModalVisible(true); };
-  const rejectPlan = () => { if (!approvalPlan) return; if (approvalReason.trim().length < 3) { Alert.alert("سبب الرفض مطلوب", "اكتب سبباً مختصراً ليستفيد المندوب عند التعديل."); return; } updatePlannedVisit({ ...approvalPlan, approvalStatus: "rejected", responseReason: approvalReason.trim() }); setApprovalModalVisible(false); setApprovalPlan(null); };
   const openStatusModal = (plan: PlannedVisit) => { setStatusPlan(plan); setCancellationReason(""); setStatusModalVisible(true); };
   const savePlanStatus = (status: PlannedVisitStatus) => { if (!statusPlan) return; if (status === "cancelled" && cancellationReason.trim().length < 3) { Alert.alert("سبب الإلغاء مطلوب", "اكتب سبباً مختصراً لإلغاء الزيارة."); return; } updatePlannedVisit({ ...statusPlan, planStatus: status, cancellationReason: status === "cancelled" ? cancellationReason.trim() : undefined }); setStatusModalVisible(false); setStatusPlan(null); };
   const printTable = async () => { const rows = visibleWeek.map((day) => `<tr><td>${day.key}</td><td>${day.name}${day.holiday ? " (إجازة)" : ""}</td><td>${day.planned.filter((item) => item.shift === "morning").map((item) => `${item.entityName} — ${repName(item.representativeId)}`).join("<br>") || "—"}</td><td>${day.planned.filter((item) => item.shift === "evening").map((item) => `${item.entityName} — ${repName(item.representativeId)}`).join("<br>") || "—"}</td></tr>`).join(""); try { await Print.printAsync({ html: `<html dir="rtl"><head><meta charset="utf-8"><style>body{font-family:Arial;color:#101820}h1,h2{text-align:center}table{width:100%;border-collapse:collapse}th,td{border:1px solid #3f4748;padding:10px;text-align:right}th{background:#d4d8d8}td{height:54px} .brand{color:#2f6b50;text-align:center;font-weight:bold}</style></head><body><div class="brand">مدير الزيارات الطبية</div><h1>الخطة الأسبوعية</h1><h2>اسم المندوب: ${selectedRepFilter === "all" ? "جميع المندوبين" : repName(selectedRepFilter)}</h2><table><thead><tr><th>التاريخ</th><th>اليوم</th><th>الفترة الصباحية<br>08:00 – 13:00</th><th>الفترة المسائية<br>16:00 – 20:00</th></tr></thead><tbody>${rows}</tbody></table></body></html>` }); } catch { Alert.alert("تعذر الطباعة", "حاول مرة أخرى بعد التأكد من اتصال الطابعة."); } };
@@ -298,7 +291,7 @@ export default function WeeklyPlanScreen() {
               <Text className={`text-[10px] text-right ${plan.assignmentType === "assigned" ? "text-amber-700 font-bold" : "text-primary/80"}`}>{plan.assignmentType === "assigned" ? "مسندة من المدير" : plan.planStatus === "cancelled" ? "ملغاة" : plan.planStatus === "executed" ? "منفذة" : plan.approvalStatus === "pending" ? "بانتظار اعتماد المدير" : "معتمدة"} · {repName(plan.representativeId)}</Text>
               {plan.planStatus === "cancelled" && plan.cancellationReason ? <Text className="text-error/80 text-[10px] text-right">سبب الإلغاء: {plan.cancellationReason}</Text> : null}
             </Pressable>
-            {isManager && plan.approvalStatus === "pending" ? <View className="flex-row-reverse gap-1 mt-1"><Pressable onPress={() => approvePlan(plan)} className="rounded-md bg-primary px-2 py-1"><Text className="text-white text-[10px] font-bold">اعتماد</Text></Pressable><Pressable onPress={() => openRejectPlan(plan)} className="rounded-md bg-error px-2 py-1"><Text className="text-white text-[10px] font-bold">رفض</Text></Pressable></View> : null}
+            {isManager && plan.approvalStatus === "pending" ? <View className="flex-row-reverse gap-1 mt-1"><Pressable onPress={() => approvePlan(plan)} className="rounded-md bg-primary px-2 py-1"><Text className="text-white text-[10px] font-bold">اعتماد</Text></Pressable></View> : null}
             {isManager && plan.approvalStatus === "approved" && plan.planStatus !== "cancelled" ? <View className="flex-row-reverse gap-1 mt-1"><Pressable onPress={() => openStatusModal(plan)} className="rounded-md bg-success px-2 py-1"><Text className="text-white text-[10px] font-bold">منفذة</Text></Pressable><Pressable onPress={() => { setStatusPlan(plan); setCancellationReason(""); setStatusModalVisible(true); }} className="rounded-md bg-error px-2 py-1"><Text className="text-white text-[10px] font-bold">إلغاء</Text></Pressable></View> : null}
           </View>
         ))}

@@ -12,7 +12,7 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { MetricCard } from "@/components/metric-card";
 import { RepresentativeAvatar } from "@/components/representative-avatar";
@@ -56,7 +56,7 @@ export default function HomeScreen() {
     setVisitEditVisible(false);
     Alert.alert("تم تحديث الزيارة", "تم حفظ ملاحظات الزيارة بنجاح.");
   };
-  const createDailyBackup = async (force = false) => {
+  const createDailyBackup = useCallback(async (force = false) => {
     if (session?.role !== "manager") return;
     setBackupBusy(true);
     try {
@@ -64,7 +64,7 @@ export default function HomeScreen() {
       setBackupMeta(next);
     } catch { Alert.alert("تعذر إنشاء النسخة", "تحقق من مساحة التخزين المتاحة على الهاتف ثم حاول مرة أخرى."); }
     finally { setBackupBusy(false); }
-  };
+  }, [data, session?.role]);
   const importBackup = async () => {
     if (restoreBusy) return;
     setRestoreBusy(true);
@@ -100,7 +100,7 @@ export default function HomeScreen() {
     nextMidnight.setHours(0, 0, 5, 0);
     const timer = setTimeout(() => void createDailyBackup(), Math.max(1000, nextMidnight.getTime() - now.getTime()));
     return () => clearTimeout(timer);
-  }, [session?.role, loading]);
+  }, [createDailyBackup, loading, session?.role]);
   const activeRepresentative = session?.representativeId
     ? data.representatives.find((rep) => rep.id === session.representativeId)
     : undefined;

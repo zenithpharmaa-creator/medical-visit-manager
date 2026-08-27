@@ -3,7 +3,7 @@ import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
 import { File, Paths } from "expo-file-system";
 import * as XLSX from "xlsx";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Alert, Modal, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 
 import { ScreenContainer } from "@/components/screen-container";
@@ -39,8 +39,8 @@ export default function PlanApprovalsScreen() {
   const [selectedPlanIds, setSelectedPlanIds] = useState<Record<string, boolean>>({});
   const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "approved" | "rejected">("all");
   const [auditFilter, setAuditFilter] = useState<"all" | "approved" | "rejected">("all");
-  const start = weekStart(weekOffset);
-  const weekKeys = useMemo(() => Array.from({ length: 7 }, (_, index) => { const date = new Date(start); date.setDate(start.getDate() + index); return dateKey(date); }), [start.getTime()]);
+  const start = useMemo(() => weekStart(weekOffset), [weekOffset]);
+  const weekKeys = useMemo(() => Array.from({ length: 7 }, (_, index) => { const date = new Date(start); date.setDate(start.getDate() + index); return dateKey(date); }), [start]);
   const allPlans = useMemo(() => data.plannedVisits.filter((plan) => weekKeys.includes(plan.scheduledDate) && (selectedRep === "all" || plan.representativeId === selectedRep)), [data.plannedVisits, selectedRep, weekKeys]);
   const plans = allPlans.filter((plan) => statusFilter === "all" || (statusFilter === "pending" ? !plan.approvalStatus || plan.approvalStatus === "pending" : plan.approvalStatus === statusFilter));
   const pending = allPlans.filter((plan) => !plan.approvalStatus || plan.approvalStatus === "pending").length;
@@ -48,10 +48,10 @@ export default function PlanApprovalsScreen() {
   const rejected = allPlans.filter((plan) => plan.approvalStatus === "rejected").length;
   const history = (data.planApprovalHistory ?? []).filter((item) => weekKeys.includes(item.scheduledDate) && (selectedRep === "all" || item.representativeId === selectedRep) && (auditFilter === "all" || item.action === auditFilter)).slice(0, 30);
   const approvedPlans = allPlans.filter((plan) => plan.approvalStatus === "approved");
-  const executedForPlan = (plan: PlannedVisit) => data.visits.some((visit) => visit.representativeId === plan.representativeId && visit.entityId === plan.entityId && visit.recordedAt.startsWith(plan.scheduledDate));
+  const executedForPlan = useCallback((plan: PlannedVisit) => data.visits.some((visit) => visit.representativeId === plan.representativeId && visit.entityId === plan.entityId && visit.recordedAt.startsWith(plan.scheduledDate)), [data.visits]);
   const executedApproved = approvedPlans.filter(executedForPlan).length;
   const notExecutedApproved = approvedPlans.length - executedApproved;
-  const repComparison = useMemo(() => data.representatives.filter((rep) => rep.active).map((rep) => { const repPlans = data.plannedVisits.filter((plan) => weekKeys.includes(plan.scheduledDate) && plan.representativeId === rep.id && plan.approvalStatus === "approved"); const done = repPlans.filter(executedForPlan).length; return { id: rep.id, name: rep.name, approved: repPlans.length, done, remaining: repPlans.length - done, rate: repPlans.length ? Math.round((done / repPlans.length) * 100) : null }; }), [data.representatives, data.plannedVisits, data.visits, weekKeys]);
+  const repComparison = useMemo(() => data.representatives.filter((rep) => rep.active).map((rep) => { const repPlans = data.plannedVisits.filter((plan) => weekKeys.includes(plan.scheduledDate) && plan.representativeId === rep.id && plan.approvalStatus === "approved"); const done = repPlans.filter(executedForPlan).length; return { id: rep.id, name: rep.name, approved: repPlans.length, done, remaining: repPlans.length - done, rate: repPlans.length ? Math.round((done / repPlans.length) * 100) : null }; }), [data.representatives, data.plannedVisits, executedForPlan, weekKeys]);
   const lowExecution = repComparison.filter((rep) => rep.rate !== null && rep.rate < 60 && rep.approved > 0);
   const repName = (id: string) => data.representatives.find((rep) => rep.id === id)?.name ?? "مندوب غير محدد";
   const recordAudit = (plan: PlannedVisit, action: "approved" | "rejected", auditReason?: string) => addPlanApprovalAudit({ id: buildId("approval"), planId: plan.id, action, actedAt: new Date().toISOString(), actedBy: data.settings.managerName || "مدير النظام", representativeId: plan.representativeId, representativeName: repName(plan.representativeId), entityName: plan.entityName, scheduledDate: plan.scheduledDate, reason: auditReason });
