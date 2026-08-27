@@ -1,10 +1,49 @@
 import * as FileSystem from "expo-file-system/legacy";
+import * as Print from "expo-print";
 import * as XLSX from "xlsx";
 
 export { buildDailyVisitPdfHtml, buildDailyVisitExcelRows, formatDateArabic, formatDayArabic } from "./visit-report-format";
 export type { DailyVisitReportRow, DailyVisitReportHeader } from "./visit-report-format";
-import { buildDailyVisitExcelRows, type DailyVisitReportRow } from "./visit-report-format";
+import { buildDailyVisitExcelRows, buildDailyVisitPdfHtml, type DailyVisitReportRow } from "./visit-report-format";
 
+
+async function writeTextFile(fileName: string, contents: string) {
+  const directory = FileSystem.cacheDirectory ?? FileSystem.documentDirectory;
+  if (!directory) throw new Error("تعذر الوصول إلى مساحة تخزين الهاتف");
+  const uri = `${directory}${fileName}-${Date.now()}`;
+  await FileSystem.writeAsStringAsync(uri, contents, { encoding: FileSystem.EncodingType.UTF8 });
+  return uri;
+}
+
+export async function createDailyVisitPdfFile(rows: DailyVisitReportRow[], reportDate: string) {
+  const result = await Print.printToFileAsync({
+    html: buildDailyVisitPdfHtml(rows, reportDate, "مدير الزيارات الطبية"),
+    width: 1123,
+    height: 794,
+    margins: { left: 28, right: 28, top: 28, bottom: 34 },
+  });
+  return result.uri;
+}
+
+export async function createDailyVisitCsvFile(rows: DailyVisitReportRow[], reportDate: string) {
+  const report = buildDailyVisitExcelRows(rows, reportDate, "مدير الزيارات الطبية");
+  const csvRows = [
+    [report.appName],
+    [report.header.reportName],
+    ["اليوم", report.header.dayName, "التاريخ", report.header.date, "المندوب", report.header.representativeNames],
+    [],
+    report.columns,
+    ...report.body,
+    [],
+    ["إجمالي الزيارات", "", "", "", "", `صباح: ${report.summary.morning}`, `مساء: ${report.summary.evening}`, `الكل: ${report.summary.total}`],
+  ];
+  const escapeCell = (value: unknown) => `"${String(value ?? "").replace(/"/g, '""')}"`;
+  return writeTextFile("تقرير-زيارات.csv", `\uFEFF${csvRows.map((row) => row.map(escapeCell).join(",")).join("\n")}`);
+}
+
+export async function createDailyVisitHtmlFile(rows: DailyVisitReportRow[], reportDate: string) {
+  return writeTextFile("تقرير-زيارات.html", buildDailyVisitPdfHtml(rows, reportDate, "مدير الزيارات الطبية"));
+}
 
 export async function createDailyVisitExcelFile(rows: DailyVisitReportRow[], reportDate: string) {
   const report = buildDailyVisitExcelRows(rows, reportDate, "مدير الزيارات الطبية");
