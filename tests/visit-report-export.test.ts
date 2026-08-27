@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { buildDailyVisitPdfHtml } from "../lib/visit-report-export";
+import { buildDailyVisitPdfHtml } from "../lib/visit-report-format";
 
 describe("daily visit PDF export", () => {
   it("builds an Arabic A4 landscape report with the requested columns", () => {
@@ -16,7 +16,7 @@ describe("daily visit PDF export", () => {
         visitedItems: "منتج 1، منتج 2",
         notes: "ملاحظة",
       },
-    ], "2026-08-24", "مدير الزيارات الطبية");
+    ], "2026-08-24", "مدير الزيارات الطبية", "MV-20260824-000001");
 
     expect(html).toContain('<html lang="ar" dir="rtl">');
     expect(html).toContain("@page { size: A4 landscape;");
@@ -24,6 +24,9 @@ describe("daily visit PDF export", () => {
     expect(html).toContain("أقرب صيدلية");
     expect(html).toContain("الأصناف المزارة");
     expect(html).toContain("د. أحمد");
+    expect(html).toContain("الرقم التسلسلي:");
+    expect(html).toContain("MV-20260824-000001");
+    expect((html.match(/<strong>التاريخ:<\/strong>/g) ?? []).length).toBe(1);
   });
 
   it("renders an explicit empty-state message", () => {
