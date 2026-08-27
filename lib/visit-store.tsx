@@ -15,6 +15,7 @@ import { notifySyncStatus } from "@/lib/sync-notifications";
 import { appendSyncLog } from "@/lib/sync-history";
 import { startGlobalLoading } from "@/lib/navigation";
 import { resolvePasswordResetRequest as buildResolvedPasswordResetRequest } from "@/lib/password-reset";
+import { getYemenOfficialHolidaySeeds } from "@/lib/calendar-date";
 
 const STORAGE_KEY = "medical-visit-manager-data-v1";
 const EMBEDDED_COORDINATES_MIGRATION_KEY = "medical-visit-manager-embedded-coordinates-version";
@@ -25,6 +26,7 @@ const REP_1_ITEMS = ["Akisol 2mg tab", "Akisol 5mg tab", "Losart 50mg tab", "Mag
 const REP_2_ITEMS = [...REP_1_ITEMS];
 const REP_3_ITEMS = ["Amiram 25mg tab", "Amlocard 5mg tab", "Claritop 125mg susp", "Claritop 250mg tab", "Claritop 500mg tab", "Forticef 250mg susp", "Hyposec 20mg cap", "Infantril 50mg tab", "loxicam 15mg tab", "Zolam 0.25mg tab", "Zolam 0.5mg tab", "Trianil 25mg tab", "Vertizin 25mg tab", "Vertizin 75mg cap", "OflacinRam 200mg tab", "Ramoclav 156mg susp", "Ramoclav 312mg susp", "Motilat 1mg susp", "Motilat 10mg tab"];
 const REPRESENTATIVE_ITEMS: Record<string, string[]> = { "rep-1": REP_1_ITEMS, "rep-2": REP_2_ITEMS, "rep-3": REP_3_ITEMS };
+const DEFAULT_YEMEN_HOLIDAYS = getYemenOfficialHolidaySeeds(new Date().getFullYear());
 
 const INITIAL_DATA: AppData = {
   representatives: [
@@ -37,7 +39,7 @@ const INITIAL_DATA: AppData = {
   savedLocations: deriveSharedLocations(EMBEDDED_ENTITIES),
   plannedVisits: [],
   representativeLeaves: [],
-  officialHolidays: [],
+  officialHolidays: DEFAULT_YEMEN_HOLIDAYS,
   visits: [],
   settings: { managerName: "مدير النظام", reportEmail: "", reminderTime: "18:00", geofenceRadiusMeters: 200, managerPin: "", visitedItems: [] },
   planApprovalHistory: [],
@@ -112,7 +114,7 @@ export function VisitProvider({ children }: PropsWithChildren) {
             savedLocations: normalizeSharedLocations(parsed.savedLocations, mergedEntities),
             plannedVisits: normalizedPlannedVisits,
             representativeLeaves: parsed.representativeLeaves ?? [],
-            officialHolidays: parsed.officialHolidays ?? [],
+            officialHolidays: [...DEFAULT_YEMEN_HOLIDAYS.filter((holiday) => !(parsed.officialHolidays ?? []).some((saved) => saved.id === holiday.id)), ...(parsed.officialHolidays ?? [])],
             visits: normalizedVisits,
             planApprovalHistory: parsed.planApprovalHistory ?? [],
             emptyDayReviews: parsed.emptyDayReviews ?? [],

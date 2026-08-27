@@ -130,8 +130,10 @@ export default function ReportsScreen() {
   const { width } = useWindowDimensions();
   const compact = width < 390;
   const columns = width >= 700 ? 3 : 2;
+  const isManager = session?.role === "manager";
+  const visibleReportOptions = isManager ? REPORT_OPTIONS : REPORT_OPTIONS.filter((option) => option.route === "report-calendar");
 
-  if (session?.role !== "manager") {
+  if (!session) {
     return (
       <ScreenContainer className="px-5">
         <View className="flex-1 items-center justify-center">
@@ -146,13 +148,13 @@ export default function ReportsScreen() {
   return (
     <ScreenContainer className="px-5" containerClassName="bg-background">
       <ScrollView contentContainerStyle={{ paddingTop: 18, paddingBottom: 36 }} showsVerticalScrollIndicator={false}>
-        <ScreenHeader title="التقارير" subtitle="اختر نوع التقرير لعرض البيانات وتحليلها" icon="assessment" showBack />
+        <ScreenHeader title={isManager ? "التقارير" : "تقويم الزيارات"} subtitle={isManager ? "اختر نوع التقرير لعرض البيانات وتحليلها" : "عرض التقويم والتاريخين الميلادي والهجري للزيارات"} icon="assessment" showBack />
         <View className="rounded-2xl border border-primary/20 bg-primary/5 p-4 mb-5 flex-row-reverse items-center gap-3">
           <View className="w-11 h-11 rounded-xl bg-primary items-center justify-center"><MaterialIcons name="dashboard" size={22} color={colors.background} /></View>
           <View className="flex-1 items-end"><Text className="font-bold text-primary text-right">مركز التقارير</Text><Text className="text-xs text-muted text-right mt-1">اختر بطاقة للانتقال مباشرة إلى التقرير المطلوب.</Text></View>
         </View>
         <View className="flex-row-reverse flex-wrap" style={{ marginHorizontal: -6 }}>
-          {REPORT_OPTIONS.map((option) => (
+          {visibleReportOptions.map((option) => (
             <View key={option.route} style={{ width: `${100 / columns}%`, paddingHorizontal: 6, marginBottom: compact ? 9 : 12 }}>
               <ReportCard option={option} colors={colors} accent={colors[option.tone]} compact={compact} onPress={() => router.push(`/(tabs)/${option.route}` as never)} />
             </View>

@@ -1,6 +1,7 @@
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useMemo, useState } from "react";
 import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
+import { formatHijriDate, isYemenOfficialHoliday } from "@/lib/calendar-date";
 
 type Props = { visible: boolean; value?: string; title: string; onClose: () => void; onSelect: (value: string) => void };
 const pad = (value: number) => String(value).padStart(2, "0");
@@ -11,7 +12,7 @@ export function UnifiedDatePicker({ visible, value, title, onClose, onSelect }: 
   const [month, setMonth] = useState(new Date(initial.getFullYear(), initial.getMonth(), 1));
   const days = useMemo(() => { const firstDay = new Date(month.getFullYear(), month.getMonth(), 1).getDay(); const total = new Date(month.getFullYear(), month.getMonth() + 1, 0).getDate(); return [...Array(firstDay).fill(null), ...Array.from({ length: total }, (_, index) => index + 1)]; }, [month]);
   const selected = value || "";
-  return <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}><View style={styles.backdrop}><View style={styles.card}><View style={styles.header}><Pressable onPress={onClose} style={styles.iconButton} accessibilityLabel="إغلاق التقويم"><MaterialIcons name="close" size={22} color="#102A43" /></Pressable><Text style={styles.title}>{title}</Text></View><View style={styles.content}><View style={styles.monthHeader}><Pressable onPress={() => setMonth((current) => new Date(current.getFullYear(), current.getMonth() + 1, 1))} style={styles.iconButton} accessibilityLabel="الشهر التالي"><MaterialIcons name="chevron-right" size={24} color="#1257A6" /></Pressable><Text style={styles.monthTitle}>{month.toLocaleDateString("ar", { month: "long", year: "numeric" })}</Text><Pressable onPress={() => setMonth((current) => new Date(current.getFullYear(), current.getMonth() - 1, 1))} style={styles.iconButton} accessibilityLabel="الشهر السابق"><MaterialIcons name="chevron-left" size={24} color="#1257A6" /></Pressable></View><View style={styles.weekRow}>{["أحد", "اثن", "ثلا", "أرب", "خمي", "جمع", "سبت"].map((day) => <Text key={day} style={styles.weekDay}>{day}</Text>)}</View><View style={styles.grid}>{days.map((day, index) => { const date = day ? new Date(month.getFullYear(), month.getMonth(), day) : null; const dateValue = date ? formatDate(date) : ""; const isSelected = dateValue === selected; return <View key={`${dateValue}-${index}`} style={styles.cell}><Pressable disabled={!date} onPress={() => { if (dateValue) { onSelect(dateValue); onClose(); } }} style={[styles.dayButton, !date && styles.emptyDay, isSelected && styles.selectedDay]}><Text style={[styles.dayText, !date && styles.emptyText, isSelected && styles.selectedText]}>{day || "0"}</Text></Pressable></View>; })}</View></View></View></View></Modal>;
+  return <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}><View style={styles.backdrop}><View style={styles.card}><View style={styles.header}><Pressable onPress={onClose} style={styles.iconButton} accessibilityLabel="إغلاق التقويم"><MaterialIcons name="close" size={22} color="#102A43" /></Pressable><Text style={styles.title}>{title}</Text></View><View style={styles.content}><View style={styles.monthHeader}><Pressable onPress={() => setMonth((current) => new Date(current.getFullYear(), current.getMonth() + 1, 1))} style={styles.iconButton} accessibilityLabel="الشهر التالي"><MaterialIcons name="chevron-right" size={24} color="#1257A6" /></Pressable><Text style={styles.monthTitle}>{month.toLocaleDateString("ar", { month: "long", year: "numeric" })}</Text><Pressable onPress={() => setMonth((current) => new Date(current.getFullYear(), current.getMonth() - 1, 1))} style={styles.iconButton} accessibilityLabel="الشهر السابق"><MaterialIcons name="chevron-left" size={24} color="#1257A6" /></Pressable></View><View style={styles.weekRow}>{["أحد", "اثن", "ثلا", "أرب", "خمي", "جمع", "سبت"].map((day) => <Text key={day} style={styles.weekDay}>{day}</Text>)}</View><View style={styles.grid}>{days.map((day, index) => { const date = day ? new Date(month.getFullYear(), month.getMonth(), day) : null; const dateValue = date ? formatDate(date) : ""; const isSelected = dateValue === selected; const isHoliday = Boolean(date && isYemenOfficialHoliday(date)); return <View key={`${dateValue}-${index}`} style={styles.cell}><Pressable disabled={!date} onPress={() => { if (dateValue) { onSelect(dateValue); onClose(); } }} style={[styles.dayButton, !date && styles.emptyDay, isHoliday && styles.holidayDay, isSelected && styles.selectedDay]}><Text style={[styles.dayText, !date && styles.emptyText, isHoliday && styles.holidayText, isSelected && styles.selectedText]}>{day || "0"}</Text>{date ? <Text style={[styles.hijriText, isHoliday && styles.holidayText, isSelected && styles.selectedText]}>{formatHijriDate(date)}</Text> : null}</Pressable></View>; })}</View></View></View></View></Modal>;
 }
 
 const styles = StyleSheet.create({
@@ -27,10 +28,13 @@ const styles = StyleSheet.create({
   weekDay: { flex: 1, color: "#7C8798", fontSize: 12, fontWeight: "700", textAlign: "center" },
   grid: { flexDirection: "row-reverse", flexWrap: "wrap" },
   cell: { width: "14.2857%", padding: 4 },
-  dayButton: { height: 40, borderRadius: 12, backgroundColor: "#F5F8FC", alignItems: "center", justifyContent: "center" },
+  dayButton: { height: 52, borderRadius: 12, backgroundColor: "#F5F8FC", alignItems: "center", justifyContent: "center" },
+  holidayDay: { backgroundColor: "#DDF4E5", borderWidth: 1.5, borderColor: "#58B77A" },
   emptyDay: { backgroundColor: "transparent" },
   selectedDay: { backgroundColor: "#1257A6" },
-  dayText: { color: "#102A43", fontSize: 14, fontWeight: "700" },
+  dayText: { color: "#102A43", fontSize: 14, fontWeight: "800" },
+  hijriText: { color: "#6B7280", fontSize: 9, marginTop: 2 },
+  holidayText: { color: "#176B3A" },
   emptyText: { color: "transparent" },
   selectedText: { color: "#FFFFFF" },
 });
