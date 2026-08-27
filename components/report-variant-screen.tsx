@@ -19,7 +19,7 @@ import { isSingleDateReport, reportDateMatches } from "@/lib/report-date-filter"
 
 export type ReportVariant = "search" | "calendar" | "representatives" | "daily" | "monthly-representative" | "representatives-total" | "daily-analysis";
 type Config = { title: string; subtitle: string; icon: ComponentProps<typeof MaterialIcons>["name"] };
-type ReportRow = { id: string; first: string; second: string; third: string; fourth: string; fifth?: string };
+type ReportRow = { id: string; first: string; second: string; third: string; fourth: string; fifth?: string; sixth?: string; seventh?: string; eighth?: string };
 type SortKey = keyof Omit<ReportRow, "id">;
 type SelectOption = { value: string; label: string };
 
@@ -65,10 +65,25 @@ const SUMMARY_HEADERS: Array<{ key: SortKey; label: string; width?: number }> = 
   { key: "third", label: "عدد الأيام", width: 96 },
   { key: "fourth", label: "آخر زيارة", width: 112 },
 ];
+const DAILY_HEADERS: Array<{ key: SortKey; label: string; width?: number }> = [
+  { key: "first", label: "الطبيب", width: 150 },
+  { key: "second", label: "الكلاس", width: 110 },
+  { key: "third", label: "التخصص", width: 140 },
+  { key: "fourth", label: "الفترة", width: 88 },
+  { key: "fifth", label: "الملاحظات", width: 220 },
+  { key: "sixth", label: "التاريخ", width: 112 },
+  { key: "seventh", label: "المندوب", width: 140 },
+  { key: "eighth", label: "الأصناف", width: 180 },
+];
 
 const dateText = (iso: string) => {
   const date = new Date(iso);
   return Number.isNaN(date.getTime()) ? iso.slice(0, 10) : localDateKey(date);
+};
+
+const visitShiftText = (iso: string) => {
+  const hour = new Date(iso).getHours();
+  return hour >= 16 && hour < 21 ? "مساء" : "صباح";
 };
 
 const compareValues = (left: string, right: string) => {
@@ -312,11 +327,22 @@ export function ReportVariantScreen({ variant }: { variant: ReportVariant }) {
 
   const rows = useMemo<ReportRow[]>(() => {
     if (variant === "monthly-representative" || variant === "representatives-total") return data.representatives.map((rep) => { const visits = filteredVisits.filter((visit) => visit.representativeId === rep.id); return { id: rep.id, first: rep.name, second: String(visits.length), third: String(new Set(visits.map((visit) => dateText(visit.recordedAt))).size), fourth: visits.length ? dateText(visits.reduce((latest, visit) => latest.recordedAt > visit.recordedAt ? latest : visit).recordedAt) : "—" }; });
+    if (variant === "daily") return filteredVisits.map((visit) => ({
+      id: visit.id,
+      first: visit.entityName,
+      second: visit.category || "—",
+      third: visit.specialty || "—",
+      fourth: visitShiftText(visit.recordedAt),
+      fifth: visit.notes || "—",
+      sixth: dateText(visit.recordedAt),
+      seventh: data.representatives.find((rep) => rep.id === visit.representativeId)?.name || "غير محدد",
+      eighth: visit.visitedItems?.join("، ") || "—",
+    }));
     return filteredVisits.map((visit) => ({ id: visit.id, first: visit.entityName, second: data.representatives.find((rep) => rep.id === visit.representativeId)?.name || "غير محدد", third: dateText(visit.recordedAt), fourth: visit.visitedItems?.join("، ") || "—", fifth: visit.entityAddress || visit.geographicLocation || "—" }));
   }, [data.representatives, filteredVisits, variant]);
   const sortedRows = useMemo(() => [...rows].sort((left, right) => { const result = compareValues(String(left[sortKey] ?? ""), String(right[sortKey] ?? "")); return sortDirection === "asc" ? result : -result; }), [rows, sortDirection, sortKey]);
   const toggleSort = (key: SortKey) => { if (sortKey === key) setSortDirection((current) => current === "asc" ? "desc" : "asc"); else { setSortKey(key); setSortDirection("asc"); } };
-  const headers = ["monthly-representative", "representatives-total"].includes(variant) ? SUMMARY_HEADERS : DETAIL_HEADERS;
+  const headers = variant === "daily" ? DAILY_HEADERS : ["monthly-representative", "representatives-total"].includes(variant) ? SUMMARY_HEADERS : DETAIL_HEADERS;
   const sortLabel = sortDirection === "asc" ? "تصاعدي" : "تنازلي";
   const previousReport = REPORT_ROUTES[(reportIndex - 1 + REPORT_ROUTES.length) % REPORT_ROUTES.length];
   const nextReport = REPORT_ROUTES[(reportIndex + 1) % REPORT_ROUTES.length];

@@ -14,7 +14,18 @@ describe("daily visit PDF export", () => {
         nearestPharmacy: "صيدلية قريبة",
         shift: "صباح",
         visitedItems: "منتج 1، منتج 2",
-        notes: "ملاحظة",
+        notes: "ملاحظة صباحية",
+      },
+      {
+        representativeName: "مندوب تجريبي",
+        entityName: "د. سارة",
+        category: "B",
+        specialty: "Cardiology",
+        entityAddress: "صنعاء",
+        nearestPharmacy: "صيدلية أخرى",
+        shift: "مساء",
+        visitedItems: "منتج 3",
+        notes: "ملاحظة مسائية",
       },
     ], "2026-08-24", "مدير الزيارات الطبية");
 
@@ -24,6 +35,11 @@ describe("daily visit PDF export", () => {
     expect(html).toContain("عنوان الطبيب");
     expect(html).toContain("أقرب صيدلية");
     expect(html).toContain("الأصناف المزارة");
+    expect(html).toContain("الفترة");
+    expect(html).toContain("صباح");
+    expect(html).toContain("مساء");
+    expect(html).toContain("ملاحظة صباحية");
+    expect(html).toContain("ملاحظة مسائية");
     expect(html).toContain("د. أحمد");
     expect(html).not.toContain("الرقم التسلسلي");
     expect(html).not.toContain("serial-banner");
