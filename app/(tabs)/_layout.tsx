@@ -1,7 +1,6 @@
 import { Tabs, useRouter } from "expo-router";
 import type { BottomTabBarButtonProps } from "@react-navigation/bottom-tabs";
-import { useState } from "react";
-import { Modal, Platform, Pressable, Text, View, useWindowDimensions } from "react-native";
+import { Platform, Pressable, Text, useWindowDimensions } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { HapticTab } from "@/components/haptic-tab";
@@ -14,25 +13,10 @@ function ReportsTabButton({ style: tabStyle, accessibilityState }: BottomTabBarB
   const router = useRouter();
   const isActive = accessibilityState?.selected === true;
   const iconColor = isActive ? "#1257A6" : "#64748B";
-  const [visible, setVisible] = useState(false);
-  const open = (route: string) => {
-    setVisible(false);
-    router.push(`/(tabs)/${route}` as never);
-  };
-  return <>
-    <Pressable onPress={() => setVisible(true)} accessibilityState={accessibilityState} style={({ pressed }) => [tabStyle, { flex: 1, height: "100%", minWidth: 0, paddingTop: 0, paddingBottom: 0, alignItems: "center", justifyContent: "center", borderRadius: 14, backgroundColor: pressed ? "rgba(21,101,192,0.18)" : "transparent" }, isActive && { shadowColor: "#1257A6", shadowOpacity: Platform.OS === "web" ? 0.16 : 0.24, shadowRadius: 5, shadowOffset: { width: 0, height: 2 }, elevation: Platform.OS === "android" ? 4 : 0 }]}>
-      <MaterialIcons name="assessment" size={23} color={iconColor} />
-      <Text style={{ fontSize: 10, fontWeight: "700", color: iconColor, marginTop: 2 }}>التقارير</Text>
-    </Pressable>
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={() => setVisible(false)}>
-      <Pressable onPress={() => setVisible(false)} style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.28)", justifyContent: "flex-end" }}>
-        <Pressable onPress={(event) => event.stopPropagation()} style={{ margin: 10, width: "33%", minWidth: 220, maxWidth: 360, alignSelf: "flex-end", borderRadius: 16, overflow: "hidden", backgroundColor: "#FFFFFF", borderWidth: 1, borderColor: "#D8E0EA" }}>
-          <Text style={{ padding: 9, textAlign: "right", fontWeight: "700", color: "#64748B", backgroundColor: "#F1F5F9", fontSize: 11 }}>التقارير</Text>
-          {([["report-print", "طباعة", "print"], ["report-daily-analysis", "تحليل يومي", "analytics"], ["report-search", "بحث شامل", "search"], ["report-monthly", "شهري حسب المندوب", "date-range"], ["report-total", "إجمالي للمندوبين", "summarize"], ["report-calendar", "تقويم", "calendar-month"], ["report-representatives", "للمندوبين متنوع", "people"]] as const).map(([route, label, icon], index) => <Pressable key={route} onPress={() => open(route)} style={({ pressed }) => [{ minHeight: 38, paddingHorizontal: 7, paddingVertical: 6, flexDirection: "row-reverse", alignItems: "center", justifyContent: "space-between", borderBottomWidth: index === 6 ? 0 : 1, borderBottomColor: "#E2E8F0" }, pressed && { backgroundColor: "#EAF3FB" }]}><Text style={{ flex: 1, fontWeight: "700", color: "#102A43", fontSize: 10, lineHeight: 13, textAlign: "right" }} numberOfLines={2}>{label}</Text><MaterialIcons name={icon} size={16} color="#1257A6" /></Pressable>)}
-        </Pressable>
-      </Pressable>
-    </Modal>
-  </>;
+  return <Pressable onPress={() => router.push("/(tabs)/reports" as never)} accessibilityState={accessibilityState} accessibilityRole="tab" accessibilityLabel="فتح شاشة التقارير" style={({ pressed }) => [tabStyle, { flex: 1, height: "100%", minWidth: 0, paddingTop: 0, paddingBottom: 0, alignItems: "center", justifyContent: "center", borderRadius: 14, backgroundColor: pressed ? "rgba(21,101,192,0.18)" : "transparent" }, isActive && { shadowColor: "#1257A6", shadowOpacity: Platform.OS === "web" ? 0.16 : 0.24, shadowRadius: 5, shadowOffset: { width: 0, height: 2 }, elevation: Platform.OS === "android" ? 4 : 0 }]}>
+    <MaterialIcons name="assessment" size={23} color={iconColor} />
+    <Text style={{ fontSize: 10, fontWeight: "700", color: iconColor, marginTop: 2 }}>التقارير</Text>
+  </Pressable>;
 }
 
 export default function TabLayout() {
