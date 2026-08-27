@@ -107,3 +107,10 @@ export async function createDailyVisitExcelFile(rows: DailyVisitReportRow[], rep
   await FileSystem.writeAsStringAsync(uri, base64, { encoding: FileSystem.EncodingType.Base64 });
   return uri;
 }
+
+
+export async function createMonthlyVisitDetailsCsvFile(visits: Array<{ entityName: string; recordedAt: string; entityAddress?: string; geographicLocation?: string }>, doctorName: string, monthLabel: string) {
+  const escapeCell = (value: unknown) => `"${String(value ?? "").replace(/"/g, '""')}"`;
+  const rows = [["الطبيب", doctorName], ["الشهر", monthLabel], [], ["اسم الجهة", "وقت الزيارة", "العنوان", "الموقع الجغرافي"], ...visits.map((visit) => [visit.entityName, new Date(visit.recordedAt).toLocaleString("ar-YE"), visit.entityAddress || "", visit.geographicLocation || ""])];
+  return writeTextFile(`تفاصيل-${doctorName}-${monthLabel}.csv`, `\uFEFF${rows.map((row) => row.map(escapeCell).join(",")).join("\n")}`, "text/csv");
+}

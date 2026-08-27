@@ -17,6 +17,11 @@ describe("monthly report format", () => {
     expect(rows.find((row) => row.entityName === "طبيب ب")?.counts[1]).toBe(1);
   });
 
+  it("switches the displayed data between 2025 and 2026", () => {
+    expect(buildMonthlyReportRows(visits, 2025)).toEqual([{ entityName: "طبيب ب", counts: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1] }]);
+    expect(buildMonthlyReportRows(visits, 2026)).toHaveLength(2);
+  });
+
   it("calculates and places the automatic monthly total row", () => {
     const rows = buildMonthlyReportRows(visits, 2026);
     expect(monthlyReportTotals(rows)).toEqual([2, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
