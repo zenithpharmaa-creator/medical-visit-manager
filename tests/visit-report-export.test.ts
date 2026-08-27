@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { buildDailyVisitPdfHtml } from "../lib/visit-report-format";
+import { buildDailyVisitExcelRows, buildDailyVisitPdfHtml } from "../lib/visit-report-format";
 
 describe("daily visit PDF export", () => {
   it("builds an Arabic A4 landscape report with the requested columns", () => {
@@ -40,12 +40,26 @@ describe("daily visit PDF export", () => {
     expect(html).toContain("مساء");
     expect(html).toContain("ملاحظة صباحية");
     expect(html).toContain("ملاحظة مسائية");
+    expect(html).toContain("إجمالي الزيارات");
+    expect(html).toContain("صباح: 1");
+    expect(html).toContain("مساء: 1");
+    expect(html).toContain("الكل: 2");
     expect(html).toContain("د. أحمد");
     expect(html).not.toContain("الرقم التسلسلي");
     expect(html).not.toContain("serial-banner");
     expect(html).not.toContain("MV-");
     expect(html).not.toContain("\\\\n");
     expect((html.match(/<strong>التاريخ:<\/strong>/g) ?? []).length).toBe(1);
+  });
+
+  it("adds separate morning and evening totals to Excel rows", () => {
+    const report = buildDailyVisitExcelRows([
+      { representativeName: "مندوب", entityName: "طبيب 1", shift: "صباح", visitedItems: "صنف", notes: "" },
+      { representativeName: "مندوب", entityName: "طبيب 2", shift: "مساء", visitedItems: "صنف", notes: "" },
+      { representativeName: "مندوب", entityName: "طبيب 3", shift: "مساء", visitedItems: "صنف", notes: "" },
+    ], "2026-08-24");
+    expect(report.summary).toEqual({ total: 3, morning: 1, evening: 2 });
+    expect(report.columns).toContain("الكلاس");
   });
 
   it("renders an explicit empty-state message", () => {

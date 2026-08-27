@@ -15,15 +15,25 @@ export async function createDailyVisitExcelFile(rows: DailyVisitReportRow[], rep
     [],
     report.columns,
     ...report.body,
+    [],
+    ["إجمالي الزيارات", "", "", "", "", `صباح: ${report.summary.morning}`, `مساء: ${report.summary.evening}`, `الكل: ${report.summary.total}`],
   ];
   const worksheet = XLSX.utils.aoa_to_sheet(worksheetRows);
   worksheet["!merges"] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 7 } }, { s: { r: 1, c: 0 }, e: { r: 1, c: 7 } }];
-  worksheet["!cols"] = report.columns.map((column) => ({ wch: Math.max(14, Math.min(32, column.length + 6)) }));
+  worksheet["!cols"] = [
+    { wch: 22 }, { wch: 16 }, { wch: 20 }, { wch: 28 },
+    { wch: 24 }, { wch: 14 }, { wch: 30 }, { wch: 34 },
+  ];
   worksheet["A1"].s = { font: { bold: true, sz: 15, color: { rgb: "183B63" } }, alignment: { horizontal: "center" } };
   worksheet["A2"].s = { font: { bold: true, sz: 13, color: { rgb: "172B4D" } }, alignment: { horizontal: "center" } };
   for (let column = 0; column < report.columns.length; column += 1) {
     const cell = XLSX.utils.encode_cell({ r: 4, c: column });
-    worksheet[cell].s = { font: { bold: true, color: { rgb: "172B4D" } }, fill: { fgColor: { rgb: "E5E8EB" } }, alignment: { horizontal: "center" } };
+    worksheet[cell].s = { font: { bold: true, color: { rgb: "172B4D" } }, fill: { fgColor: { rgb: "E5E8EB" } }, alignment: { horizontal: "center", vertical: "center", wrapText: true } };
+  }
+  const totalRowIndex = 6 + report.body.length;
+  for (let column = 0; column < report.columns.length; column += 1) {
+    const cell = XLSX.utils.encode_cell({ r: totalRowIndex, c: column });
+    worksheet[cell].s = { font: { bold: true, color: { rgb: "123B68" } }, fill: { fgColor: { rgb: "DBEAFE" } }, alignment: { horizontal: "center", vertical: "center", wrapText: true } };
   }
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, worksheet, "تقرير الزيارات");

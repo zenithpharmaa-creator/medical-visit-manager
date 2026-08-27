@@ -17,6 +17,17 @@ export type DailyVisitReportHeader = {
   representativeNames: string;
 };
 
+export type DailyVisitReportSummary = { total: number; morning: number; evening: number };
+
+export function summarizeDailyVisitRows(rows: DailyVisitReportRow[]): DailyVisitReportSummary {
+  return rows.reduce<DailyVisitReportSummary>((summary, row) => {
+    if (row.shift === "مساء") summary.evening += 1;
+    else summary.morning += 1;
+    summary.total += 1;
+    return summary;
+  }, { total: 0, morning: 0, evening: 0 });
+}
+
 function escapeHtml(value: string | undefined) {
   return String(value ?? "—")
     .replace(/&/g, "&amp;")
@@ -44,6 +55,7 @@ const logoSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="42" height="42" 
 export function buildDailyVisitPdfHtml(rows: DailyVisitReportRow[], reportDate: string, appName = "مدير الزيارات الطبية") {
   const representativeNames = [...new Set(rows.map((row) => row.representativeName).filter(Boolean))].join("، ") || "جميع المندوبين";
   const dayName = formatDayArabic(reportDate);
+  const summary = summarizeDailyVisitRows(rows);
   const tableRows = rows.map((row) => `
     <tr>
       <td>${escapeHtml(row.entityName)}</td>
@@ -73,13 +85,19 @@ export function buildDailyVisitPdfHtml(rows: DailyVisitReportRow[], reportDate: 
     .meta { min-width: 245px; font-size: 10px; line-height: 1.8; color: #465466; }
     .meta strong { color: #172b4d; }
     .summary { display: flex; flex-direction: row-reverse; gap: 8px; margin-bottom: 9px; }
+    .total-row td { background: #dbeafe; color: #123b68; font-weight: 800; text-align: center; border-top: 2px solid #4b78a8; }
+    .total-row td:first-child { text-align: right; }
+
     .summary span { border: 1px solid #aeb8c4; border-radius: 3px; padding: 4px 8px; background: #f4f6f8; color: #334155; }
-    table { width: 100%; border-collapse: collapse; table-layout: fixed; direction: rtl; }
-    th { background: #e5e8eb; color: #172b4d; border: 1px solid #6b7280; font-weight: 800; padding: 6px 4px; text-align: center; vertical-align: middle; }
-    td { border: 1px solid #8b949e; padding: 5px 4px; min-height: 24px; vertical-align: middle; text-align: right; word-break: break-word; }
+    table { width: 100%; border-collapse: collapse; table-layout: fixed; direction: rtl; font-size: 9px; }
+    thead { display: table-header-group; }
+    tfoot { display: table-row-group; }
+    tr { page-break-inside: avoid; }
+    th { background: #e5e8eb; color: #172b4d; border: 1px solid #6b7280; font-weight: 800; padding: 5px 3px; line-height: 1.3; text-align: center; vertical-align: middle; }
+    td { border: 1px solid #8b949e; padding: 5px 3px; min-height: 24px; line-height: 1.35; vertical-align: middle; text-align: right; overflow-wrap: anywhere; word-break: break-word; }
     tbody tr:nth-child(even) { background: #fafafa; }
-    .col-doctor { width: 14%; } .col-category { width: 8%; } .col-specialty { width: 9%; } .col-address { width: 18%; }
-    .col-pharmacy { width: 14%; } .col-shift { width: 7%; } .col-items { width: 18%; } .col-notes { width: 12%; }
+    .col-doctor { width: 13%; } .col-category { width: 8%; } .col-specialty { width: 12%; } .col-address { width: 17%; }
+    .col-pharmacy { width: 12%; } .col-shift { width: 7%; } .col-items { width: 17%; } .col-notes { width: 14%; }
     .empty { text-align: center; padding: 24px; border: 1px solid #8b949e; color: #657184; }
     .footer { margin-top: 8px; display: flex; justify-content: space-between; color: #657184; font-size: 9px; }
   </style>
@@ -92,7 +110,7 @@ export function buildDailyVisitPdfHtml(rows: DailyVisitReportRow[], reportDate: 
       <div class="meta"><div><strong>المندوب:</strong> ${escapeHtml(representativeNames)}</div><div><strong>اليوم:</strong> ${escapeHtml(dayName)}</div><div><strong>التاريخ:</strong> ${escapeHtml(formatDateArabic(reportDate))}</div></div>
     </header>
     <div class="summary"><span>عدد السجلات: ${rows.length}</span><span>اتجاه الطباعة: عرضي</span></div>
-    ${rows.length ? `<table><thead><tr><th class="col-doctor">الطبيب</th><th class="col-category">التصنيف</th><th class="col-specialty">التخصص</th><th class="col-address">عنوان الطبيب</th><th class="col-pharmacy">أقرب صيدلية</th><th class="col-shift">الفترة</th><th class="col-items">الأصناف المزارة</th><th class="col-notes">ملاحظات الزيارة</th></tr></thead><tbody>${tableRows}</tbody></table>` : `<div class="empty">لا توجد زيارات في التاريخ أو الفلاتر المحددة.</div>`}
+    ${rows.length ? `<table><thead><tr><th class="col-doctor">الطبيب</th><th class="col-category">الكلاس</th><th class="col-specialty">التخصص</th><th class="col-address">عنوان الطبيب</th><th class="col-pharmacy">أقرب صيدلية</th><th class="col-shift">الفترة</th><th class="col-items">الأصناف المزارة</th><th class="col-notes">ملاحظات الزيارة</th></tr></thead><tbody>${tableRows}</tbody><tfoot><tr class="total-row"><td colspan="5">إجمالي الزيارات</td><td>صباح: ${summary.morning}</td><td>مساء: ${summary.evening}</td><td>الكل: ${summary.total}</td></tr></tfoot></table>` : `<div class="empty">لا توجد زيارات في التاريخ أو الفلاتر المحددة.</div>`}
     <footer class="footer"><span>تم الإنشاء من ${escapeHtml(appName)}</span><span>التقرير اليومي — ${escapeHtml(dayName)} — ${escapeHtml(formatDateArabic(reportDate))}</span></footer>
   </main>
 </body>
@@ -101,13 +119,14 @@ export function buildDailyVisitPdfHtml(rows: DailyVisitReportRow[], reportDate: 
 
 export function buildDailyVisitExcelRows(rows: DailyVisitReportRow[], reportDate: string, appName = "مدير الزيارات الطبية") {
   const representativeNames = [...new Set(rows.map((row) => row.representativeName).filter(Boolean))].join("، ") || "جميع المندوبين";
+  const summary = summarizeDailyVisitRows(rows);
   const header: DailyVisitReportHeader = {
     reportName: "التقرير اليومي",
     dayName: formatDayArabic(reportDate),
     date: formatDateArabic(reportDate),
     representativeNames,
   };
-  const columns = ["الطبيب", "التصنيف", "التخصص", "عنوان الطبيب", "أقرب صيدلية", "الفترة", "الأصناف المزارة", "ملاحظات الزيارة"];
+  const columns = ["الطبيب", "الكلاس", "التخصص", "عنوان الطبيب", "أقرب صيدلية", "الفترة", "الأصناف المزارة", "ملاحظات الزيارة"];
   const body = rows.map((row) => [row.entityName, row.category || "", row.specialty || "", row.entityAddress || "", row.nearestPharmacy || "", row.shift, row.visitedItems, row.notes || ""]);
-  return { appName, header, columns, body };
+  return { appName, header, columns, body, summary };
 }
