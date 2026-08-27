@@ -26,7 +26,7 @@ function ReportsTabButton({ style: tabStyle, accessibilityState }: BottomTabBarB
     </Pressable>
     <Modal visible={visible} transparent animationType="fade" onRequestClose={() => setVisible(false)}>
       <Pressable onPress={() => setVisible(false)} style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.28)", justifyContent: "flex-end" }}>
-        <Pressable onPress={(event) => event.stopPropagation()} style={{ margin: 10, width: "40%", minWidth: 0, maxWidth: 260, alignSelf: "flex-end", borderRadius: 16, overflow: "hidden", backgroundColor: "#FFFFFF", borderWidth: 1, borderColor: "#D8E0EA" }}>
+        <Pressable onPress={(event) => event.stopPropagation()} style={{ margin: 10, width: "33%", minWidth: 220, maxWidth: 360, alignSelf: "flex-end", borderRadius: 16, overflow: "hidden", backgroundColor: "#FFFFFF", borderWidth: 1, borderColor: "#D8E0EA" }}>
           <Text style={{ padding: 9, textAlign: "right", fontWeight: "700", color: "#64748B", backgroundColor: "#F1F5F9", fontSize: 11 }}>التقارير</Text>
           {([["report-print", "طباعة", "print"], ["report-daily-analysis", "تحليل يومي", "analytics"], ["report-search", "بحث شامل", "search"], ["report-monthly", "شهري حسب المندوب", "date-range"], ["report-total", "إجمالي للمندوبين", "summarize"], ["report-calendar", "تقويم", "calendar-month"], ["report-representatives", "للمندوبين متنوع", "people"]] as const).map(([route, label, icon], index) => <Pressable key={route} onPress={() => open(route)} style={({ pressed }) => [{ minHeight: 38, paddingHorizontal: 7, paddingVertical: 6, flexDirection: "row-reverse", alignItems: "center", justifyContent: "space-between", borderBottomWidth: index === 6 ? 0 : 1, borderBottomColor: "#E2E8F0" }, pressed && { backgroundColor: "#EAF3FB" }]}><Text style={{ flex: 1, fontWeight: "700", color: "#102A43", fontSize: 10, lineHeight: 13, textAlign: "right" }} numberOfLines={2}>{label}</Text><MaterialIcons name={icon} size={16} color="#1257A6" /></Pressable>)}
         </Pressable>
@@ -63,6 +63,7 @@ export default function TabLayout() {
       <Tabs.Screen name="device-activation" options={{ href: null }} />
       <Tabs.Screen name="sync-history" options={{ href: null }} />
       <Tabs.Screen name="representative-scope" options={{ href: null }} />
+      <Tabs.Screen name="representative-leaves" options={{ href: null, title: "إجازات المندوبين" }} />
       <Tabs.Screen name="missing-coordinates" options={{ href: null }} />
       <Tabs.Screen name="report-search" options={{ href: null, title: "بحث شامل" }} />
       <Tabs.Screen name="report-calendar" options={{ href: null, title: "تقويم" }} />

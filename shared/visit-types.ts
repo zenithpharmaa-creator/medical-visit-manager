@@ -3,6 +3,16 @@ export type CurrentEntityKind = "عيادة" | "مستشفى حكومي" | "مس
 export type LegacyEntityKind = "صيدلية" | "مستشفى" | "مركز طبي";
 export type EntityKind = CurrentEntityKind | LegacyEntityKind;
 export type VisitShift = "morning" | "evening";
+export type RepresentativeLeavePeriod = "full-day" | VisitShift;
+export type RepresentativeLeave = {
+  id: string;
+  representativeId: string;
+  date: string;
+  period: RepresentativeLeavePeriod;
+  note?: string;
+  createdAt: string;
+  updatedAt?: string;
+};
 
 export type RepresentativeRegion = "north" | "south" | "sanaa";
 
@@ -186,6 +196,7 @@ export type AppData = {
   entities: MedicalEntity[];
   visits: Visit[];
   plannedVisits: PlannedVisit[];
+  representativeLeaves?: RepresentativeLeave[];
   settings: AppSettings;
   savedLocations?: SharedLocation[];
   planApprovalHistory?: PlanApprovalAudit[];
