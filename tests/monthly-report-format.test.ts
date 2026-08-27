@@ -54,4 +54,19 @@ describe("monthly report format", () => {
     expect(pdf).toContain("الإجمالي");
     expect(buildMonthlyVisitExcelRows(rows, 2026).rows[0]).toContain("Dec-2026");
   });
+
+  it("keeps the representatives-total layout stable for display and exports", () => {
+    const representatives = [{ id: "rep-1", name: "مندوب أ" }, { id: "rep-2", name: "مندوب ب" }];
+    const rows = buildRepresentativeTotalReportRows([
+      { representativeId: "rep-1", representativeName: "مندوب أ", entityId: "doctor-1", entityName: "طبيب أ", recordedAt: "2026-01-01T10:00:00.000Z" },
+      { representativeId: "rep-2", representativeName: "مندوب ب", entityId: "doctor-1", entityName: "طبيب أ", recordedAt: "2026-01-02T10:00:00.000Z" },
+    ], representatives);
+    const excel = buildRepresentativeTotalVisitExcelRows(rows, representatives).rows;
+    const pdf = buildRepresentativeTotalVisitPdfHtml(rows, representatives);
+    expect(excel[0]).toEqual(["", "مندوب أ", "مندوب ب"]);
+    expect(excel[1]).toEqual(["اسم الطبيب", "عدد الزيارات", "عدد الزيارات"]);
+    expect(excel[2]).toEqual(["طبيب أ", 1, 1]);
+    expect(pdf.indexOf("اسم الطبيب")).toBeLessThan(pdf.indexOf("طبيب أ"));
+    expect(pdf).toContain("مندوب ب");
+  });
 });
