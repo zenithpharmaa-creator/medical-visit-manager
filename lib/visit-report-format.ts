@@ -72,6 +72,8 @@ export function buildDailyVisitPdfHtml(rows: DailyVisitReportRow[], reportDate: 
     * { box-sizing: border-box; }
     body { margin: 0; color: #182230; background: #fff; font-family: Arial, "Tahoma", sans-serif; direction: rtl; font-size: 10px; }
     .report { width: 100%; }
+    .serial-banner { display: flex; flex-direction: row-reverse; justify-content: space-between; align-items: center; border: 1px solid #9db5cf; border-radius: 4px; background: #eef5fb; color: #173b63; padding: 5px 8px; margin-bottom: 8px; font-size: 10px; font-weight: 800; }
+    .serial-banner strong { color: #0b4f91; }
     .header { display: flex; flex-direction: row-reverse; justify-content: space-between; align-items: center; border-bottom: 2px solid #25364a; padding: 0 0 8px; margin-bottom: 10px; gap: 14px; }
     .brand { display: flex; flex-direction: row; align-items: center; gap: 7px; min-width: 190px; font-size: 14px; font-weight: 800; color: #183b63; }
     .brand img { width: 42px; height: 42px; }
@@ -92,6 +94,7 @@ export function buildDailyVisitPdfHtml(rows: DailyVisitReportRow[], reportDate: 
 </head>
 <body>
   <main class="report">
+    <div class="serial-banner"><strong>الرقم التسلسلي للتقرير: ${escapeHtml(reportSerial)}</strong><span>تقرير الزيارات اليومية</span></div>
     <header class="header">
       <div class="brand"><img src="data:image/svg+xml;utf8,${encodeURIComponent(logoSvg)}" alt="شعار" /><span>${escapeHtml(appName)}</span></div>
       <div class="title">التقرير اليومي</div>

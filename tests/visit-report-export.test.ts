@@ -27,6 +27,8 @@ describe("daily visit PDF export", () => {
     expect(html).toContain("د. أحمد");
     expect(html).toContain("الرقم التسلسلي:");
     expect(html).toContain("MV-20260824-000001");
+    expect(html.indexOf('class="serial-banner"')).toBeLessThan(html.indexOf('class="header"'));
+    expect(html).not.toContain("\\\\n");
     expect((html.match(/<strong>التاريخ:<\/strong>/g) ?? []).length).toBe(1);
   });
 
