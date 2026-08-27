@@ -40,7 +40,11 @@ export function getYemenOfficialHolidaySeeds(year: number): OfficialHoliday[] {
   return holidays;
 }
 
-export function isYemenOfficialHoliday(date: Date, holidays: OfficialHoliday[] = getYemenOfficialHolidaySeeds(date.getFullYear())) {
+export function getYemenOfficialHolidayNames(date: Date, holidays: OfficialHoliday[] = getYemenOfficialHolidaySeeds(date.getFullYear())) {
   const key = formatGregorianDateKey(date);
-  return holidays.some((holiday) => holiday.status === "approved" && holiday.startDate <= key && (holiday.endDate ?? holiday.startDate) >= key);
+  return holidays.filter((holiday) => holiday.status === "approved" && holiday.startDate <= key && (holiday.endDate ?? holiday.startDate) >= key).map((holiday) => holiday.name);
+}
+
+export function isYemenOfficialHoliday(date: Date, holidays: OfficialHoliday[] = getYemenOfficialHolidaySeeds(date.getFullYear())) {
+  return getYemenOfficialHolidayNames(date, holidays).length > 0;
 }
