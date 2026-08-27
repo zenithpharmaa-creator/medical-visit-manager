@@ -3,10 +3,10 @@ import * as Print from "expo-print";
 import * as XLSX from "xlsx";
 import { Platform } from "react-native";
 
-export { buildDailyVisitPdfHtml, buildDailyVisitExcelRows, buildMonthlyReportRows, buildMonthlyVisitPdfHtml, buildMonthlyVisitExcelRows, formatDateArabic, formatDayArabic } from "./visit-report-format";
-export type { MonthlyReportRow } from "./visit-report-format";
+export { buildDailyVisitPdfHtml, buildDailyVisitExcelRows, buildMonthlyReportRows, buildMonthlyVisitPdfHtml, buildMonthlyVisitExcelRows, buildRepresentativeTotalReportRows, buildRepresentativeTotalVisitPdfHtml, buildRepresentativeTotalVisitExcelRows, formatDateArabic, formatDayArabic } from "./visit-report-format";
+export type { MonthlyReportRow, RepresentativeTotalReportRow } from "./visit-report-format";
 export type { DailyVisitReportRow, DailyVisitReportHeader } from "./visit-report-format";
-import { buildDailyVisitExcelRows, buildDailyVisitPdfHtml, buildMonthlyVisitExcelRows, buildMonthlyVisitPdfHtml, type DailyVisitReportRow, type MonthlyReportRow } from "./visit-report-format";
+import { buildDailyVisitExcelRows, buildDailyVisitPdfHtml, buildMonthlyVisitExcelRows, buildMonthlyVisitPdfHtml, buildRepresentativeTotalVisitExcelRows, buildRepresentativeTotalVisitPdfHtml, type DailyVisitReportRow, type MonthlyReportRow, type RepresentativeTotalReportRow } from "./visit-report-format";
 
 
 async function writeTextFile(fileName: string, contents: string, mimeType: string) {
@@ -51,6 +51,26 @@ export async function createDailyVisitCsvFile(rows: DailyVisitReportRow[], repor
 
 export async function createDailyVisitHtmlFile(rows: DailyVisitReportRow[], reportDate: string) {
   return writeTextFile("تقرير-زيارات.html", buildDailyVisitPdfHtml(rows, reportDate, "مدير الزيارات الطبية"), "text/html");
+}
+
+export async function createRepresentativeTotalVisitPdfFile(rows: RepresentativeTotalReportRow[], representatives: Array<{ id: string; name: string }>) {
+  const result = await Print.printToFileAsync({ html: buildRepresentativeTotalVisitPdfHtml(rows, representatives), width: 1123, height: 794, margins: { left: 24, right: 24, top: 24, bottom: 28 } });
+  return result.uri;
+}
+
+export async function createRepresentativeTotalVisitExcelFile(rows: RepresentativeTotalReportRow[], representatives: Array<{ id: string; name: string }>) {
+  const { rows: worksheetRows } = buildRepresentativeTotalVisitExcelRows(rows, representatives);
+  const worksheet = XLSX.utils.aoa_to_sheet(worksheetRows);
+  worksheet["!cols"] = [{ wch: 24 }, ...representatives.map(() => ({ wch: 18 }))];
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, "إجمالي للمندوبين");
+  const base64 = XLSX.write(workbook, { type: "base64", bookType: "xlsx" });
+  if (Platform.OS === "web") return `data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,${base64}`;
+  const directory = FileSystem.cacheDirectory ?? FileSystem.documentDirectory;
+  if (!directory) throw new Error("تعذر الوصول إلى مساحة تخزين الهاتف");
+  const uri = `${directory}إجمالي-للمندوبين.xlsx`;
+  await FileSystem.writeAsStringAsync(uri, base64, { encoding: FileSystem.EncodingType.Base64 });
+  return uri;
 }
 
 export async function createMonthlyVisitExcelFile(rows: MonthlyReportRow[], year: number) {

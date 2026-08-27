@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildMonthlyReportRows, buildMonthlyVisitExcelRows, buildMonthlyVisitPdfHtml, monthlyReportTotals } from "../lib/visit-report-format";
+import { buildMonthlyReportRows, buildMonthlyVisitExcelRows, buildMonthlyVisitPdfHtml, buildRepresentativeTotalReportRows, buildRepresentativeTotalVisitExcelRows, buildRepresentativeTotalVisitPdfHtml, monthlyReportTotals } from "../lib/visit-report-format";
 
 describe("monthly report format", () => {
   const visits = [
@@ -27,6 +27,22 @@ describe("monthly report format", () => {
     expect(monthlyReportTotals(rows)).toEqual([2, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
     const excel = buildMonthlyVisitExcelRows(rows, 2026).rows;
     expect(excel.at(-1)).toEqual(["الإجمالي", 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 4]);
+  });
+
+  it("groups representative totals by doctor and representative and matches both export headers", () => {
+    const representatives = [{ id: "rep-1", name: "مندوب أ" }, { id: "rep-2", name: "مندوب ب" }];
+    const totalRows = buildRepresentativeTotalReportRows([
+      { representativeId: "rep-1", representativeName: "مندوب أ", entityId: "doctor-1", entityName: "طبيب أ", recordedAt: "2026-01-01T10:00:00.000Z" },
+      { representativeId: "rep-1", representativeName: "مندوب أ", entityId: "doctor-1", entityName: "طبيب أ", recordedAt: "2026-01-02T10:00:00.000Z" },
+      { representativeId: "rep-2", representativeName: "مندوب ب", entityId: "doctor-1", entityName: "طبيب أ", recordedAt: "2026-01-03T10:00:00.000Z" },
+    ], representatives);
+    expect(totalRows).toEqual([{ entityName: "طبيب أ", counts: [2, 1] }]);
+    expect(buildRepresentativeTotalVisitExcelRows(totalRows, representatives).rows.slice(0, 2)).toEqual([["", "مندوب أ", "مندوب ب"], ["اسم الطبيب", "عدد الزيارات", "عدد الزيارات"]]);
+    const pdf = buildRepresentativeTotalVisitPdfHtml(totalRows, representatives);
+    expect(pdf).toContain("مندوب أ");
+    expect(pdf).toContain("مندوب ب");
+    expect(pdf).toContain("اسم الطبيب");
+    expect(pdf).toContain("الإجمالي");
   });
 
   it("uses the same two header rows and total in PDF and Excel", () => {

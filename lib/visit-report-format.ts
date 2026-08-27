@@ -165,3 +165,36 @@ export function buildMonthlyVisitExcelRows(rows: MonthlyReportRow[], year: numbe
   const totals = monthlyReportTotals(rows);
   return { rows: [["", ...months.slice().reverse().map((month) => `${month}-${year}`), "إجمالي السنة"], ["اسم الطبيب", ...months.slice().reverse().map(() => "عدد الزيارات"), "عدد الزيارات"], ...rows.map((row) => [row.entityName, ...row.counts.slice().reverse().map((count) => count || "—"), row.counts.reduce((sum, count) => sum + count, 0)]), ["الإجمالي", ...totals.slice().reverse(), totals.reduce((sum, count) => sum + count, 0)]] };
 }
+
+
+export type RepresentativeTotalInput = { representativeId: string; representativeName: string; entityId?: string; entityName: string; recordedAt: string };
+export type RepresentativeTotalReportRow = { entityName: string; counts: number[] };
+
+export function buildRepresentativeTotalReportRows(visits: RepresentativeTotalInput[], representatives: Array<{ id: string; name: string }>): RepresentativeTotalReportRow[] {
+  const byDoctor = new Map<string, RepresentativeTotalReportRow>();
+  visits.forEach((visit) => {
+    const key = visit.entityId || visit.entityName.trim();
+    const row = byDoctor.get(key) ?? { entityName: visit.entityName.trim(), counts: Array.from({ length: representatives.length }, () => 0) };
+    const representativeIndex = representatives.findIndex((representative) => representative.id === visit.representativeId);
+    if (representativeIndex >= 0) row.counts[representativeIndex] += 1;
+    byDoctor.set(key, row);
+  });
+  return [...byDoctor.values()].sort((left, right) => left.entityName.localeCompare(right.entityName, "ar", { sensitivity: "base" }));
+}
+
+export function representativeTotalColumnTotals(rows: RepresentativeTotalReportRow[], representativeCount: number) {
+  return rows.reduce((totals, row) => totals.map((total, index) => total + (row.counts[index] ?? 0)), Array.from({ length: representativeCount }, () => 0));
+}
+
+export function buildRepresentativeTotalVisitPdfHtml(rows: RepresentativeTotalReportRow[], representatives: Array<{ id: string; name: string }>, appName = "مدير الزيارات الطبية") {
+  const totals = representativeTotalColumnTotals(rows, representatives.length);
+  const representativeHeaders = representatives.map((representative) => `<th>${escapeHtml(representative.name)}</th>`).join("");
+  const body = rows.map((row) => `<tr><td>${escapeHtml(row.entityName)}</td>${row.counts.map((count) => `<td>${count || "—"}</td>`).join("")}</tr>`).join("");
+  const total = `<tr class="total"><td>الإجمالي</td>${totals.map((count) => `<td>${count}</td>`).join("")}</tr>`;
+  return `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><style>@page{size:A4 landscape;margin:10mm}*{box-sizing:border-box}body{font-family:Arial,Tahoma,sans-serif;color:#172033;direction:rtl}h1{text-align:center;color:#172b4d;font-size:18px}p{text-align:center;color:#64748b;font-size:11px}table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:10px}th,td{border:1px solid #536273;padding:7px 4px;text-align:center;min-height:28px}th{background:#cfeeff;color:#1257a6;font-weight:800}th:first-child,td:first-child{width:22%;text-align:right}tr:nth-child(even){background:#f8fbff}.total td{background:#dbeafe;color:#123b68;font-weight:800;border-top:2px solid #4b78a8}</style></head><body><h1>${escapeHtml(appName)} — إجمالي للمندوبين</h1><p>عدد الأطباء: ${rows.length} | عدد المندوبين: ${representatives.length} | اتجاه الطباعة: عرضي</p>${rows.length ? `<table><thead><tr><th></th>${representativeHeaders}</tr><tr><th>اسم الطبيب</th>${representatives.map(() => "<th>عدد الزيارات</th>").join("")}</tr></thead><tbody>${body}</tbody><tfoot>${total}</tfoot></table>` : `<p>لا توجد زيارات ضمن الفلاتر الحالية.</p>`}</body></html>`;
+}
+
+export function buildRepresentativeTotalVisitExcelRows(rows: RepresentativeTotalReportRow[], representatives: Array<{ id: string; name: string }>) {
+  const totals = representativeTotalColumnTotals(rows, representatives.length);
+  return { rows: [["", ...representatives.map((representative) => representative.name)], ["اسم الطبيب", ...representatives.map(() => "عدد الزيارات")], ...rows.map((row) => [row.entityName, ...row.counts.map((count) => count || "—")]), ["الإجمالي", ...totals]] };
+}
