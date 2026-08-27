@@ -13,7 +13,7 @@ import { useVisitStore } from "@/lib/visit-store";
 import { localDateKey } from "@/lib/visit-utils";
 import { formatHijriDate } from "@/lib/calendar-date";
 import type { OfficialHoliday, PlannedVisit, Representative, RepresentativeLeave, Visit } from "@/shared/visit-types";
-import { buildDailyVisitPdfHtml, createDailyVisitCsvFile, createDailyVisitExcelFile, createDailyVisitHtmlFile, createDailyVisitPdfFile, formatDateArabic } from "@/lib/visit-report-export";
+import { buildDailyVisitPdfHtml, buildMonthlyReportRows, createDailyVisitCsvFile, createDailyVisitExcelFile, createDailyVisitHtmlFile, createDailyVisitPdfFile, createMonthlyVisitExcelFile, createMonthlyVisitPdfFile, formatDateArabic } from "@/lib/visit-report-export";
 import { shareOrDownloadFile } from "@/lib/entity-export";
 import { downloadReportFile } from "@/lib/report-download";
 import { getReportVisits } from "@/lib/temporary-report-source";
@@ -328,6 +328,9 @@ export function ReportVariantScreen({ variant }: { variant: ReportVariant }) {
     };
   }), [data.representatives, filteredVisits]);
 
+  const monthlyReportYear = Number((fromDate || new Date().toISOString()).slice(0, 4));
+  const monthlyExportRows = useMemo(() => buildMonthlyReportRows(filteredVisits.map((visit) => ({ recordedAt: visit.recordedAt, entityId: visit.entityId, entityName: visit.entityName })), monthlyReportYear), [filteredVisits, monthlyReportYear]);
+
   const handlePrint = async () => {
     if (loading || variant !== "daily") return;
     setLoading(true);
@@ -351,7 +354,9 @@ export function ReportVariantScreen({ variant }: { variant: ReportVariant }) {
     const reportDate = fromDate || new Date().toISOString();
     onProgress?.(0.08, "جاري إنشاء محتوى التقرير...");
     let file: { uri: string; mimeType: string; label: string };
-    if (format === "pdf") file = { uri: await createDailyVisitPdfFile(reportRows, reportDate), mimeType: "application/pdf", label: "PDF" };
+    if (variant === "monthly-representative" && format === "pdf") file = { uri: await createMonthlyVisitPdfFile(monthlyExportRows, monthlyReportYear), mimeType: "application/pdf", label: "PDF" };
+    else if (variant === "monthly-representative" && format === "xlsx") file = { uri: await createMonthlyVisitExcelFile(monthlyExportRows, monthlyReportYear), mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", label: "Excel" };
+    else if (format === "pdf") file = { uri: await createDailyVisitPdfFile(reportRows, reportDate), mimeType: "application/pdf", label: "PDF" };
     else if (format === "xlsx") file = { uri: await createDailyVisitExcelFile(reportRows, reportDate), mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", label: "Excel" };
     else if (format === "csv") file = { uri: await createDailyVisitCsvFile(reportRows, reportDate), mimeType: "text/csv", label: "CSV" };
     else file = { uri: await createDailyVisitHtmlFile(reportRows, reportDate), mimeType: "text/html", label: "HTML" };

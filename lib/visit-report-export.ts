@@ -3,9 +3,10 @@ import * as Print from "expo-print";
 import * as XLSX from "xlsx";
 import { Platform } from "react-native";
 
-export { buildDailyVisitPdfHtml, buildDailyVisitExcelRows, formatDateArabic, formatDayArabic } from "./visit-report-format";
+export { buildDailyVisitPdfHtml, buildDailyVisitExcelRows, buildMonthlyReportRows, buildMonthlyVisitPdfHtml, buildMonthlyVisitExcelRows, formatDateArabic, formatDayArabic } from "./visit-report-format";
+export type { MonthlyReportRow } from "./visit-report-format";
 export type { DailyVisitReportRow, DailyVisitReportHeader } from "./visit-report-format";
-import { buildDailyVisitExcelRows, buildDailyVisitPdfHtml, type DailyVisitReportRow } from "./visit-report-format";
+import { buildDailyVisitExcelRows, buildDailyVisitPdfHtml, buildMonthlyVisitExcelRows, buildMonthlyVisitPdfHtml, type DailyVisitReportRow, type MonthlyReportRow } from "./visit-report-format";
 
 
 async function writeTextFile(fileName: string, contents: string, mimeType: string) {
@@ -15,6 +16,11 @@ async function writeTextFile(fileName: string, contents: string, mimeType: strin
   const uri = `${directory}${fileName}-${Date.now()}`;
   await FileSystem.writeAsStringAsync(uri, contents, { encoding: FileSystem.EncodingType.UTF8 });
   return uri;
+}
+
+export async function createMonthlyVisitPdfFile(rows: MonthlyReportRow[], year: number) {
+  const result = await Print.printToFileAsync({ html: buildMonthlyVisitPdfHtml(rows, year), width: 1123, height: 794, margins: { left: 24, right: 24, top: 24, bottom: 28 } });
+  return result.uri;
 }
 
 export async function createDailyVisitPdfFile(rows: DailyVisitReportRow[], reportDate: string) {
@@ -45,6 +51,21 @@ export async function createDailyVisitCsvFile(rows: DailyVisitReportRow[], repor
 
 export async function createDailyVisitHtmlFile(rows: DailyVisitReportRow[], reportDate: string) {
   return writeTextFile("تقرير-زيارات.html", buildDailyVisitPdfHtml(rows, reportDate, "مدير الزيارات الطبية"), "text/html");
+}
+
+export async function createMonthlyVisitExcelFile(rows: MonthlyReportRow[], year: number) {
+  const { rows: worksheetRows } = buildMonthlyVisitExcelRows(rows, year);
+  const worksheet = XLSX.utils.aoa_to_sheet(worksheetRows);
+  worksheet["!cols"] = [{ wch: 24 }, ...Array.from({ length: 12 }, () => ({ wch: 14 }))];
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, "شهري حسب المندوب");
+  const base64 = XLSX.write(workbook, { type: "base64", bookType: "xlsx" });
+  if (Platform.OS === "web") return `data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,${base64}`;
+  const directory = FileSystem.cacheDirectory ?? FileSystem.documentDirectory;
+  if (!directory) throw new Error("تعذر الوصول إلى مساحة تخزين الهاتف");
+  const uri = `${directory}شهري-حسب-المندوب-${year}.xlsx`;
+  await FileSystem.writeAsStringAsync(uri, base64, { encoding: FileSystem.EncodingType.Base64 });
+  return uri;
 }
 
 export async function createDailyVisitExcelFile(rows: DailyVisitReportRow[], reportDate: string) {

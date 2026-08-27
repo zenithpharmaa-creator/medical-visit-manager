@@ -129,3 +129,39 @@ export function buildDailyVisitExcelRows(rows: DailyVisitReportRow[], reportDate
   const body = rows.map((row) => [row.entityName, row.category || "", row.specialty || "", row.entityAddress || "", row.geographicLocation || "", row.shift, row.visitedItems, row.notes || ""]);
   return { appName, header, columns, body, summary };
 }
+
+
+export type MonthlyReportInput = { recordedAt: string; entityId?: string; entityName: string };
+export type MonthlyReportRow = { entityName: string; counts: number[] };
+
+export function buildMonthlyReportRows(visits: MonthlyReportInput[], year: number): MonthlyReportRow[] {
+  const byDoctor = new Map<string, MonthlyReportRow>();
+  visits.forEach((visit) => {
+    const date = new Date(visit.recordedAt);
+    if (Number.isNaN(date.getTime()) || date.getFullYear() !== year) return;
+    const key = visit.entityId || visit.entityName;
+    const row = byDoctor.get(key) ?? { entityName: visit.entityName, counts: Array.from({ length: 12 }, () => 0) };
+    row.counts[date.getMonth()] += 1;
+    byDoctor.set(key, row);
+  });
+  return [...byDoctor.values()].sort((left, right) => left.entityName.localeCompare(right.entityName, "ar"));
+}
+
+export function monthlyReportTotals(rows: MonthlyReportRow[]): number[] {
+  return rows.reduce((totals, row) => totals.map((total, index) => total + row.counts[index]), Array.from({ length: 12 }, () => 0));
+}
+
+export function buildMonthlyVisitPdfHtml(rows: MonthlyReportRow[], year: number, appName = "مدير الزيارات الطبية") {
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const totals = monthlyReportTotals(rows);
+  const header = months.slice().reverse().map((month) => `<th>${month}-${year}</th>`).join("");
+  const body = rows.map((row) => `<tr><td>${escapeHtml(row.entityName)}</td>${row.counts.slice().reverse().map((count) => `<td>${count || "—"}</td>`).join("")}</tr>`).join("");
+  const totalRow = `<tr class="total"><td>الإجمالي</td>${totals.slice().reverse().map((count) => `<td>${count}</td>`).join("")}</tr>`;
+  return `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><style>@page{size:A4 landscape;margin:10mm}*{box-sizing:border-box}body{font-family:Arial,Tahoma,sans-serif;color:#172033;direction:rtl}h1{text-align:center;color:#172b4d;font-size:18px}p{text-align:center;color:#64748b;font-size:11px}table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:10px}th,td{border:1px solid #536273;padding:7px 4px;text-align:center;min-height:28px}th{background:#cfeeff;color:#1257a6;font-weight:800}th:first-child,td:first-child{width:17%;text-align:right}tr:nth-child(even){background:#f8fbff}.total td{background:#dbeafe;color:#123b68;font-weight:800;border-top:2px solid #4b78a8}</style></head><body><h1>${escapeHtml(appName)} — الزيارات الشهرية حسب المندوب</h1><p>السنة: ${year} | عدد الأطباء: ${rows.length} | اتجاه الطباعة: عرضي</p>${rows.length ? `<table><thead><tr><th></th>${header}</tr><tr><th>اسم الطبيب</th>${months.map(() => "<th>عدد الزيارات</th>").join("")}</tr></thead><tbody>${body}</tbody><tfoot>${totalRow}</tfoot></table>` : `<p>لا توجد زيارات للسنة المحددة.</p>`}</body></html>`;
+}
+
+export function buildMonthlyVisitExcelRows(rows: MonthlyReportRow[], year: number) {
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const totals = monthlyReportTotals(rows);
+  return { rows: [["", ...months.slice().reverse().map((month) => `${month}-${year}`)], ["اسم الطبيب", ...months.slice().reverse().map(() => "عدد الزيارات")], ...rows.map((row) => [row.entityName, ...row.counts.slice().reverse().map((count) => count || "—")]), ["الإجمالي", ...totals.slice().reverse()]] };
+}
