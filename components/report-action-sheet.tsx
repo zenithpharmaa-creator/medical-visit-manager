@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useEffect, useMemo, useState } from "react";
-import { Alert, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { ActivityIndicator, Alert, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
 export type ReportActionFormat = "pdf" | "xlsx" | "csv" | "html";
@@ -26,7 +26,7 @@ export function ReportActionSheet({
   visible: boolean;
   title: string;
   onClose: () => void;
-  onExport: (format: ReportActionFormat) => void;
+  onExport: (format: ReportActionFormat) => void | Promise<void>;
   onSend: (channel: ReportActionChannel, format: ReportActionFormat, contacts: ReportActionContact[], template: string) => void;
 }) {
   const [format, setFormat] = useState<ReportActionFormat>("pdf");
@@ -40,6 +40,7 @@ export function ReportActionSheet({
   const [contactEmail, setContactEmail] = useState("");
   const [contactWhatsapp, setContactWhatsapp] = useState("");
   const [templateDraft, setTemplateDraft] = useState("");
+  const [exportBusy, setExportBusy] = useState(false);
 
   useEffect(() => {
     if (!visible) return;
@@ -68,6 +69,16 @@ export function ReportActionSheet({
   }, [contactQuery, contacts]);
 
   const selectedContacts = contacts.filter((contact) => selectedContactIds.includes(contact.id));
+  const chooseExport = async (nextFormat: ReportActionFormat) => {
+    if (exportBusy) return;
+    setFormat(nextFormat);
+    setExportBusy(true);
+    try {
+      await onExport(nextFormat);
+    } finally {
+      setExportBusy(false);
+    }
+  };
   const addContact = async () => {
     const name = contactName.trim();
     const email = contactEmail.trim();
@@ -109,7 +120,8 @@ export function ReportActionSheet({
         </View>
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
           <View style={styles.sectionHeader}><View style={styles.sectionIcon}><MaterialIcons name="file-download" size={18} color="#1257A6" /></View><Text style={styles.sectionTitle}>تحميل</Text></View>
-          {formatOptions.map((option) => <Pressable key={option.value} onPress={() => { setFormat(option.value); onExport(option.value); }} accessibilityRole="button" accessibilityLabel={`تصدير ${option.label}`} style={({ pressed }) => [styles.option, format === option.value && styles.optionActive, pressed && styles.pressed]}><View style={[styles.optionIcon, format === option.value && styles.optionIconActive]}><MaterialIcons name={option.icon} size={20} color={format === option.value ? "#1257A6" : "#40566F"} /></View><Text style={[styles.optionText, format === option.value && styles.optionTextActive]}>{option.label}</Text>{format === option.value ? <MaterialIcons name="check-circle" size={18} color="#16835B" /> : null}</Pressable>)}
+          {formatOptions.map((option) => <Pressable key={option.value} disabled={exportBusy} onPress={() => void chooseExport(option.value)} accessibilityRole="button" accessibilityLabel={`تحميل ${option.label}`} style={({ pressed }) => [styles.option, format === option.value && styles.optionActive, exportBusy && styles.optionDisabled, pressed && styles.pressed]}><View style={[styles.optionIcon, format === option.value && styles.optionIconActive]}><MaterialIcons name={option.icon} size={20} color={format === option.value ? "#1257A6" : "#40566F"} /></View><Text className="text-right" style={[styles.optionText, format === option.value && styles.optionTextActive]}>{option.label}</Text>{exportBusy && format === option.value ? <ActivityIndicator size="small" color="#1257A6" /> : format === option.value ? <MaterialIcons name="check-circle" size={18} color="#16835B" /> : null}</Pressable>)}
+          {exportBusy ? <View style={styles.downloadStatus}><ActivityIndicator size="small" color="#1257A6" /><Text style={styles.downloadStatusText}>جاري تجهيز الملف وبدء التنزيل...</Text></View> : null}
           <View style={styles.divider} />
           <View style={styles.sectionHeader}><View style={[styles.sectionIcon, styles.sectionIconGreen]}><MaterialIcons name="send" size={18} color="#16835B" /></View><Text style={styles.sectionTitle}>إرسال</Text></View>
           <View style={styles.helperHeading}><MaterialIcons name="contact-mail" size={18} color="#1257A6" /><Text style={styles.helperTitle}>بحث جهات الاتصال</Text></View>
@@ -151,6 +163,9 @@ const styles = StyleSheet.create({
   optionIconActive: { backgroundColor: "#DCEEFF", borderColor: "#A9C7E8" },
   optionText: { flex: 1, color: "#40566F", fontSize: 14, fontWeight: "700", textAlign: "right" },
   optionTextActive: { color: "#1257A6" },
+  optionDisabled: { opacity: 0.6 },
+  downloadStatus: { minHeight: 38, borderRadius: 11, backgroundColor: "#EFF6FF", borderWidth: 1, borderColor: "#C7DCF4", flexDirection: "row-reverse", alignItems: "center", justifyContent: "center", gap: 8, paddingHorizontal: 10 },
+  downloadStatusText: { color: "#1257A6", fontSize: 12, fontWeight: "700", textAlign: "right" },
   divider: { height: 1, backgroundColor: "#E2E8F0", marginVertical: 5 },
   helperHeading: { flexDirection: "row-reverse", alignItems: "center", justifyContent: "flex-start", gap: 6 },
   helperTitle: { flex: 1, color: "#102A43", fontSize: 14, fontWeight: "800", textAlign: "right" },

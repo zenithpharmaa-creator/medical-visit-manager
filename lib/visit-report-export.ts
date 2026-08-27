@@ -1,13 +1,15 @@
 import * as FileSystem from "expo-file-system/legacy";
 import * as Print from "expo-print";
 import * as XLSX from "xlsx";
+import { Platform } from "react-native";
 
 export { buildDailyVisitPdfHtml, buildDailyVisitExcelRows, formatDateArabic, formatDayArabic } from "./visit-report-format";
 export type { DailyVisitReportRow, DailyVisitReportHeader } from "./visit-report-format";
 import { buildDailyVisitExcelRows, buildDailyVisitPdfHtml, type DailyVisitReportRow } from "./visit-report-format";
 
 
-async function writeTextFile(fileName: string, contents: string) {
+async function writeTextFile(fileName: string, contents: string, mimeType: string) {
+  if (Platform.OS === "web") return `data:${mimeType};charset=utf-8,${encodeURIComponent(contents)}`;
   const directory = FileSystem.cacheDirectory ?? FileSystem.documentDirectory;
   if (!directory) throw new Error("تعذر الوصول إلى مساحة تخزين الهاتف");
   const uri = `${directory}${fileName}-${Date.now()}`;
@@ -38,11 +40,11 @@ export async function createDailyVisitCsvFile(rows: DailyVisitReportRow[], repor
     ["إجمالي الزيارات", "", "", "", "", `صباح: ${report.summary.morning}`, `مساء: ${report.summary.evening}`, `الكل: ${report.summary.total}`],
   ];
   const escapeCell = (value: unknown) => `"${String(value ?? "").replace(/"/g, '""')}"`;
-  return writeTextFile("تقرير-زيارات.csv", `\uFEFF${csvRows.map((row) => row.map(escapeCell).join(",")).join("\n")}`);
+  return writeTextFile("تقرير-زيارات.csv", `\uFEFF${csvRows.map((row) => row.map(escapeCell).join(",")).join("\n")}`, "text/csv");
 }
 
 export async function createDailyVisitHtmlFile(rows: DailyVisitReportRow[], reportDate: string) {
-  return writeTextFile("تقرير-زيارات.html", buildDailyVisitPdfHtml(rows, reportDate, "مدير الزيارات الطبية"));
+  return writeTextFile("تقرير-زيارات.html", buildDailyVisitPdfHtml(rows, reportDate, "مدير الزيارات الطبية"), "text/html");
 }
 
 export async function createDailyVisitExcelFile(rows: DailyVisitReportRow[], reportDate: string) {
@@ -77,6 +79,7 @@ export async function createDailyVisitExcelFile(rows: DailyVisitReportRow[], rep
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, worksheet, "تقرير الزيارات");
   const base64 = XLSX.write(workbook, { type: "base64", bookType: "xlsx" });
+  if (Platform.OS === "web") return `data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,${base64}`;
   const directory = FileSystem.cacheDirectory ?? FileSystem.documentDirectory;
   if (!directory) throw new Error("تعذر الوصول إلى مساحة تخزين الهاتف");
   const uri = `${directory}تقرير-زيارات.xlsx`;
