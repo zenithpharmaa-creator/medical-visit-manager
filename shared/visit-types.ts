@@ -4,6 +4,22 @@ export type LegacyEntityKind = "صيدلية" | "مستشفى" | "مركز طب�
 export type EntityKind = CurrentEntityKind | LegacyEntityKind;
 export type VisitShift = "morning" | "evening";
 export type RepresentativeLeavePeriod = "full-day" | VisitShift;
+export type OfficialHolidayKind = "official" | "national";
+export type OfficialHolidayStatus = "pending" | "approved" | "excluded";
+export type OfficialHoliday = {
+  id: string;
+  name: string;
+  kind: OfficialHolidayKind;
+  startDate: string;
+  endDate?: string;
+  status: OfficialHolidayStatus;
+  note?: string;
+  decisionNote?: string;
+  decidedBy?: string;
+  decidedAt?: string;
+  createdAt: string;
+  updatedAt?: string;
+};
 export type RepresentativeLeave = {
   id: string;
   representativeId: string;
@@ -12,6 +28,31 @@ export type RepresentativeLeave = {
   note?: string;
   createdAt: string;
   updatedAt?: string;
+  source?: "manual" | "empty-day";
+};
+
+export type EmptyDayDecision = "leave" | "exception";
+export type EmptyDayReview = {
+  id: string;
+  representativeId: string;
+  date: string;
+  decision: EmptyDayDecision;
+  reason?: string;
+  manualEntryAllowed?: boolean;
+  decidedBy: string;
+  decidedAt: string;
+};
+
+export type ManagerDecisionAudit = {
+  id: string;
+  decisionType: "official-holiday" | "empty-day" | "representative-leave";
+  targetId: string;
+  representativeId?: string;
+  date?: string;
+  decision: string;
+  reason?: string;
+  decidedBy: string;
+  decidedAt: string;
 };
 
 export type RepresentativeRegion = "north" | "south" | "sanaa";
@@ -197,6 +238,7 @@ export type AppData = {
   visits: Visit[];
   plannedVisits: PlannedVisit[];
   representativeLeaves?: RepresentativeLeave[];
+  officialHolidays?: OfficialHoliday[];
   settings: AppSettings;
   savedLocations?: SharedLocation[];
   planApprovalHistory?: PlanApprovalAudit[];
@@ -204,6 +246,8 @@ export type AppData = {
   syncConflicts?: SyncConflict[];
   syncHistory?: SyncLogEntry[];
   notificationTests?: NotificationTestRecord[];
+  emptyDayReviews?: EmptyDayReview[];
+  managerDecisionHistory?: ManagerDecisionAudit[];
   passwordResetRequests?: PasswordResetRequest[];
   syncVersions?: Record<string, number>;
   lastSuccessfulSyncAt?: string;

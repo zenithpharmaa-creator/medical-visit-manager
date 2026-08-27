@@ -2,7 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { PropsWithChildren, createContext, useContext, useEffect, useMemo, useState } from "react";
 import { useNetworkState } from "expo-network";
 
-import { AppData, AppSettings, MedicalEntity, Representative, Visit, PlanApprovalAudit, SharedLocation, SyncOperation, SyncRecordType, SyncLogEntry, PasswordResetRequest, RepresentativeLeave } from "@/shared/visit-types";
+import { AppData, AppSettings, EmptyDayReview, ManagerDecisionAudit, MedicalEntity, OfficialHoliday, PasswordResetRequest, PlanApprovalAudit, Representative, RepresentativeLeave, SharedLocation, SyncLogEntry, SyncOperation, SyncRecordType, Visit } from "@/shared/visit-types";
 import { normalizeEntityKind } from "@/lib/visit-utils";
 import { synchronizePendingVisits } from "@/lib/visit-sync";
 import { EMBEDDED_ENTITIES } from "@/data/embedded-entities";
@@ -37,9 +37,12 @@ const INITIAL_DATA: AppData = {
   savedLocations: deriveSharedLocations(EMBEDDED_ENTITIES),
   plannedVisits: [],
   representativeLeaves: [],
+  officialHolidays: [],
   visits: [],
   settings: { managerName: "مدير النظام", reportEmail: "", reminderTime: "18:00", geofenceRadiusMeters: 200, managerPin: "", visitedItems: [] },
   planApprovalHistory: [],
+  emptyDayReviews: [],
+  managerDecisionHistory: [],
   passwordResetRequests: [],
 };
 
@@ -52,6 +55,10 @@ type VisitStoreValue = {
   updatePlannedVisit: (visit: AppData["plannedVisits"][number]) => void;
   upsertRepresentativeLeave: (leave: RepresentativeLeave) => void;
   deleteRepresentativeLeave: (id: string) => void;
+  upsertOfficialHoliday: (holiday: OfficialHoliday) => void;
+  decideOfficialHoliday: (id: string, status: "approved" | "excluded", decisionNote?: string) => void;
+  deleteOfficialHoliday: (id: string) => void;
+  reviewEmptyDay: (review: EmptyDayReview) => void;
   addEntity: (entity: MedicalEntity) => void;
   updateEntity: (entity: MedicalEntity) => void;
   addSharedLocation: (location: SharedLocation) => void;
@@ -105,8 +112,11 @@ export function VisitProvider({ children }: PropsWithChildren) {
             savedLocations: normalizeSharedLocations(parsed.savedLocations, mergedEntities),
             plannedVisits: normalizedPlannedVisits,
             representativeLeaves: parsed.representativeLeaves ?? [],
+            officialHolidays: parsed.officialHolidays ?? [],
             visits: normalizedVisits,
             planApprovalHistory: parsed.planApprovalHistory ?? [],
+            emptyDayReviews: parsed.emptyDayReviews ?? [],
+            managerDecisionHistory: parsed.managerDecisionHistory ?? [],
             syncQueue: parsed.syncQueue ?? [],
             syncConflicts: parsed.syncConflicts ?? [],
             syncHistory: parsed.syncHistory ?? [],
@@ -225,6 +235,22 @@ export function VisitProvider({ children }: PropsWithChildren) {
       updatePlannedVisit: (visit) => save((current) => ({ ...current, plannedVisits: current.plannedVisits.map((item) => item.id === visit.id ? visit : item) }), { recordType: "plannedVisit", recordId: visit.id, payload: visit }),
       upsertRepresentativeLeave: (leave) => save((current) => ({ ...current, representativeLeaves: [leave, ...(current.representativeLeaves ?? []).filter((item) => item.id !== leave.id && !(item.representativeId === leave.representativeId && item.date === leave.date && item.period === leave.period))] })),
       deleteRepresentativeLeave: (id) => save((current) => ({ ...current, representativeLeaves: (current.representativeLeaves ?? []).filter((item) => item.id !== id) })),
+      upsertOfficialHoliday: (holiday) => save((current) => ({ ...current, officialHolidays: [holiday, ...(current.officialHolidays ?? []).filter((item) => item.id !== holiday.id)] })),
+      decideOfficialHoliday: (id, status, decisionNote) => save((current) => {
+        const holiday = (current.officialHolidays ?? []).find((item) => item.id === id);
+        if (!holiday) return current;
+        const decidedAt = new Date().toISOString();
+        const decidedBy = current.settings.managerName || "مدير النظام";
+        const audit: ManagerDecisionAudit = { id: `manager-decision-${Date.now()}`, decisionType: "official-holiday", targetId: id, decision: status, reason: decisionNote?.trim() || undefined, decidedBy, decidedAt };
+        return { ...current, officialHolidays: (current.officialHolidays ?? []).map((item) => item.id === id ? { ...item, status, decisionNote: decisionNote?.trim() || undefined, decidedBy, decidedAt, updatedAt: decidedAt } : item), managerDecisionHistory: [audit, ...(current.managerDecisionHistory ?? [])] };
+      }),
+      deleteOfficialHoliday: (id) => save((current) => ({ ...current, officialHolidays: (current.officialHolidays ?? []).filter((item) => item.id !== id) })),
+      reviewEmptyDay: (review) => save((current) => {
+        const previous = (current.emptyDayReviews ?? []).find((item) => item.representativeId === review.representativeId && item.date === review.date);
+        const decidedAt = review.decidedAt || new Date().toISOString();
+        const audit: ManagerDecisionAudit = { id: `manager-decision-${Date.now()}`, decisionType: "empty-day", targetId: review.id, representativeId: review.representativeId, date: review.date, decision: review.decision, reason: review.reason, decidedBy: review.decidedBy, decidedAt };
+        return { ...current, emptyDayReviews: [{ ...review, decidedAt }, ...(current.emptyDayReviews ?? []).filter((item) => item.id !== review.id && !(item.representativeId === review.representativeId && item.date === review.date))], managerDecisionHistory: [audit, ...(current.managerDecisionHistory ?? [])], ...(previous ? {} : {}) };
+      }),
       addEntity: (entity) => save((current) => ({ ...current, entities: [entity, ...current.entities] }), { recordType: "entity", recordId: entity.id, payload: entity }),
       updateEntity: (entity) => save((current) => ({ ...current, entities: current.entities.map((item) => item.id === entity.id ? preserveExistingCoordinates(item, entity) : item) }), { recordType: "entity", recordId: entity.id, payload: entity }),
       addSharedLocation: (location) => save((current) => ({ ...current, savedLocations: sortSharedLocations([...(current.savedLocations ?? []), location]) }), { recordType: "sharedLocation", recordId: location.id, payload: location }),
@@ -243,7 +269,7 @@ export function VisitProvider({ children }: PropsWithChildren) {
       deleteRepresentative: (id) => save((current) => ({ ...current, representatives: current.representatives.filter((item) => item.id !== id), plannedVisits: current.plannedVisits.filter((item) => item.representativeId !== id), representativeLocations: Object.fromEntries(Object.entries(current.representativeLocations).filter(([key]) => key !== id)) })),
       updateSettings: (settings) => save((current) => ({ ...current, settings })),
       replaceEntities: (entities) => save((current) => ({ ...current, entities: entities.map((entity) => { const previous = current.entities.find((item) => item.id === entity.id); return previous ? preserveExistingCoordinates(previous, entity) : entity; }) })),
-      restoreData: (restored) => save(() => { const entities = mergeEmbeddedEntities(restored.entities, EMBEDDED_ENTITIES, true); return { ...restored, entities, plannedVisits: restored.plannedVisits.map((item) => ({ ...item, entityKind: normalizeEntityKind(item.entityKind) })), representativeLeaves: restored.representativeLeaves ?? [], visits: restored.visits.map((item) => ({ ...item, entityKind: normalizeEntityKind(item.entityKind) })), savedLocations: normalizeSharedLocations(restored.savedLocations, entities) }; }),
+      restoreData: (restored) => save(() => { const entities = mergeEmbeddedEntities(restored.entities, EMBEDDED_ENTITIES, true); return { ...restored, entities, plannedVisits: restored.plannedVisits.map((item) => ({ ...item, entityKind: normalizeEntityKind(item.entityKind) })), representativeLeaves: restored.representativeLeaves ?? [], officialHolidays: restored.officialHolidays ?? [], emptyDayReviews: restored.emptyDayReviews ?? [], managerDecisionHistory: restored.managerDecisionHistory ?? [], visits: restored.visits.map((item) => ({ ...item, entityKind: normalizeEntityKind(item.entityKind) })), savedLocations: normalizeSharedLocations(restored.savedLocations, entities) }; }),
       updateRepresentativeLocation: (id, value) => save((current) => ({ ...current, representativeLocations: { ...current.representativeLocations, [id]: value } })),
       addPlanApprovalAudit: (audit) => save((current) => ({ ...current, planApprovalHistory: [audit, ...(current.planApprovalHistory ?? [])] })),
       syncPendingVisits,

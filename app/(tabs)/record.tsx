@@ -13,7 +13,7 @@ import { ScreenContainer } from "@/components/screen-container";
 import { notifyManagerOfOverride } from "@/lib/override-notification";
 import { useAccountSession } from "@/lib/account-session";
 import { useVisitStore } from "@/lib/visit-store";
-import { buildId, distanceBetweenMeters, formatArabicDate, isWithinGeofence } from "@/lib/visit-utils";
+import { buildId, distanceBetweenMeters, formatArabicDate, isWithinGeofence, localDateKey } from "@/lib/visit-utils";
 import { findDailyVisitConflict } from "@/lib/visit-rules";
 import { isFiniteLocation, normalizeLocation } from "@/lib/location-capture";
 import { appendLocationDiagnostic, type LocationDiagnostic } from "@/lib/location-diagnostics";
@@ -75,6 +75,7 @@ export default function RecordVisitScreen() {
   const availableVisitedItems = isManager ? data.settings.visitedItems : (activeRepresentative?.assignedItems ?? []);
   const filteredVisitedItems = availableVisitedItems.filter((item) => item.toLowerCase().includes(visitedItemsSearch.trim().toLowerCase()));
   const internetAvailable = networkState.isInternetReachable === true;
+  const manualEntryPermission = !isManager && representativeForVisit ? (data.emptyDayReviews ?? []).find((review) => review.representativeId === representativeForVisit.id && review.date === localDateKey(new Date()) && review.decision === "exception" && review.manualEntryAllowed) : undefined;
   const logLocationDiagnostic = (entry: Omit<LocationDiagnostic, "id" | "createdAt" | "offline">) => {
     void appendLocationDiagnostic({ ...entry, offline: !internetAvailable });
   };
@@ -177,7 +178,7 @@ export default function RecordVisitScreen() {
     if (!representativeForVisit) { Alert.alert("الحساب غير متاح", "تعذر تحديد حساب المندوب الحالي."); return; }
     const attemptedAt = new Date().toISOString();
     const dailyConflict = findDailyVisitConflict(data.visits, data.plannedVisits, selectedEntity.id, representativeForVisit.id, attemptedAt);
-    if (dailyConflict) {
+    if (dailyConflict && !manualEntryPermission) {
       Alert.alert("الزيارة مسجلة اليوم", `سبق تسجيل زيارة لـ«${selectedEntity.name}» اليوم بواسطة مندوب آخر. لا يمكن تكرارها إلا إذا أسند مدير النظام زيارة مستقلة لهذا المندوب.`);
       return;
     }
@@ -209,6 +210,7 @@ export default function RecordVisitScreen() {
       <ScrollView contentContainerStyle={{ paddingTop: 18, paddingBottom: 36 }} showsVerticalScrollIndicator={false}>
         <ScreenHeader title="تسجيل زيارة" subtitle="وثّق الزيارة بالموقع والوقت" icon="add-location-alt" />
 
+        {manualEntryPermission ? <View className="rounded-2xl bg-[#EAF3FB] border border-[#A7C7EF] p-4 mb-3 flex-row-reverse gap-3"><MaterialIcons name="verified" size={22} color="#1257A6" /><View className="flex-1 items-end"><Text className="text-primary font-bold text-right">استثناء يدوي معتمد من المدير</Text><Text className="text-xs text-primary/80 text-right mt-1">يمكنك تسجيل زيارة اليوم رغم عدم وجود زيارة سابقة في خطة المندوب. القرار محفوظ في سجل التدقيق.</Text></View></View> : null}
         <View className="rounded-2xl bg-primary/10 border border-primary/20 p-4 mb-3 flex-row-reverse gap-3">
           <MaterialIcons name="privacy-tip" size={22} color="#1565C0" />
           <Text className="text-primary font-semibold flex-1 text-right leading-5">يُلتقط الموقع مرة واحدة عند الضغط على الزر، ولا يتم تتبع موقع المندوب بشكل مستمر.</Text>
