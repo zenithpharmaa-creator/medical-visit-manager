@@ -62,7 +62,6 @@ export function buildDailyVisitPdfHtml(rows: DailyVisitReportRow[], reportDate: 
       <td>${escapeHtml(row.category)}</td>
       <td>${escapeHtml(row.specialty)}</td>
       <td>${escapeHtml(row.entityAddress)}</td>
-      <td>${escapeHtml(row.geographicLocation)}</td>
       <td>${escapeHtml(row.shift)}</td>
       <td>${escapeHtml(row.visitedItems)}</td>
       <td>${escapeHtml(row.notes)}</td>
@@ -96,8 +95,8 @@ export function buildDailyVisitPdfHtml(rows: DailyVisitReportRow[], reportDate: 
     th { background: #e5e8eb; color: #172b4d; border: 1px solid #6b7280; font-weight: 800; padding: 5px 3px; line-height: 1.3; text-align: center; vertical-align: middle; }
     td { border: 1px solid #8b949e; padding: 5px 3px; min-height: 24px; line-height: 1.35; vertical-align: middle; text-align: right; overflow-wrap: anywhere; word-break: break-word; }
     tbody tr:nth-child(even) { background: #fafafa; }
-    .col-doctor { width: 13%; } .col-category { width: 8%; } .col-specialty { width: 12%; } .col-address { width: 16%; }
-    .col-location { width: 17%; } .col-shift { width: 7%; } .col-items { width: 17%; } .col-notes { width: 10%; }
+    .col-doctor { width: 15%; } .col-category { width: 9%; } .col-specialty { width: 13%; } .col-address { width: 20%; }
+    .col-shift { width: 8%; } .col-items { width: 21%; } .col-notes { width: 14%; }
     .empty { text-align: center; padding: 24px; border: 1px solid #8b949e; color: #657184; }
     .footer { margin-top: 8px; display: flex; justify-content: space-between; color: #657184; font-size: 9px; }
   </style>
@@ -110,7 +109,7 @@ export function buildDailyVisitPdfHtml(rows: DailyVisitReportRow[], reportDate: 
       <div class="meta"><div><strong>المندوب:</strong> ${escapeHtml(representativeNames)}</div><div><strong>اليوم:</strong> ${escapeHtml(dayName)}</div><div><strong>التاريخ:</strong> ${escapeHtml(formatDateArabic(reportDate))}</div></div>
     </header>
     <div class="summary"><span>عدد السجلات: ${rows.length}</span><span>اتجاه الطباعة: عرضي</span></div>
-    ${rows.length ? `<table><thead><tr><th class="col-doctor">الطبيب</th><th class="col-category">الكلاس</th><th class="col-specialty">التخصص</th><th class="col-address">عنوان الطبيب</th><th class="col-location">الموقع الجغرافي</th><th class="col-shift">الفترة</th><th class="col-items">الأصناف المزارة</th><th class="col-notes">ملاحظات الزيارة</th></tr></thead><tbody>${tableRows}</tbody><tfoot><tr class="total-row"><td colspan="5">إجمالي الزيارات</td><td>صباح: ${summary.morning}</td><td>مساء: ${summary.evening}</td><td>الكل: ${summary.total}</td></tr></tfoot></table>` : `<div class="empty">لا توجد زيارات في التاريخ أو الفلاتر المحددة.</div>`}
+    ${rows.length ? `<table><thead><tr><th class="col-doctor">الطبيب</th><th class="col-category">الكلاس</th><th class="col-specialty">التخصص</th><th class="col-address">عنوان الطبيب</th><th class="col-shift">الفترة</th><th class="col-items">الأصناف المزارة</th><th class="col-notes">ملاحظات الزيارة</th></tr></thead><tbody>${tableRows}</tbody><tfoot><tr class="total-row"><td colspan="4">إجمالي الزيارات</td><td>صباح: ${summary.morning}</td><td>مساء: ${summary.evening}</td><td>الكل: ${summary.total}</td></tr></tfoot></table>` : `<div class="empty">لا توجد زيارات في التاريخ أو الفلاتر المحددة.</div>`}
     <footer class="footer"><span>تم الإنشاء من ${escapeHtml(appName)}</span><span>التقرير اليومي — ${escapeHtml(dayName)} — ${escapeHtml(formatDateArabic(reportDate))}</span></footer>
   </main>
 </body>

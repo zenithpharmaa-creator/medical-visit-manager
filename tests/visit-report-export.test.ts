@@ -33,7 +33,8 @@ describe("daily visit PDF export", () => {
     expect(html).toContain("@page { size: A4 landscape;");
     expect(html).toContain("التقرير اليومي");
     expect(html).toContain("عنوان الطبيب");
-    expect(html).toContain("الموقع الجغرافي");
+    expect(html).not.toContain("الموقع الجغرافي");
+    expect(html).not.toContain("15.36944");
     expect(html).not.toContain("أقرب صيدلية");
     expect(html).toContain("الأصناف المزارة");
     expect(html).toContain("الفترة");
@@ -62,6 +63,7 @@ describe("daily visit PDF export", () => {
     expect(report.summary).toEqual({ total: 3, morning: 1, evening: 2 });
     expect(report.columns).toContain("الكلاس");
     expect(report.columns).toContain("الموقع الجغرافي");
+    expect(report.body[0]).toContain("صنف");
     expect(report.columns).not.toContain("أقرب صيدلية");
   });
 
