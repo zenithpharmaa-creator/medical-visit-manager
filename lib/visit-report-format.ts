@@ -10,6 +10,24 @@ export type DailyVisitReportRow = {
   notes?: string;
 };
 
+export type ComprehensiveDailyTableInput = {
+  id: string;
+  visitDate: string;
+  doctor: string;
+  specialty: string;
+  shift: string;
+  address: string;
+  prescribedItems: string;
+  representative: string;
+  region: string;
+};
+
+export type ComprehensiveDailyTableRow = ComprehensiveDailyTableInput;
+
+export function buildComprehensiveDailyTableRows(rows: ComprehensiveDailyTableInput[]): ComprehensiveDailyTableRow[] {
+  return rows.map((row) => ({ ...row }));
+}
+
 export type DailyVisitReportHeader = {
   reportName: string;
   dayName: string;
