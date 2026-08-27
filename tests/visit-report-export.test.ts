@@ -20,7 +20,8 @@ describe("daily visit PDF export", () => {
 
     expect(html).toContain('<html lang="ar" dir="rtl">');
     expect(html).toContain("@page { size: A4 landscape;");
-    expect(html).toContain("تقرير الزيارات اليومية");
+    expect(html).toContain("التقرير اليومي");
+    expect(html).toContain("عنوان الطبيب");
     expect(html).toContain("أقرب صيدلية");
     expect(html).toContain("الأصناف المزارة");
     expect(html).toContain("د. أحمد");

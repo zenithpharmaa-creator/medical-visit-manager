@@ -10,6 +10,14 @@ export type DailyVisitReportRow = {
   notes?: string;
 };
 
+export type DailyVisitReportHeader = {
+  reportName: string;
+  dayName: string;
+  date: string;
+  representativeNames: string;
+  reportSerial: string;
+};
+
 function escapeHtml(value: string | undefined) {
   return String(value ?? "—")
     .replace(/&/g, "&amp;")
@@ -19,13 +27,19 @@ function escapeHtml(value: string | undefined) {
     .replace(/'/g, "&#039;");
 }
 
-function formatDateArabic(value: string) {
+export function formatDateArabic(value: string) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
   return new Intl.DateTimeFormat("ar-YE", { day: "2-digit", month: "2-digit", year: "numeric" }).format(date);
 }
 
-function createReportSerial() {
+export function formatDayArabic(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "—";
+  return new Intl.DateTimeFormat("ar-YE", { weekday: "long" }).format(date);
+}
+
+export function createReportSerial() {
   const stamp = new Date();
   const datePart = `${stamp.getFullYear()}${String(stamp.getMonth() + 1).padStart(2, "0")}${String(stamp.getDate()).padStart(2, "0")}`;
   return `MV-${datePart}-${String(Date.now()).slice(-6)}`;
@@ -35,6 +49,7 @@ const logoSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="42" height="42" 
 
 export function buildDailyVisitPdfHtml(rows: DailyVisitReportRow[], reportDate: string, appName = "مدير الزيارات الطبية", reportSerial = createReportSerial()) {
   const representativeNames = [...new Set(rows.map((row) => row.representativeName).filter(Boolean))].join("، ") || "جميع المندوبين";
+  const dayName = formatDayArabic(reportDate);
   const tableRows = rows.map((row) => `
     <tr>
       <td>${escapeHtml(row.entityName)}</td>
@@ -61,7 +76,7 @@ export function buildDailyVisitPdfHtml(rows: DailyVisitReportRow[], reportDate: 
     .brand { display: flex; flex-direction: row; align-items: center; gap: 7px; min-width: 190px; font-size: 14px; font-weight: 800; color: #183b63; }
     .brand img { width: 42px; height: 42px; }
     .title { text-align: center; flex: 1; font-size: 16px; font-weight: 800; color: #172b4d; }
-    .meta { min-width: 220px; font-size: 10px; line-height: 1.9; color: #465466; }
+    .meta { min-width: 245px; font-size: 10px; line-height: 1.8; color: #465466; }
     .meta strong { color: #172b4d; }
     .summary { display: flex; flex-direction: row-reverse; gap: 8px; margin-bottom: 9px; }
     .summary span { border: 1px solid #aeb8c4; border-radius: 3px; padding: 4px 8px; background: #f4f6f8; color: #334155; }
@@ -79,13 +94,27 @@ export function buildDailyVisitPdfHtml(rows: DailyVisitReportRow[], reportDate: 
   <main class="report">
     <header class="header">
       <div class="brand"><img src="data:image/svg+xml;utf8,${encodeURIComponent(logoSvg)}" alt="شعار" /><span>${escapeHtml(appName)}</span></div>
-      <div class="title">تقرير الزيارات اليومية</div>
-      <div class="meta"><div><strong>المندوب:</strong> ${escapeHtml(representativeNames)}</div><div><strong>التاريخ:</strong> ${escapeHtml(formatDateArabic(reportDate))}</div><div><strong>الرقم التسلسلي:</strong> ${escapeHtml(reportSerial)}</div></div>
+      <div class="title">التقرير اليومي</div>
+      <div class="meta"><div><strong>المندوب:</strong> ${escapeHtml(representativeNames)}</div><div><strong>اليوم:</strong> ${escapeHtml(dayName)}</div><div><strong>التاريخ:</strong> ${escapeHtml(formatDateArabic(reportDate))}</div><div><strong>الرقم التسلسلي:</strong> ${escapeHtml(reportSerial)}</div></div>
     </header>
     <div class="summary"><span>عدد السجلات: ${rows.length}</span><span>اتجاه الطباعة: عرضي</span></div>
     ${rows.length ? `<table><thead><tr><th class="col-doctor">الطبيب</th><th class="col-category">التصنيف</th><th class="col-specialty">التخصص</th><th class="col-address">عنوان الطبيب</th><th class="col-pharmacy">أقرب صيدلية</th><th class="col-shift">الفترة</th><th class="col-items">الأصناف المزارة</th><th class="col-notes">ملاحظات الزيارة</th></tr></thead><tbody>${tableRows}</tbody></table>` : `<div class="empty">لا توجد زيارات في التاريخ أو الفلاتر المحددة.</div>`}
-    <footer class="footer"><span>تم الإنشاء من ${escapeHtml(appName)}</span><span>رقم التقرير: ${escapeHtml(reportSerial)}</span></footer>
+    <footer class="footer"><span>تم الإنشاء من ${escapeHtml(appName)}</span><span>التقرير اليومي — ${escapeHtml(dayName)} — ${escapeHtml(formatDateArabic(reportDate))} — ${escapeHtml(reportSerial)}</span></footer>
   </main>
 </body>
 </html>`;
+}
+
+export function buildDailyVisitExcelRows(rows: DailyVisitReportRow[], reportDate: string, appName = "مدير الزيارات الطبية", reportSerial = createReportSerial()) {
+  const representativeNames = [...new Set(rows.map((row) => row.representativeName).filter(Boolean))].join("، ") || "جميع المندوبين";
+  const header: DailyVisitReportHeader = {
+    reportName: "التقرير اليومي",
+    dayName: formatDayArabic(reportDate),
+    date: formatDateArabic(reportDate),
+    representativeNames,
+    reportSerial,
+  };
+  const columns = ["الطبيب", "التصنيف", "التخصص", "عنوان الطبيب", "أقرب صيدلية", "الفترة", "الأصناف المزارة", "ملاحظات الزيارة"];
+  const body = rows.map((row) => [row.entityName, row.category || "", row.specialty || "", row.entityAddress || "", row.nearestPharmacy || "", row.shift, row.visitedItems, row.notes || ""]);
+  return { appName, header, columns, body };
 }
