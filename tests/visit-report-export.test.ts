@@ -16,7 +16,7 @@ describe("daily visit PDF export", () => {
         visitedItems: "منتج 1، منتج 2",
         notes: "ملاحظة",
       },
-    ], "2026-08-24", "مدير الزيارات الطبية", "MV-20260824-000001");
+    ], "2026-08-24", "مدير الزيارات الطبية");
 
     expect(html).toContain('<html lang="ar" dir="rtl">');
     expect(html).toContain("@page { size: A4 landscape;");
@@ -25,9 +25,9 @@ describe("daily visit PDF export", () => {
     expect(html).toContain("أقرب صيدلية");
     expect(html).toContain("الأصناف المزارة");
     expect(html).toContain("د. أحمد");
-    expect(html).toContain("الرقم التسلسلي:");
-    expect(html).toContain("MV-20260824-000001");
-    expect(html.indexOf('class="serial-banner"')).toBeLessThan(html.indexOf('class="header"'));
+    expect(html).not.toContain("الرقم التسلسلي");
+    expect(html).not.toContain("serial-banner");
+    expect(html).not.toContain("MV-");
     expect(html).not.toContain("\\\\n");
     expect((html.match(/<strong>التاريخ:<\/strong>/g) ?? []).length).toBe(1);
   });

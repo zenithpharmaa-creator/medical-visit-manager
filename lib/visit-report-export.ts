@@ -1,17 +1,17 @@
 import * as FileSystem from "expo-file-system/legacy";
 import * as XLSX from "xlsx";
 
-export { buildDailyVisitPdfHtml, buildDailyVisitExcelRows, createReportSerial, formatDateArabic, formatDayArabic } from "./visit-report-format";
+export { buildDailyVisitPdfHtml, buildDailyVisitExcelRows, formatDateArabic, formatDayArabic } from "./visit-report-format";
 export type { DailyVisitReportRow, DailyVisitReportHeader } from "./visit-report-format";
-import { buildDailyVisitExcelRows, createReportSerial, formatDateArabic, type DailyVisitReportRow } from "./visit-report-format";
+import { buildDailyVisitExcelRows, type DailyVisitReportRow } from "./visit-report-format";
 
 
-export async function createDailyVisitExcelFile(rows: DailyVisitReportRow[], reportDate: string, reportSerial = createReportSerial()) {
-  const report = buildDailyVisitExcelRows(rows, reportDate, "مدير الزيارات الطبية", reportSerial);
+export async function createDailyVisitExcelFile(rows: DailyVisitReportRow[], reportDate: string) {
+  const report = buildDailyVisitExcelRows(rows, reportDate, "مدير الزيارات الطبية");
   const worksheetRows = [
     [report.appName],
     [report.header.reportName],
-    ["اليوم", report.header.dayName, "التاريخ", report.header.date, "المندوب", report.header.representativeNames, "الرقم التسلسلي", report.header.reportSerial],
+    ["اليوم", report.header.dayName, "التاريخ", report.header.date, "المندوب", report.header.representativeNames],
     [],
     report.columns,
     ...report.body,
@@ -30,7 +30,7 @@ export async function createDailyVisitExcelFile(rows: DailyVisitReportRow[], rep
   const base64 = XLSX.write(workbook, { type: "base64", bookType: "xlsx" });
   const directory = FileSystem.cacheDirectory ?? FileSystem.documentDirectory;
   if (!directory) throw new Error("تعذر الوصول إلى مساحة تخزين الهاتف");
-  const uri = `${directory}تقرير-زيارات-${reportSerial}.xlsx`;
+  const uri = `${directory}تقرير-زيارات.xlsx`;
   await FileSystem.writeAsStringAsync(uri, base64, { encoding: FileSystem.EncodingType.Base64 });
   return uri;
 }
