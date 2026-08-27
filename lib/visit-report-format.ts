@@ -28,6 +28,35 @@ export function buildComprehensiveDailyTableRows(rows: ComprehensiveDailyTableIn
   return rows.map((row) => ({ ...row }));
 }
 
+export type RepresentativeSummaryInput = {
+  id: string;
+  name: string;
+  visits: { recordedAt: string; entityId?: string; entityName: string }[];
+};
+
+export type RepresentativeSummaryRow = {
+  id: string;
+  representative: string;
+  total: number;
+  morning: number;
+  evening: number;
+  doctors: number;
+};
+
+export function buildRepresentativeSummaryRows(inputs: RepresentativeSummaryInput[]): RepresentativeSummaryRow[] {
+  return inputs.map((input) => {
+    const morning = input.visits.filter((visit) => new Date(visit.recordedAt).getHours() < 16).length;
+    return {
+      id: input.id,
+      representative: input.name,
+      total: input.visits.length,
+      morning,
+      evening: input.visits.length - morning,
+      doctors: new Set(input.visits.map((visit) => visit.entityId || visit.entityName)).size,
+    };
+  });
+}
+
 export type DailyVisitReportHeader = {
   reportName: string;
   dayName: string;
