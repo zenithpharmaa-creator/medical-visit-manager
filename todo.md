@@ -1560,3 +1560,11 @@
 - [x] استبدال تشغيل concurrently بمشغّل Node مستقل يدير API وMetro ويعيد تشغيل الخدمة المتوقفة دون cascade shutdown.
 - [x] تحسين إعداد Metro وكاشه: عامل واحد، blockList، تنظيف الكاش، وتعطيل workspace-root scanning، مع إضافة خيارات Chromium منخفضة الاستهلاك.
 - [ ] تشغيل Playwright والفحوص والتحقق من استقرار API وMetro؛ TypeScript وlint وVitest ناجحة، وPlaywright يجمع الحالات لكنه يفشل أثناء التنفيذ بسبب Metro code 137/انهيار Chromium في sandbox.
+
+
+## EAS وUnit Tests — 2026-08-28
+
+- [x] إضافة والتحقق من إعداد EAS لبناء APK سحابياً عبر profile preview بصيغة apk.
+- [x] مراجعة scripts والاعتماديات اللازمة؛ أضيف `build:android:apk` دون تشغيل بناء أو نشر تلقائي.
+- [x] تشغيل Unit Tests للمكونات والمنطق وشاشات التقارير؛ 31 ملفاً ناجحاً، 108 اختبارات ناجحة، واختبار واحد متجاوز.
+- [x] تشغيل TypeScript وlint وExpo config؛ كلها ناجحة. بناء APK الفعلي يتطلب Publish/Build وتسجيل Expo ولم يُنفذ داخل sandbox.
