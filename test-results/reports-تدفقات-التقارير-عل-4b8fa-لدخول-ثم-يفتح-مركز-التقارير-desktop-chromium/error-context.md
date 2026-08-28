@@ -12,32 +12,10 @@
 # Error details
 
 ```
-Error: page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8081/
+Error: locator.fill: Page crashed
 Call log:
-  - navigating to "http://127.0.0.1:8081/", waiting until "load"
+  - waiting for getByPlaceholder('أدخل كلمة المرور')
 
-```
-
-# Page snapshot
-
-```yaml
-- generic [ref=e3]:
-  - generic [ref=e6]:
-    - heading "This site can’t be reached" [level=1] [ref=e7]
-    - paragraph [ref=e8]:
-      - strong [ref=e9]: 127.0.0.1
-      - text: refused to connect.
-    - generic [ref=e10]:
-      - paragraph [ref=e11]: "Try:"
-      - list [ref=e12]:
-        - listitem [ref=e13]: Checking the connection
-        - listitem [ref=e14]:
-          - link "Checking the proxy and the firewall" [ref=e15] [cursor=pointer]:
-            - /url: "#buttons"
-    - generic [ref=e16]: ERR_CONNECTION_REFUSED
-  - generic [ref=e17]:
-    - button "Reload" [ref=e19] [cursor=pointer]
-    - button "Details" [ref=e20] [cursor=pointer]
 ```
 
 # Test source
@@ -46,11 +24,11 @@ Call log:
   1  | import { expect, test, type Page } from "@playwright/test";
   2  | 
   3  | async function loginAsManager(page: Page) {
-> 4  |   await page.goto("/");
-     |              ^ Error: page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8081/
+  4  |   await page.goto("/");
   5  |   await page.evaluate(() => localStorage.removeItem("medical_visit_active_session"));
   6  |   await page.reload();
-  7  |   await page.getByPlaceholder("أدخل كلمة المرور").fill("123");
+> 7  |   await page.getByPlaceholder("أدخل كلمة المرور").fill("123");
+     |                                                   ^ Error: locator.fill: Page crashed
   8  |   await page.getByRole("checkbox", { name: "تذكرني على هذا الجهاز" }).click();
   9  |   await page.getByRole("button", { name: "دخول إلى الحساب" }).click();
   10 |   await expect(page.getByText("مدير الزيارات الطبية")).toBeVisible({ timeout: 15_000 });

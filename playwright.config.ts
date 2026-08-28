@@ -13,7 +13,10 @@ export default defineConfig({
     screenshot: "only-on-failure",
     video: "off",
     headless: true,
-    launchOptions: { executablePath: process.env.CHROMIUM_PATH ?? "/usr/bin/chromium" },
+    launchOptions: {
+      executablePath: process.env.CHROMIUM_PATH ?? "/usr/bin/chromium",
+      args: ["--disable-dev-shm-usage", "--disable-gpu", "--no-sandbox"],
+    },
   },
   projects: [
     { name: "desktop-chromium", use: { ...devices["Desktop Chrome"] } },

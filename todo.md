@@ -1552,3 +1552,11 @@
 - [x] تشغيل Metro وواجهة API وفحص المنافذ والسجلات والذاكرة؛ API يبدأ، لكن Metro يُقتل بـcode 137 أثناء Web Bundled بسبب ضغط الذاكرة، فتغلق concurrently الخدمة الأخرى.
 - [ ] تشغيل اختبارات الدخول والفلاتر والفرز وتحليل النتائج؛ جُمعت 10 حالات E2E، لكن التنفيذ متوقف حتى يستقر Metro.
 - [x] توثيق الاستقرار والقيود وحفظ checkpoint إذا تم تسليم تغييرات؛ تم توثيق OOM وغياب اختبار Android/Tablet الفعلي.
+
+
+## مهارة معاينة Expo وE2E واستقرار Metro — 2026-08-28
+
+- [x] إنشاء مهارة قابلة لإعادة الاستخدام توثق سير عمل Expo وPlaywright وتشخيص Metro؛ اجتازت quick_validate.
+- [x] استبدال تشغيل concurrently بمشغّل Node مستقل يدير API وMetro ويعيد تشغيل الخدمة المتوقفة دون cascade shutdown.
+- [x] تحسين إعداد Metro وكاشه: عامل واحد، blockList، تنظيف الكاش، وتعطيل workspace-root scanning، مع إضافة خيارات Chromium منخفضة الاستهلاك.
+- [ ] تشغيل Playwright والفحوص والتحقق من استقرار API وMetro؛ TypeScript وlint وVitest ناجحة، وPlaywright يجمع الحالات لكنه يفشل أثناء التنفيذ بسبب Metro code 137/انهيار Chromium في sandbox.
