@@ -1,4 +1,4 @@
-import * as SecureStore from "expo-secure-store";
+import { getAccountPassword, setAccountPassword } from "@/lib/account-password-storage-runtime";
 import { validateRepresentativePassword } from "@/lib/representative-auth-validation";
 
 const MANAGER_PASSWORD_KEY = "medical_visit_manager_password";
@@ -7,11 +7,11 @@ export const DEFAULT_ACCOUNT_PASSWORD = "123";
 export async function saveManagerPassword(password: string) {
   const validation = validateRepresentativePassword(password);
   if (!validation.valid) throw new Error(validation.message);
-  await SecureStore.setItemAsync(MANAGER_PASSWORD_KEY, password);
+  await setAccountPassword(MANAGER_PASSWORD_KEY, password);
 }
 
 export async function getManagerPassword() {
-  return (await SecureStore.getItemAsync(MANAGER_PASSWORD_KEY)) ?? DEFAULT_ACCOUNT_PASSWORD;
+  return (await getAccountPassword(MANAGER_PASSWORD_KEY)) ?? DEFAULT_ACCOUNT_PASSWORD;
 }
 
 export async function verifyManagerPassword(password: string) {
