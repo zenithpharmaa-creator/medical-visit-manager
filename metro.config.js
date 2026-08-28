@@ -8,6 +8,9 @@ const config = getDefaultConfig(__dirname);
 config.resolver.blockList = [
   /\/tests\/.*/,
   /\/scripts\/.*/,
+  /\/playwright-report\/.*/,
+  /\/test-results\/.*/,
+  /\/temporary-data\/.*\.xlsx$/,
 ];
 // A single worker is slower but avoids Metro/Watchman memory spikes in the
 // constrained development sandbox and keeps the preview process responsive.
@@ -15,7 +18,4 @@ config.maxWorkers = 1;
 
 module.exports = withNativeWind(config, {
   input: "./global.css",
-  // Force write CSS to file system instead of virtual modules
-  // This fixes iOS styling issues in development mode
-  forceWriteFileSystem: true,
 });

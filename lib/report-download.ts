@@ -17,7 +17,7 @@ type DownloadResult = {
 
 function timestampedFileName(format: DownloadableReportFormat) {
   const meta = getReportDownloadMeta(format);
-  const stamp = new Date().toISOString().replace(/[-:T.Z]/g, "").slice(0, 14);
+  const stamp = new Date().toISOString().replace(/\D/g, "").slice(0, 14);
   return `${getReportDownloadBaseName(meta.fileName)}-${stamp}.${meta.fileName.split(".").pop()}`;
 }
 
