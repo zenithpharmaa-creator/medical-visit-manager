@@ -12,10 +12,32 @@
 # Error details
 
 ```
-Error: locator.fill: Page crashed
+Test timeout of 30000ms exceeded.
+```
+
+```
+Error: locator.fill: Test timeout of 30000ms exceeded.
 Call log:
   - waiting for getByPlaceholder('أدخل كلمة المرور')
 
+```
+
+# Page snapshot
+
+```yaml
+- generic [ref=f1e6]:
+  - generic [ref=f1e7]: 
+  - generic [ref=f1e9]: موافقة استخدام الموقع
+  - generic [ref=f1e10]: يستخدم التطبيق موقع المندوب عند تسجيل الزيارة أو تحديث موقعه، للتحقق من قربه من الجهة وعرضه على خريطة المدير. لا يعمل التتبع المستمر، ولا يُلتقط الموقع إلا عند طلب الإجراء.
+  - generic [ref=f1e11] [cursor=pointer]:
+    - generic [ref=f1e12]: 
+    - generic [ref=f1e13]: قراءة سياسة الخصوصية
+  - generic [ref=f1e14]:
+    - generic [ref=f1e15]: 
+    - generic [ref=f1e16]: يمكن تغيير أذونات الموقع لاحقاً من إعدادات جهاز Android.
+  - generic [ref=f1e17] [cursor=pointer]:
+    - generic [ref=f1e18]: 
+    - generic [ref=f1e19]: موافقة ومتابعة
 ```
 
 # Test source
@@ -28,7 +50,7 @@ Call log:
   5  |   await page.evaluate(() => localStorage.removeItem("medical_visit_active_session"));
   6  |   await page.reload();
 > 7  |   await page.getByPlaceholder("أدخل كلمة المرور").fill("123");
-     |                                                   ^ Error: locator.fill: Page crashed
+     |                                                   ^ Error: locator.fill: Test timeout of 30000ms exceeded.
   8  |   await page.getByRole("checkbox", { name: "تذكرني على هذا الجهاز" }).click();
   9  |   await page.getByRole("button", { name: "دخول إلى الحساب" }).click();
   10 |   await expect(page.getByText("مدير الزيارات الطبية")).toBeVisible({ timeout: 15_000 });
