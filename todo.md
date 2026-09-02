@@ -1610,3 +1610,5 @@
 - [x] تثبيت حزمة react-compiler-runtime وتحديث package.json وملف القفل؛ الإصدار المثبت 1.0.0.
 - [x] تشغيل الفحوص بعد التثبيت والتحقق من إعداد APK؛ نجح TypeScript وESLint و111 اختباراً مع اختبار واحد متجاوز.
 - [x] رفع التغيير إلى مستودع GitHub zenith-pharma-app والتحقق من commit `588c2e7` على الفرع `main`.
+
+- [x] تعطيل React Compiler في إعدادات Expo عبر `experiments.reactCompiler: false` في ملف الإعداد الفعلي `app.config.ts`، لأن المشروع لا يستخدم app.json؛ تم التحقق من ظهور القيمة `false` في Expo config.
