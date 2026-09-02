@@ -1613,6 +1613,6 @@
 
 - [x] تعطيل React Compiler في إعدادات Expo عبر `experiments.reactCompiler: false` في ملف الإعداد الفعلي `app.config.ts`، لأن المشروع لا يستخدم app.json؛ تم التحقق من ظهور القيمة `false` في Expo config.
 
-- [ ] إنشاء Commit وPush لتغييرات تعطيل React Compiler إلى فرع main والتحقق من تشغيل البناء التلقائي.
+- [x] إنشاء Commit وPush لتغييرات تعطيل React Compiler إلى فرع main والتحقق من تشغيل البناء التلقائي؛ تم الرفع ضمن commit `64e6d1a`.
 
-- [ ] إنشاء `.github/workflows/build-apk.yml` لبناء APK عبر Node وJDK 17 وExpo prebuild وGradle ورفع Artifact، ثم Commit وPush إلى main.
+- [x] إنشاء `.github/workflows/build-apk.yml` لبناء APK عبر Node وJDK 17 وExpo prebuild وGradle ورفع Artifact، ثم Commit وPush إلى main؛ بدأت مهمة GitHub Actions رقم `33684999440`.
