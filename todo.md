@@ -1616,3 +1616,5 @@
 - [x] إنشاء Commit وPush لتغييرات تعطيل React Compiler إلى فرع main والتحقق من تشغيل البناء التلقائي؛ تم الرفع ضمن commit `64e6d1a`.
 
 - [x] إنشاء `.github/workflows/build-apk.yml` لبناء APK عبر Node وJDK 17 وExpo prebuild وGradle ورفع Artifact، ثم Commit وPush إلى main؛ بدأت مهمة GitHub Actions رقم `33684999440`.
+
+- [ ] إزالة `cache: gradle` من Workflow بناء APK، ثم Commit وPush إلى main وإعادة التحقق من تشغيل البناء.
