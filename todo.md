@@ -1617,4 +1617,4 @@
 
 - [x] إنشاء `.github/workflows/build-apk.yml` لبناء APK عبر Node وJDK 17 وExpo prebuild وGradle ورفع Artifact، ثم Commit وPush إلى main؛ بدأت مهمة GitHub Actions رقم `33684999440`.
 
-- [ ] إزالة `cache: gradle` من Workflow بناء APK، ثم Commit وPush إلى main وإعادة التحقق من تشغيل البناء.
+- [x] إزالة `cache: gradle` من Workflow بناء APK، ثم Commit وPush إلى main وإعادة التحقق من تشغيل البناء؛ commit `351ccf1` وتشغيل Actions رقم `33687644580` قيد التنفيذ.
