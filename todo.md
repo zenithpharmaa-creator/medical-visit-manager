@@ -1612,3 +1612,5 @@
 - [x] رفع التغيير إلى مستودع GitHub zenith-pharma-app والتحقق من commit `588c2e7` على الفرع `main`.
 
 - [x] تعطيل React Compiler في إعدادات Expo عبر `experiments.reactCompiler: false` في ملف الإعداد الفعلي `app.config.ts`، لأن المشروع لا يستخدم app.json؛ تم التحقق من ظهور القيمة `false` في Expo config.
+
+- [ ] إنشاء Commit وPush لتغييرات تعطيل React Compiler إلى فرع main والتحقق من تشغيل البناء التلقائي.
