@@ -1618,3 +1618,12 @@
 - [x] إنشاء `.github/workflows/build-apk.yml` لبناء APK عبر Node وJDK 17 وExpo prebuild وGradle ورفع Artifact، ثم Commit وPush إلى main؛ بدأت مهمة GitHub Actions رقم `33684999440`.
 
 - [x] إزالة `cache: gradle` من Workflow بناء APK، ثم Commit وPush إلى main وإعادة التحقق من تشغيل البناء؛ commit `351ccf1` وتشغيل Actions رقم `33687644580` قيد التنفيذ.
+
+- [x] إعادة التحقق من Workflow والـArtifacts وتقييم أي أخطاء متبقية في إعدادات بناء APK؛ لا توجد أخطاء مانعة، وآخر APK ناجح.
+
+- [x] مراجعة package.json وملفات القفل وإصدارات التبعيات؛ Expo 54.0.29 وReact 19.1.0 وReact Native 0.81.5 وReanimated 4.1.6 وNativeWind 4.2.1.
+- [x] تقييم تحسينات Workflow لتقليل زمن بناء APK؛ أضيف كاش npm وGradle بعد prebuild مع إبقاء Node 20 وJDK 17.
+- [x] التحقق من الربط السحابي بين GitHub Actions وArtifacts والمستودع؛ آخر APK ناجح وArtifact صالح للتنزيل.
+
+- [x] تصميم نظام مزامنة مركزي بين أجهزة المندوبين والخادم مع طابور محلي ومعالجة تعارضات؛ أضيفت وثيقة `docs/sync-architecture.md` وتوثق الأساس المنفذ والمراحل المتبقية.
+- [x] إضافة Caching آمن لـnpm وGradle إلى Workflow بناء APK بعد إنشاء مشروع Android؛ كاش npm مرتبط بـ`package-lock.json` وكاش Gradle يأتي بعد `expo prebuild`.
