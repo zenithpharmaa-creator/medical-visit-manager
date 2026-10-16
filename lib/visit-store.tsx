@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { PropsWithChildren, createContext, useContext, useEffect, useMemo, useState } from "react";
+import { PropsWithChildren, createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { useNetworkState } from "expo-network";
 
 import { AppData, AppSettings, EmptyDayReview, ManagerDecisionAudit, MedicalEntity, OfficialHoliday, PasswordResetRequest, PlanApprovalAudit, Representative, RepresentativeLeave, SharedLocation, SyncLogEntry, SyncOperation, SyncRecordType, Visit } from "@/shared/visit-types";
@@ -9,6 +9,7 @@ import { EMBEDDED_ENTITIES } from "@/data/embedded-entities";
 import { EMBEDDED_COORDINATES_MIGRATION_VERSION, mergeEmbeddedEntities, preserveExistingCoordinates } from "@/lib/entity-migration";
 import { deriveSharedLocations, normalizeSharedLocations, sortSharedLocations } from "@/lib/shared-locations";
 import { createSyncChange, enqueueSyncChange, applyRemoteRecords, buildConflicts, syncKey } from "@/lib/sync-queue";
+import { getSendableQueue, loadPersistedSyncQueue, markQueueFailure, markQueueSending, persistSyncQueue } from "@/lib/sync-queue-storage";
 import { createTRPCClient } from "@/lib/trpc";
 import { getActivatedDevice } from "@/lib/sync-device";
 import { notifySyncStatus } from "@/lib/sync-notifications";
@@ -91,13 +92,15 @@ export function VisitProvider({ children }: PropsWithChildren) {
   const [data, setData] = useState<AppData>(INITIAL_DATA);
   const [loading, setLoading] = useState(true);
   const networkState = useNetworkState();
+  const syncPendingVisitsRef = useRef<() => Promise<{ processed: number; syncedAt?: string; error?: string }>>(() => Promise.resolve({ processed: 0 }));
 
   useEffect(() => {
     const loadStoredData = async () => {
       try {
-        const [saved, migrationVersionValue] = await Promise.all([
+        const [saved, migrationVersionValue, persistedQueue] = await Promise.all([
           AsyncStorage.getItem(STORAGE_KEY),
           AsyncStorage.getItem(EMBEDDED_COORDINATES_MIGRATION_KEY),
+          loadPersistedSyncQueue(),
         ]);
         if (saved) {
           const parsed = JSON.parse(saved) as Partial<AppData>;
@@ -119,7 +122,7 @@ export function VisitProvider({ children }: PropsWithChildren) {
             planApprovalHistory: parsed.planApprovalHistory ?? [],
             emptyDayReviews: parsed.emptyDayReviews ?? [],
             managerDecisionHistory: parsed.managerDecisionHistory ?? [],
-            syncQueue: parsed.syncQueue ?? [],
+            syncQueue: parsed.syncQueue?.length ? parsed.syncQueue : persistedQueue,
             syncConflicts: parsed.syncConflicts ?? [],
             syncHistory: parsed.syncHistory ?? [],
             notificationTests: parsed.notificationTests ?? [],
@@ -170,9 +173,20 @@ export function VisitProvider({ children }: PropsWithChildren) {
       });
       return { processed, error: "الجهاز غير مفعّل للمزامنة المركزية." };
     }
+    let batchIdsForRetry = new Set<string>();
     try {
-      const queue = currentData.syncQueue ?? [];
-      const response = await createTRPCClient().sync.pushPull.mutate({ deviceId: activated.deviceId, deviceToken: activated.deviceToken, changes: queue.slice(0, 100).map((item) => ({ ...item, payload: item.payload })) });
+      const queue = getSendableQueue(currentData.syncQueue ?? []);
+      const batch = queue.slice(0, 100);
+      if (batch.length === 0) return { processed, syncedAt: checkedAt };
+      const batchIds = new Set(batch.map((item) => item.changeId));
+      batchIdsForRetry = batchIds;
+      setData((current) => {
+        const nextQueue = markQueueSending(current.syncQueue ?? [], batchIds);
+        const next = { ...current, syncQueue: nextQueue };
+        void Promise.all([AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next)), persistSyncQueue(nextQueue)]);
+        return next;
+      });
+      const response = await createTRPCClient().sync.pushPull.mutate({ deviceId: activated.deviceId, deviceToken: activated.deviceToken, changes: batch.map((item) => ({ ...item, payload: item.payload })) });
       if (!response.authorized) {
         const message = "تم رفض هوية الجهاز. اطلب من المدير إعادة تفعيل الجهاز.";
         setData((current) => { const next = appendSyncLog(current, { id: `sync-${Date.now()}`, status: "error", startedAt, completedAt: new Date().toISOString(), pushed: 0, pulled: 0, conflicts: 0, message, representativeId: activated.representativeId, representativeName, deviceId: activated.deviceId }); void AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next)); return next; });
@@ -196,7 +210,12 @@ export function VisitProvider({ children }: PropsWithChildren) {
       return { processed, syncedAt: checkedAt };
     } catch (error) {
       const message = error instanceof Error ? error.message : "تعذر الاتصال بخادم المزامنة.";
-      setData((current) => { const next = appendSyncLog(current, { id: `sync-${Date.now()}`, status: "error", startedAt, completedAt: new Date().toISOString(), pushed: 0, pulled: 0, conflicts: 0, message, representativeId: activated.representativeId, representativeName, deviceId: activated.deviceId }); void AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next)); return next; });
+      setData((current) => {
+        const failedQueue = markQueueFailure(current.syncQueue ?? [], batchIdsForRetry, message);
+        const next = appendSyncLog({ ...current, syncQueue: failedQueue }, { id: `sync-${Date.now()}`, status: "error", startedAt, completedAt: new Date().toISOString(), pushed: 0, pulled: 0, conflicts: 0, message, representativeId: activated.representativeId, representativeName, deviceId: activated.deviceId });
+        void Promise.all([AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next)), persistSyncQueue(failedQueue)]);
+        return next;
+      });
       void notifySyncStatus({ success: false, pushed: 0, pulled: 0, message: "تعذر الاتصال بخادم المزامنة؛ ستبقى البيانات محفوظة على الجهاز." });
       return { processed, error: message };
     }
@@ -212,9 +231,19 @@ export function VisitProvider({ children }: PropsWithChildren) {
     }
   };
 
+  syncPendingVisitsRef.current = syncPendingVisits;
+  const queueSignature = (data.syncQueue ?? []).map((item) => `${item.changeId}:${item.state ?? "pending"}:${item.nextAttemptAt ?? ""}`).join("|");
   useEffect(() => {
-    if (networkState.isInternetReachable === true) void syncPendingVisits();
-  }, [networkState.isInternetReachable]);
+    if (networkState.isInternetReachable !== true || loading || !data.syncQueue?.length) return;
+    const sendable = getSendableQueue(data.syncQueue);
+    const nextRetryAt = data.syncQueue
+      .map((item) => item.nextAttemptAt ? new Date(item.nextAttemptAt).getTime() : Number.POSITIVE_INFINITY)
+      .reduce((earliest, value) => Math.min(earliest, value), Number.POSITIVE_INFINITY);
+    const delay = sendable.length > 0 ? 0 : Number.isFinite(nextRetryAt) ? Math.max(250, nextRetryAt - Date.now()) : -1;
+    if (delay < 0) return;
+    const timer = setTimeout(() => void syncPendingVisitsRef.current(), delay);
+    return () => clearTimeout(timer);
+  }, [data.syncQueue, loading, networkState.isInternetReachable, queueSignature]);
 
   const save = (updater: (current: AppData) => AppData, change?: { recordType: SyncRecordType; recordId: string; operation?: SyncOperation; payload?: unknown }) => {
     const stopLoading = startGlobalLoading(change?.recordType === "entity" ? "جاري حفظ جهة الزيارة..." : change?.recordType === "visit" ? "جاري حفظ الزيارة..." : "جاري حفظ البيانات...");
@@ -222,7 +251,7 @@ export function VisitProvider({ children }: PropsWithChildren) {
       const next = updater(current);
       const queued = change ? enqueueSyncChange(next.syncQueue ?? [], createSyncChange({ recordType: change.recordType, recordId: change.recordId, operation: change.operation ?? "upsert", baseVersion: next.syncVersions?.[syncKey(change.recordType, change.recordId)] ?? 0, payload: change.payload })) : next.syncQueue;
       const persisted = queued ? { ...next, syncQueue: queued } : next;
-      AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(persisted)).catch(() => undefined).finally(stopLoading);
+      Promise.all([AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(persisted)), persistSyncQueue(persisted.syncQueue ?? [])]).catch(() => undefined).finally(stopLoading);
       return persisted;
     });
   };

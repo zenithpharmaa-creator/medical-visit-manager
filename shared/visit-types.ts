@@ -173,6 +173,11 @@ export type SyncQueueEntry = {
   baseVersion: number;
   payload?: unknown;
   createdAt: string;
+  state?: "pending" | "sending" | "failed" | "conflict";
+  attempts?: number;
+  lastError?: string;
+  nextAttemptAt?: string;
+  updatedAt?: string;
 };
 export type SyncLogStatus = "success" | "error" | "conflict" | "offline" | "skipped";
 export type NotificationTestRecord = {
