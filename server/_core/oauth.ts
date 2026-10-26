@@ -3,6 +3,7 @@ import type { Express, Request, Response } from "express";
 import { getUserByOpenId, upsertUser } from "../db";
 import { getSessionCookieOptions } from "./cookies";
 import { sdk } from "./sdk";
+import { resolveOAuthFrontendUrl } from "./oauth-redirect";
 
 function getQueryParam(req: Request, key: string): string | undefined {
   const value = req.query[key];
@@ -83,12 +84,15 @@ export function registerOAuthRoutes(app: Express) {
       const cookieOptions = getSessionCookieOptions(req);
       res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: ONE_YEAR_MS });
 
-      // Redirect to the frontend URL (Expo web on port 8081)
-      // Cookie is set with parent domain so it works across both 3000 and 8081 subdomains
-      const frontendUrl =
-        process.env.EXPO_WEB_PREVIEW_URL ||
-        process.env.EXPO_PACKAGER_PROXY_URL ||
-        "http://localhost:8081";
+      // Redirect to the current Expo web host. In a forwarded preview, the API
+      // is exposed on 3000-* while Metro is exposed on the matching 8081-* host.
+      // Falling back to localhost breaks OAuth on phones and remote previews.
+      const frontendUrl = resolveOAuthFrontendUrl({
+        host: req.get("host") || "localhost:3000",
+        protocol: req.protocol,
+        forwardedProto: typeof req.headers["x-forwarded-proto"] === "string" ? req.headers["x-forwarded-proto"] : undefined,
+        configuredUrl: process.env.EXPO_WEB_PREVIEW_URL || process.env.EXPO_PACKAGER_PROXY_URL,
+      });
       res.redirect(302, frontendUrl);
     } catch (error) {
       console.error("[OAuth] Callback failed", error);
