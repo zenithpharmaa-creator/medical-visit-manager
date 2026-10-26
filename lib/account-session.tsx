@@ -104,6 +104,17 @@ export function AccountSessionProvider({ children }: { children: ReactNode }) {
 
 export function useAccountSession() { const value = useContext(AccountSessionContext); if (!value) throw new Error("useAccountSession must be used inside AccountSessionProvider"); return value; }
 
+export async function getStoredAccountSession(): Promise<Session | null> {
+  try {
+    const value = await AsyncStorage.getItem(SESSION_KEY);
+    if (!value) return null;
+    const parsed = JSON.parse(value) as Session;
+    return parsed && (parsed.role === "manager" || (parsed.role === "representative" && parsed.representativeId)) ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
 export function SessionGate({ children }: { children: ReactNode }) {
   const { session, loading } = useAccountSession();
   const router = useRouter();

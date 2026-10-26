@@ -12,6 +12,8 @@ import { createSyncChange, enqueueSyncChange, applyRemoteRecords, buildConflicts
 import { getSendableQueue, loadPersistedSyncQueue, markQueueFailure, markQueueSending, persistSyncQueue } from "@/lib/sync-queue-storage";
 import { createTRPCClient } from "@/lib/trpc";
 import { getActivatedDevice } from "@/lib/sync-device";
+import { getStoredAccountSession } from "@/lib/account-session";
+import { shouldUseManagerSync } from "@/shared/sync-mode";
 import { notifySyncStatus } from "@/lib/sync-notifications";
 import { appendSyncLog } from "@/lib/sync-history";
 import { startGlobalLoading } from "@/lib/navigation";
@@ -155,6 +157,8 @@ export function VisitProvider({ children }: PropsWithChildren) {
     }
     const checkedAt = new Date().toISOString();
     const activated = await getActivatedDevice();
+    const storedSession = await getStoredAccountSession();
+    const managerSync = shouldUseManagerSync(Boolean(activated), storedSession?.role);
     let processed = 0;
     let currentData = data;
     setData((current) => {
@@ -165,7 +169,7 @@ export function VisitProvider({ children }: PropsWithChildren) {
     });
     await new Promise((resolve) => setTimeout(resolve, 0));
     const representativeName = activated?.representativeId ? currentData.representatives.find((item) => item.id === activated.representativeId)?.name : undefined;
-    if (!activated) {
+    if (!activated && !managerSync) {
       setData((current) => {
         const next = appendSyncLog(current, { id: `sync-${Date.now()}`, status: "skipped", startedAt, completedAt: new Date().toISOString(), pushed: 0, pulled: 0, conflicts: 0, message: "الجهاز غير مفعّل للمزامنة المركزية." });
         void AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next));
@@ -186,10 +190,12 @@ export function VisitProvider({ children }: PropsWithChildren) {
         void Promise.all([AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next)), persistSyncQueue(nextQueue)]);
         return next;
       });
-      const response = await createTRPCClient().sync.pushPull.mutate({ deviceId: activated.deviceId, deviceToken: activated.deviceToken, changes: batch.map((item) => ({ ...item, payload: item.payload })) });
+      const response = managerSync
+        ? await createTRPCClient().sync.managerPushPull.mutate({ changes: batch.map((item) => ({ ...item, payload: item.payload })) })
+        : await createTRPCClient().sync.pushPull.mutate({ deviceId: activated!.deviceId, deviceToken: activated!.deviceToken, changes: batch.map((item) => ({ ...item, payload: item.payload })) });
       if (!response.authorized) {
         const message = "تم رفض هوية الجهاز. اطلب من المدير إعادة تفعيل الجهاز.";
-        setData((current) => { const next = appendSyncLog(current, { id: `sync-${Date.now()}`, status: "error", startedAt, completedAt: new Date().toISOString(), pushed: 0, pulled: 0, conflicts: 0, message, representativeId: activated.representativeId, representativeName, deviceId: activated.deviceId }); void AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next)); return next; });
+        setData((current) => { const next = appendSyncLog(current, { id: `sync-${Date.now()}`, status: "error", startedAt, completedAt: new Date().toISOString(), pushed: 0, pulled: 0, conflicts: 0, message, representativeId: activated?.representativeId, representativeName, deviceId: activated?.deviceId }); void AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next)); return next; });
         void notifySyncStatus({ success: false, pushed: 0, pulled: 0, message });
         return { processed, error: message };
       }
@@ -202,7 +208,7 @@ export function VisitProvider({ children }: PropsWithChildren) {
         const conflicts = buildConflicts(pulled.syncConflicts ?? [], response.conflicts as never[], value.syncQueue ?? []);
         const nextQueue = (pulled.syncQueue ?? []).filter((item) => !accepted.has(item.changeId) && !conflictIds.has(item.changeId));
         const message = conflictCount ? `اكتملت المزامنة مع ${conflictCount} تعارض يحتاج مراجعة.` : `اكتملت المزامنة: رُفع ${accepted.size} تغيير وسُحب ${response.records.length} سجل.`;
-        const next = appendSyncLog({ ...pulled, syncQueue: nextQueue, syncConflicts: conflicts, lastSuccessfulSyncAt: checkedAt }, { id: `sync-${Date.now()}`, status: conflictCount ? "conflict" : "success", startedAt, completedAt: new Date().toISOString(), pushed: accepted.size, pulled: response.records.length, conflicts: conflictCount, message, representativeId: activated.representativeId, representativeName, deviceId: activated.deviceId });
+        const next = appendSyncLog({ ...pulled, syncQueue: nextQueue, syncConflicts: conflicts, lastSuccessfulSyncAt: checkedAt }, { id: `sync-${Date.now()}`, status: conflictCount ? "conflict" : "success", startedAt, completedAt: new Date().toISOString(), pushed: accepted.size, pulled: response.records.length, conflicts: conflictCount, representativeId: activated?.representativeId, representativeName, deviceId: activated?.deviceId, message: managerSync ? `${message} (من جهاز المدير)` : message });
         void AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next));
         void notifySyncStatus({ success: conflictCount === 0, pushed: accepted.size, pulled: response.records.length, conflicts: conflictCount, message });
         return next;
@@ -212,7 +218,7 @@ export function VisitProvider({ children }: PropsWithChildren) {
       const message = error instanceof Error ? error.message : "تعذر الاتصال بخادم المزامنة.";
       setData((current) => {
         const failedQueue = markQueueFailure(current.syncQueue ?? [], batchIdsForRetry, message);
-        const next = appendSyncLog({ ...current, syncQueue: failedQueue }, { id: `sync-${Date.now()}`, status: "error", startedAt, completedAt: new Date().toISOString(), pushed: 0, pulled: 0, conflicts: 0, message, representativeId: activated.representativeId, representativeName, deviceId: activated.deviceId });
+        const next = appendSyncLog({ ...current, syncQueue: failedQueue }, { id: `sync-${Date.now()}`, status: "error", startedAt, completedAt: new Date().toISOString(), pushed: 0, pulled: 0, conflicts: 0, message, representativeId: activated?.representativeId, representativeName, deviceId: activated?.deviceId });
         void Promise.all([AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next)), persistSyncQueue(failedQueue)]);
         return next;
       });

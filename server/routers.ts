@@ -71,6 +71,20 @@ export const appRouter = router({
         })).max(100),
       }))
       .mutation(({ input }) => db.syncDeviceChanges(input)),
+
+    managerPushPull: adminProcedure
+      .input(z.object({
+        changes: z.array(z.object({
+          changeId: z.string().trim().min(8).max(128),
+          recordType: z.enum(["entity", "visit", "plannedVisit", "sharedLocation"]),
+          recordId: z.string().trim().min(1).max(191),
+          operation: z.enum(["upsert", "delete"]),
+          baseVersion: z.number().int().nonnegative().optional(),
+          payload: z.unknown().optional(),
+          createdAt: z.string().datetime().optional(),
+        })).max(100),
+      }))
+      .mutation(({ ctx, input }) => db.syncManagerChanges({ userId: ctx.user.id, changes: input.changes })),
   }),
 
   // TODO: add feature routers here, e.g.

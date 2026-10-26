@@ -286,3 +286,42 @@ export async function syncDeviceChanges(input: {
   const records = await db.select().from(syncRecords).orderBy(desc(syncRecords.updatedAt));
   return { authorized: true as const, accepted, conflicts, records };
 }
+
+
+export async function syncManagerChanges(input: {
+  userId: number;
+  changes: SyncChangeInput[];
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const accepted: string[] = [];
+  const conflicts: Array<{ changeId: string; recordType: string; recordId: string; serverRecord: typeof syncRecords.$inferSelect | null }> = [];
+  const now = new Date();
+
+  await db.transaction(async (tx) => {
+    for (const change of input.changes) {
+      const currentRows = await tx.select().from(syncRecords).where(and(
+        eq(syncRecords.recordType, change.recordType),
+        eq(syncRecords.recordId, change.recordId),
+      )).limit(1);
+      const current = currentRows[0] ?? null;
+      if (current && change.baseVersion !== undefined && change.baseVersion !== current.version) {
+        conflicts.push({ changeId: change.changeId, recordType: change.recordType, recordId: change.recordId, serverRecord: current });
+        continue;
+      }
+      const nextVersion = (current?.version ?? 0) + 1;
+      const payload = change.operation === "delete" ? (current?.payload ?? "null") : JSON.stringify(change.payload ?? null);
+      if (current) {
+        await tx.update(syncRecords).set({ payload, version: nextVersion, updatedBy: input.userId, updatedAt: now, deletedAt: change.operation === "delete" ? now : null }).where(and(eq(syncRecords.recordType, change.recordType), eq(syncRecords.recordId, change.recordId)));
+      } else {
+        await tx.insert(syncRecords).values({ recordType: change.recordType, recordId: change.recordId, payload, version: nextVersion, updatedBy: input.userId, updatedAt: now, deletedAt: change.operation === "delete" ? now : null });
+      }
+      await tx.insert(syncChanges).values({ changeId: change.changeId, deviceId: "manager", userId: input.userId, recordType: change.recordType, recordId: change.recordId, operation: change.operation, baseVersion: change.baseVersion ?? null, payload: change.operation === "delete" ? null : JSON.stringify(change.payload ?? null), createdAt: change.createdAt ? new Date(change.createdAt) : now }).onDuplicateKeyUpdate({ set: { changeId: change.changeId } });
+      accepted.push(change.changeId);
+    }
+  });
+
+  const records = await db.select().from(syncRecords).orderBy(desc(syncRecords.updatedAt));
+  return { authorized: true as const, accepted, conflicts, records };
+}
