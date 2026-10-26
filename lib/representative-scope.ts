@@ -3,7 +3,9 @@ import type { EntityKind, MedicalEntity, Representative } from "@/shared/visit-t
 export function isEntityVisibleToRepresentative(entity: MedicalEntity, representative?: Representative) {
   if (!representative) return false;
   const assignedIds = representative.assignedEntityIds ?? [];
-  if (assignedIds.length > 0 && !assignedIds.includes(entity.id)) return false;
+  // An explicit entity allow-list is the manager's most specific assignment.
+  // It must not be hidden by a stale/legacy region or category on the entity.
+  if (assignedIds.length > 0) return assignedIds.includes(entity.id);
   if (representative.region && entity.region !== representative.region) return false;
   const assignedKinds = representative.assignedKinds ?? [];
   if (assignedKinds.length > 0 && !assignedKinds.includes(entity.kind as EntityKind)) return false;

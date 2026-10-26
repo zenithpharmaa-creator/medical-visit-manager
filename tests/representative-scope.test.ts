@@ -19,4 +19,8 @@ describe("representative scope", () => {
     const other = { ...entity("c", "north", "باطنة"), sharedLocationId: "loc-2" };
     expect(getEntitiesForRepresentative([matching, other], restricted).map((item) => item.id)).toEqual(["b"]);
   });
+  it("prioritizes an explicit entity assignment over a stale region", () => {
+    const assigned = { ...rep, region: "central" as const, assignedItems: ["قلب"], assignedEntityIds: ["north-entity"] };
+    expect(getEntitiesForRepresentative([entity("north-entity", "north", "باطنة")], assigned).map((item) => item.id)).toEqual(["north-entity"]);
+  });
 });
