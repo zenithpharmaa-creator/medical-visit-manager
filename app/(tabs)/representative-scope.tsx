@@ -12,7 +12,7 @@ import { ENTITY_KINDS } from "@/lib/visit-utils";
 import type { EntityKind, RepresentativeRegion } from "@/shared/visit-types";
 
 const regionOptions: { label: string; value: RepresentativeRegion }[] = [
-  { label: "صنعاء كاملة", value: "sanaa" },
+  { label: "المنطقة الوسطى", value: "central" },
   { label: "المنطقة الشمالية", value: "north" },
   { label: "المنطقة الجنوبية", value: "south" },
 ];
@@ -42,7 +42,7 @@ export default function RepresentativeScopeScreen() {
   const [selectedRepId, setSelectedRepId] = useState(data.representatives.find((item) => item.active)?.id ?? data.representatives[0]?.id ?? "");
   const [representativeModal, setRepresentativeModal] = useState(false);
   const [regionModal, setRegionModal] = useState(false);
-  const [region, setRegion] = useState<RepresentativeRegion>("sanaa");
+  const [region, setRegion] = useState<RepresentativeRegion>("central");
   const [assignedItems, setAssignedItems] = useState<string[]>([]);
   const [assignedKinds, setAssignedKinds] = useState<EntityKind[]>([]);
   const [assignedEntityIds, setAssignedEntityIds] = useState<string[]>([]);
@@ -58,7 +58,7 @@ export default function RepresentativeScopeScreen() {
 
   useEffect(() => {
     if (!selectedRepresentative) return;
-    setRegion(selectedRepresentative.region ?? "sanaa");
+    setRegion(selectedRepresentative.region ?? "central");
     setAssignedItems(selectedRepresentative.assignedItems ?? []);
     setAssignedKinds(selectedRepresentative.assignedKinds ?? []);
     setAssignedEntityIds(selectedRepresentative.assignedEntityIds ?? []);
@@ -70,7 +70,7 @@ export default function RepresentativeScopeScreen() {
   }
 
   const toggle = <T,>(values: T[], value: T, setValues: (next: T[]) => void) => setValues(values.includes(value) ? values.filter((item) => item !== value) : [...values, value]);
-  const regionLabel = regionOptions.find((item) => item.value === region)?.label ?? "صنعاء كاملة";
+  const regionLabel = regionOptions.find((item) => item.value === region)?.label ?? "المنطقة الوسطى";
   const save = () => {
     if (!selectedRepresentative) return;
     updateRepresentative({ ...selectedRepresentative, region, assignedItems, assignedKinds, assignedEntityIds, assignedSharedLocationIds });
@@ -99,7 +99,7 @@ export default function RepresentativeScopeScreen() {
         <Pressable onPress={save} disabled={!selectedRepresentative} className="h-14 rounded-2xl bg-primary items-center justify-center flex-row-reverse gap-2" style={({ pressed }) => [{ opacity: pressed ? 0.78 : 1 }]}><MaterialIcons name="save" size={21} color="#FFFFFF" /><Text className="text-white font-bold">حفظ تخصيص المندوب</Text></Pressable>
         <Pressable onPress={goBackToPreviousScreen} className="h-12 rounded-xl bg-surface border border-border items-center justify-center mt-3"><Text className="font-bold text-foreground">رجوع</Text></Pressable>
       </ScrollView>
-      <SelectionModal visible={representativeModal} title="اختر المندوب" options={data.representatives.filter((item) => item.active).map((item) => ({ label: item.name, value: item.id, helper: item.region === "north" ? "المنطقة الشمالية" : item.region === "south" ? "المنطقة الجنوبية" : "صنعاء كاملة" }))} selected={selectedRepId} onClose={() => setRepresentativeModal(false)} onSelect={(option) => { setSelectedRepId(option.value); setRepresentativeModal(false); }} />
+      <SelectionModal visible={representativeModal} title="اختر المندوب" options={data.representatives.filter((item) => item.active).map((item) => ({ label: item.name, value: item.id, helper: item.region === "north" ? "المنطقة الشمالية" : item.region === "south" ? "المنطقة الجنوبية" : "المنطقة الوسطى" }))} selected={selectedRepId} onClose={() => setRepresentativeModal(false)} onSelect={(option) => { setSelectedRepId(option.value); setRepresentativeModal(false); }} />
       <SelectionModal visible={regionModal} title="اختر المنطقة" options={regionOptions} selected={region} onClose={() => setRegionModal(false)} onSelect={(option) => { setRegion(option.value as RepresentativeRegion); setRegionModal(false); }} />
     </ScreenContainer>
   );

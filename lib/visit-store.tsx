@@ -21,7 +21,7 @@ import { getYemenOfficialHolidaySeeds } from "@/lib/calendar-date";
 const STORAGE_KEY = "medical-visit-manager-data-v1";
 const EMBEDDED_COORDINATES_MIGRATION_KEY = "medical-visit-manager-embedded-coordinates-version";
 const REPRESENTATIVE_NAMES: Record<string, string> = { "rep-1": "علي الشعيبي", "rep-2": "محمد الحداد", "rep-3": "محمود الرميمة" };
-const REPRESENTATIVE_REGIONS: Record<string, "north" | "south" | "sanaa"> = { "rep-1": "south", "rep-2": "north", "rep-3": "sanaa" };
+const REPRESENTATIVE_REGIONS: Record<string, "north" | "south" | "central"> = { "rep-1": "south", "rep-2": "north", "rep-3": "central" };
 const LEGACY_REPRESENTATIVE_NAMES = new Set(["المندوب الأول", "المندوب الثاني", "المندوب الثالث"]);
 const REP_1_ITEMS = ["Akisol 2mg tab", "Akisol 5mg tab", "Losart 50mg tab", "Magnacef 200mg cap", "Magnacef 400mg cap", "Magnacef 30ml susp", "Magnacef 60ml susp", "Norcetam 200mg syr", "Norcetam 800mg tab", "Norcetam 400mg tab", "Novepam 1.5mg tab", "Novepam 3mg tab", "Pangesic 500mg tab", "Ramlac 300ml syr", "Zenoril 5mg tab", "Zenoril 10mg tab", "Zenoril 20mg tab", "Moxiram 1g tab", "Lanzoram 30mg cap"];
 const REP_2_ITEMS = [...REP_1_ITEMS];

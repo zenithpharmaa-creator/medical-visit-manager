@@ -4,7 +4,7 @@ export function isEntityVisibleToRepresentative(entity: MedicalEntity, represent
   if (!representative) return false;
   const assignedIds = representative.assignedEntityIds ?? [];
   if (assignedIds.length > 0 && !assignedIds.includes(entity.id)) return false;
-  if (representative.region && representative.region !== "sanaa" && entity.region !== representative.region) return false;
+  if (representative.region && entity.region !== representative.region) return false;
   const assignedKinds = representative.assignedKinds ?? [];
   if (assignedKinds.length > 0 && !assignedKinds.includes(entity.kind as EntityKind)) return false;
   const assignedItems = representative.assignedItems ?? [];

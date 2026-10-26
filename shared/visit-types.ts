@@ -55,7 +55,7 @@ export type ManagerDecisionAudit = {
   decidedAt: string;
 };
 
-export type RepresentativeRegion = "north" | "south" | "sanaa";
+export type RepresentativeRegion = "north" | "south" | "central";
 
 export type Representative = {
   id: string;
