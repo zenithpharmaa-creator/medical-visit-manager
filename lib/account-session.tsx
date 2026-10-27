@@ -6,6 +6,7 @@ import { authenticateBiometric, clearBiometricSession, getBiometricSession, save
 import { getRepresentativePassword } from "@/lib/representative-auth";
 import { verifyManagerPassword } from "@/lib/manager-auth";
 import { useVisitStore } from "@/lib/visit-store";
+import { setActiveAccountSession } from "@/lib/account-session-state";
 
 export type Session = { role: "manager" | "representative"; representativeId?: string; impersonatedByManager?: boolean };
 type AccountSessionValue = {
@@ -36,7 +37,7 @@ export function AccountSessionProvider({ children }: { children: ReactNode }) {
         if (value) {
           try {
             const parsed = JSON.parse(value) as Session;
-            if (parsed && (parsed.role === "manager" || (parsed.role === "representative" && parsed.representativeId))) setSession(parsed);
+            if (parsed && (parsed.role === "manager" || (parsed.role === "representative" && parsed.representativeId))) { setSession(parsed); setActiveAccountSession(parsed); }
           } catch {
             void AsyncStorage.removeItem(SESSION_KEY);
           }
@@ -56,6 +57,7 @@ export function AccountSessionProvider({ children }: { children: ReactNode }) {
       // Keep the active session in memory even if device storage is temporarily unavailable.
     }
     setSession(next);
+    setActiveAccountSession(next);
   };
 
   const value = useMemo<AccountSessionValue>(() => ({
@@ -97,6 +99,7 @@ export function AccountSessionProvider({ children }: { children: ReactNode }) {
     logout: async () => {
       try { await AsyncStorage.removeItem(SESSION_KEY); } catch { /* session is still cleared in memory */ }
       setSession(null);
+      setActiveAccountSession(null);
     },
   }), [biometricEnabled, data.representatives, loading, session]);
   return <AccountSessionContext.Provider value={value}>{children}</AccountSessionContext.Provider>;

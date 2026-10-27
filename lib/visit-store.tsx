@@ -14,6 +14,7 @@ import { createTRPCClient } from "@/lib/trpc";
 import { getActivatedDevice } from "@/lib/sync-device";
 import { getStoredAccountSession } from "@/lib/account-session";
 import { shouldUseManagerSync } from "@/shared/sync-mode";
+import { getActiveAccountSession } from "@/lib/account-session-state";
 import { notifySyncStatus } from "@/lib/sync-notifications";
 import { appendSyncLog } from "@/lib/sync-history";
 import { startGlobalLoading } from "@/lib/navigation";
@@ -157,8 +158,16 @@ export function VisitProvider({ children }: PropsWithChildren) {
     }
     const checkedAt = new Date().toISOString();
     const activated = await getActivatedDevice();
-    const storedSession = await getStoredAccountSession();
-    const managerSync = shouldUseManagerSync(Boolean(activated), storedSession?.role);
+    const storedSession = getActiveAccountSession() ?? await getStoredAccountSession();
+    let cloudUserAvailable = false;
+    if (!activated && storedSession?.role === "manager") {
+      try {
+        cloudUserAvailable = Boolean(await createTRPCClient().auth.me.query());
+      } catch {
+        cloudUserAvailable = false;
+      }
+    }
+    const managerSync = shouldUseManagerSync(Boolean(activated), storedSession?.role) && cloudUserAvailable;
     let processed = 0;
     let currentData = data;
     setData((current) => {
@@ -181,7 +190,9 @@ export function VisitProvider({ children }: PropsWithChildren) {
     try {
       const queue = getSendableQueue(currentData.syncQueue ?? []);
       const batch = queue.slice(0, 100);
-      if (batch.length === 0) return { processed, syncedAt: checkedAt };
+      // Pull-only sync is essential: assignments created on the manager device
+      // are remote changes, so a representative with an empty local queue must
+      // still contact the server to receive them.
       const batchIds = new Set(batch.map((item) => item.changeId));
       batchIdsForRetry = batchIds;
       setData((current) => {
@@ -240,15 +251,17 @@ export function VisitProvider({ children }: PropsWithChildren) {
   syncPendingVisitsRef.current = syncPendingVisits;
   const queueSignature = (data.syncQueue ?? []).map((item) => `${item.changeId}:${item.state ?? "pending"}:${item.nextAttemptAt ?? ""}`).join("|");
   useEffect(() => {
-    if (networkState.isInternetReachable !== true || loading || !data.syncQueue?.length) return;
-    const sendable = getSendableQueue(data.syncQueue);
-    const nextRetryAt = data.syncQueue
+    if (networkState.isInternetReachable !== true || loading) return;
+    const currentQueue = data.syncQueue ?? [];
+    const sendable = getSendableQueue(currentQueue);
+    const nextRetryAt = currentQueue
       .map((item) => item.nextAttemptAt ? new Date(item.nextAttemptAt).getTime() : Number.POSITIVE_INFINITY)
       .reduce((earliest, value) => Math.min(earliest, value), Number.POSITIVE_INFINITY);
-    const delay = sendable.length > 0 ? 0 : Number.isFinite(nextRetryAt) ? Math.max(250, nextRetryAt - Date.now()) : -1;
-    if (delay < 0) return;
+    const delay = sendable.length > 0 ? 0 : Number.isFinite(nextRetryAt) ? Math.max(250, nextRetryAt - Date.now()) : 500;
     const timer = setTimeout(() => void syncPendingVisitsRef.current(), delay);
-    return () => clearTimeout(timer);
+    // Keep pulling remote assignments even when this device has no local queue.
+    const interval = setInterval(() => void syncPendingVisitsRef.current(), 30_000);
+    return () => { clearTimeout(timer); clearInterval(interval); };
   }, [data.syncQueue, loading, networkState.isInternetReachable, queueSignature]);
 
   const save = (updater: (current: AppData) => AppData, change?: { recordType: SyncRecordType; recordId: string; operation?: SyncOperation; payload?: unknown }) => {
