@@ -29,6 +29,7 @@ export default function DeviceActivationScreen() {
   const [activation, setActivation] = useState<{ code: string; expiresAt: Date; qrDataUrl: string } | null>(null);
   const [devices, setDevices] = useState<Device[]>([]);
   const [busy, setBusy] = useState(false);
+  const [connectionNotice, setConnectionNotice] = useState<string | null>(null);
   const [activated, setActivated] = useState<{ representativeId: string; deviceId: string } | null>(null);
 
   const selectedRepresentative = useMemo(() => data.representatives.find((item) => item.id === selectedRep), [data.representatives, selectedRep]);
@@ -56,6 +57,8 @@ export default function DeviceActivationScreen() {
     try {
       const { startOAuthLogin } = await import("@/constants/oauth");
       await startOAuthLogin();
+      setConnectionNotice("تم فتح صفحة تسجيل الدخول السحابي. أكمل اختيار حساب المدير ثم عد إلى التطبيق.");
+      Alert.alert("تم فتح صفحة الربط", "أكمل تسجيل الدخول في المتصفح، ثم عد إلى التطبيق لإتمام الربط.");
       await refreshAuth();
     } catch (error) {
       Alert.alert("تعذر ربط حساب المدير", error instanceof Error ? error.message : "تحقق من الإنترنت ثم حاول مرة أخرى.");
@@ -100,6 +103,7 @@ export default function DeviceActivationScreen() {
   return <ScreenContainer className="px-5" containerClassName="bg-background"><ScrollView contentContainerStyle={{ paddingTop: 18, paddingBottom: 44 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
     <ScreenHeader title="تفعيل المزامنة" subtitle={isManager ? "إصدار رموز الأجهزة وإدارتها" : "ربط جهازك بحساب المندوب"} icon="phonelink-lock" />
     <View className="rounded-2xl bg-primary/10 border border-primary/20 p-4 mb-5 flex-row-reverse items-start gap-3"><MaterialIcons name="cloud-sync" size={24} color="#1257A6" /><Text className="flex-1 text-right text-primary text-sm leading-6">يعمل التطبيق محلياً دون إنترنت. بعد التفعيل، تُرسل التغييرات عند عودة الاتصال ولا يُحذف أي سجل محلي بسبب انقطاع الشبكة.</Text></View>
+    {connectionNotice ? <View className="rounded-2xl bg-success/10 border border-success/25 p-3 mb-4 flex-row-reverse items-center gap-2"><MaterialIcons name="check-circle" size={20} color="#16835B" /><Text className="flex-1 text-right text-success font-bold text-sm">{connectionNotice}</Text></View> : null}
     {isManager ? <>
       {!user ? <View className="rounded-2xl bg-warning/10 border border-warning/30 p-4 mb-4 items-end"><Text className="font-bold text-foreground text-right">ربط حساب المدير المركزي مطلوب</Text><Text className="text-xs text-muted text-right mt-1 leading-5">تسجيل الدخول المحلي يبقى كما هو، لكن إصدار رمز آمن يحتاج اتصال المدير بحساب الخادم مرة واحدة.</Text><Pressable disabled={busy} onPress={connectManager} className="h-12 rounded-xl bg-primary px-5 mt-3 items-center justify-center flex-row-reverse gap-2" style={({ pressed }) => [{ opacity: busy ? 0.55 : pressed ? 0.8 : 1 }]}>{busy ? <ActivityIndicator color="#FFFFFF" /> : <MaterialIcons name="login" size={19} color="#FFFFFF" />}<Text className="text-white font-bold">{busy ? "جاري فتح تسجيل الدخول..." : "ربط حساب المدير"}</Text></Pressable></View> : <View className="rounded-2xl bg-success/10 border border-success/25 p-3 mb-4 flex-row-reverse items-center gap-2"><MaterialIcons name="verified-user" size={20} color="#16835B" /><Text className="flex-1 text-right text-success font-bold">حساب المدير المركزي متصل</Text></View>}
       <View className="rounded-2xl bg-surface border border-border p-4 mb-5"><Text className="font-bold text-foreground text-right mb-2">إصدار رمز لمندوب</Text><Pressable disabled={!user || busy} onPress={() => setRepModal(true)} className="h-14 rounded-2xl border border-border bg-background px-4 flex-row-reverse items-center justify-between"><Text className="font-bold text-foreground">{selectedRepresentative?.name ?? "اختر المندوب"}</Text><MaterialIcons name="keyboard-arrow-down" size={24} color="#102A43" /></Pressable><Pressable disabled={!user || busy} onPress={issueCode} className="h-14 rounded-2xl bg-primary mt-3 items-center justify-center flex-row-reverse gap-2" style={({ pressed }) => [{ opacity: !user || busy ? 0.5 : pressed ? 0.8 : 1 }]}>{busy ? <ActivityIndicator color="#FFFFFF" /> : <MaterialIcons name="qr-code-2" size={21} color="#FFFFFF" />}<Text className="text-white font-bold">{busy ? "جارٍ الإصدار..." : "إنشاء رمز وQR"}</Text></Pressable>{activation ? <View className="mt-4 items-center rounded-2xl bg-background border border-primary/30 p-4"><Text className="text-xs text-muted">أرسل هذا الرمز للمندوب خلال 15 دقيقة</Text><Text selectable className="text-3xl font-bold tracking-[5px] text-primary mt-2">{activation.code}</Text><Image source={{ uri: activation.qrDataUrl }} className="w-52 h-52 mt-3" /><Text className="text-xs text-muted text-center mt-2">يُستخدم QR كطريقة عرض للرمز نفسه ولا يمكن استعماله بعد المرة الأولى.</Text></View> : null}</View>
