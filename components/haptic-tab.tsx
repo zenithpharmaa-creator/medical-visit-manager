@@ -2,9 +2,15 @@ import { BottomTabBarButtonProps } from "@react-navigation/bottom-tabs";
 import { PlatformPressable } from "@react-navigation/elements";
 import * as Haptics from "expo-haptics";
 import { Platform, type ViewStyle } from "react-native";
+import { usePathname } from "expo-router";
 
 export function HapticTab({ style: tabStyle, accessibilityState, ...props }: BottomTabBarButtonProps) {
-  const isActive = accessibilityState?.selected === true;
+  const pathname = usePathname();
+  const label = String(props.accessibilityLabel ?? "");
+  const isSubscreenActive = (label.includes("الإدارة") && /(entities|shared-locations|settings|management|representative|device-activation|sync-history|missing-coordinates|override-reports|rep-location|tasks|plan-approvals)/.test(pathname))
+    || (label.includes("الزيارات") && /(record|visits|map)/.test(pathname))
+    || (label.includes("الخطة") && /(weekly)/.test(pathname));
+  const isActive = accessibilityState?.selected === true || isSubscreenActive;
 
   return (
     <PlatformPressable

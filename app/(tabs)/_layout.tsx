@@ -1,4 +1,4 @@
-import { Tabs, useRouter } from "expo-router";
+import { Tabs, usePathname, useRouter } from "expo-router";
 import type { BottomTabBarButtonProps } from "@react-navigation/bottom-tabs";
 import { Platform, Pressable, Text, useWindowDimensions } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -11,7 +11,8 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
 function ReportsTabButton({ style: tabStyle, accessibilityState }: BottomTabBarButtonProps) {
   const router = useRouter();
-  const isActive = accessibilityState?.selected === true;
+  const pathname = usePathname();
+  const isActive = accessibilityState?.selected === true || pathname.includes("/report");
   const iconColor = isActive ? "#1257A6" : "#64748B";
   return <Pressable onPress={() => router.push("/(tabs)/reports" as never)} accessibilityState={accessibilityState} accessibilityRole="tab" accessibilityLabel="فتح شاشة التقارير" style={({ pressed }) => [tabStyle, { flex: 1, height: "100%", minWidth: 0, paddingTop: 0, paddingBottom: 0, alignItems: "center", justifyContent: "center", borderRadius: 14, backgroundColor: pressed ? "rgba(21,101,192,0.18)" : "transparent" }, isActive && { shadowColor: "#1257A6", shadowOpacity: Platform.OS === "web" ? 0.16 : 0.24, shadowRadius: 5, shadowOffset: { width: 0, height: 2 }, elevation: Platform.OS === "android" ? 4 : 0 }]}>
     <MaterialIcons name="assessment" size={23} color={iconColor} />
@@ -33,7 +34,7 @@ export default function TabLayout() {
       <Tabs.Screen name="record" options={{ title: "تسجيل", tabBarIcon: ({ color }) => <IconSymbol name="location.fill" size={23} color={color} /> }} />
       <Tabs.Screen name="visits" options={{ title: "الزيارات", tabBarIcon: ({ color }) => <IconSymbol name="calendar" size={23} color={color} /> }} />
       <Tabs.Screen name="search" options={{ title: "بحث", tabBarIcon: ({ color }) => <IconSymbol name="magnifyingglass" size={23} color={color} /> }} />
-      <Tabs.Screen name="reports" options={{ href: undefined, title: isManager ? "التقارير" : "التقويم", tabBarButton: isManager ? (props) => <ReportsTabButton {...props} /> : undefined, tabBarIcon: ({ color }) => <IconSymbol name="chart.bar.fill" size={23} color={color} /> }} />
+      <Tabs.Screen name="reports" options={{ href: isManager ? undefined : null, title: "التقارير", tabBarButton: isManager ? (props) => <ReportsTabButton {...props} /> : undefined, tabBarIcon: ({ color }) => <IconSymbol name="chart.bar.fill" size={23} color={color} /> }} />
       <Tabs.Screen name="weekly" options={{ title: "الخطة", tabBarIcon: ({ color }) => <IconSymbol name="calendar" size={23} color={color} /> }} />
       <Tabs.Screen name="tasks" options={{ href: isManager ? undefined : null, title: "المهام", tabBarIcon: ({ color }) => <IconSymbol name="calendar" size={23} color={color} /> }} />
       <Tabs.Screen name="plan-approvals" options={{ href: null, title: "اعتماد الخطط" }} />

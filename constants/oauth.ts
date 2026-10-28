@@ -112,18 +112,13 @@ export async function startOAuthLogin(): Promise<string | null> {
     return null;
   }
 
-  const supported = await Linking.canOpenURL(loginUrl);
-  if (!supported) {
-    console.warn("[OAuth] Cannot open login URL: URL scheme not supported");
-    // 可考虑抛出错误或返回错误状态，让调用方处理
-    return null;
-  }
-
   try {
+    // canOpenURL is unreliable for HTTPS URLs on Android and may return false
+    // even when a browser is installed. Let the OS resolve the URL directly.
     await Linking.openURL(loginUrl);
   } catch (error) {
     console.error("[OAuth] Failed to open login URL:", error);
-    // 可考虑抛出错误让调用方处理
+    throw new Error("تعذر فتح صفحة تسجيل الدخول السحابي. تحقق من اتصال الإنترنت ووجود متصفح على الجهاز.");
   }
 
   // The OAuth callback will reopen the app via deep link.
