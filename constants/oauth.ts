@@ -24,6 +24,10 @@ export const OWNER_OPEN_ID = env.ownerId;
 export const OWNER_NAME = env.ownerName;
 export const API_BASE_URL = env.apiBaseUrl;
 
+// Stable production API used by installed Android/iOS builds. Native apps do
+// not have a browser hostname from which to derive the sandbox API URL.
+export const PRODUCTION_API_BASE_URL = "https://medvisitmgr-nnqhebtu.manus.space";
+
 /**
  * Get the API base URL, deriving from current hostname if not set.
  * Metro runs on 8081, API server runs on 3000.
@@ -45,7 +49,11 @@ export function getApiBaseUrl(): string {
     }
   }
 
-  // Fallback to empty (will use relative URL)
+  // Installed native builds need an absolute URL. A relative `/api/...` URL
+  // is only valid in the web preview and causes Android's Invalid URL error.
+  if (ReactNative.Platform.OS !== "web") return PRODUCTION_API_BASE_URL;
+
+  // Fallback to empty for local web development.
   return "";
 }
 
