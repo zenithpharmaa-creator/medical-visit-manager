@@ -8,6 +8,8 @@ type ApiResponse<T> = {
 };
 
 export async function apiCall<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15000);
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     ...((options.headers as Record<string, string>) || {}),
@@ -43,6 +45,7 @@ export async function apiCall<T>(endpoint: string, options: RequestInit = {}): P
     console.log("[API] Making request...");
     const response = await fetch(url, {
       ...options,
+      signal: options.signal ?? controller.signal,
       headers,
       credentials: "include",
     });
@@ -86,6 +89,8 @@ export async function apiCall<T>(endpoint: string, options: RequestInit = {}): P
       throw error;
     }
     throw new Error("Unknown error occurred");
+  } finally {
+    clearTimeout(timeout);
   }
 }
 

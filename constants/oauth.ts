@@ -8,9 +8,11 @@ const timestamp = bundleId.split(".").pop()?.replace(/^t/, "") ?? "";
 const schemeFromBundleId = `manus${timestamp}`;
 
 const env = {
-  portal: process.env.EXPO_PUBLIC_OAUTH_PORTAL_URL ?? "",
-  server: process.env.EXPO_PUBLIC_OAUTH_SERVER_URL ?? "",
-  appId: process.env.EXPO_PUBLIC_APP_ID ?? "",
+  // GitHub Actions does not receive Manus' private build environment, so the
+  // public OAuth endpoints and project identifier need safe production fallbacks.
+  portal: process.env.EXPO_PUBLIC_OAUTH_PORTAL_URL ?? "https://manus.im",
+  server: process.env.EXPO_PUBLIC_OAUTH_SERVER_URL ?? "https://api.manus.im",
+  appId: process.env.EXPO_PUBLIC_APP_ID ?? "NNqHEBTUKB2ofWRd4AySJk",
   ownerId: process.env.EXPO_PUBLIC_OWNER_OPEN_ID ?? "",
   ownerName: process.env.EXPO_PUBLIC_OWNER_NAME ?? "",
   apiBaseUrl: process.env.EXPO_PUBLIC_API_BASE_URL ?? "",

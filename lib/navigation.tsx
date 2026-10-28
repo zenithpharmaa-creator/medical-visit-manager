@@ -74,7 +74,10 @@ export function NavigationHistoryProvider({ children }: { children: ReactNode })
     navigationRequestRef.current = true;
     navigationStartedAtRef.current = Date.now();
     setIsNavigating(true);
-    navigationFallbackTimerRef.current = setTimeout(finishNavigation, 10000);
+    // Never leave the whole UI blocked if a native screen or a lazy bundle
+    // takes too long. The route can still finish loading after the overlay is
+    // dismissed and the user can retry without losing local data.
+    navigationFallbackTimerRef.current = setTimeout(finishNavigation, 5000);
     try {
       router.push(href as never);
     } catch {

@@ -30,11 +30,15 @@ export function createTRPCClient() {
           return token ? { Authorization: `Bearer ${token}` } : {};
         },
         // Custom fetch to include credentials for cookie-based auth
-        fetch(url, options) {
+        fetch(url, options = {}) {
+          const requestOptions = options ?? {};
+          const controller = new AbortController();
+          const timeout = setTimeout(() => controller.abort(), 15000);
           return fetch(url, {
-            ...options,
+            ...requestOptions,
+            signal: requestOptions.signal ?? controller.signal,
             credentials: "include",
-          });
+          }).finally(() => clearTimeout(timeout));
         },
       }),
     ],
